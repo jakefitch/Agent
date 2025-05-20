@@ -1,0 +1,61 @@
+workflow: vsp_submission
+
+description: >
+  Attempts to submit VSP claim based on EMR invoice. Handles failure by logging reason
+  and exiting cleanly. Assumes EMR navigation map exists in a separate structure file.
+
+steps:
+  - name: start_session
+    description: Launch browser and log into EMR
+    action: call(emr_login)
+    next: navigate_to_invoices
+ 
+  - name: navigate_to_invoices
+    description: Navigate to invoices tab
+    action: call(navigate_to_invoices)
+    next: fill_payor
+
+  - name: fill_payor
+    description: Fill in the payor name with 'vision'
+    action: call(fill_payor_name)
+    next: search_invoices
+
+  - name: search_invoices
+    description: Click the search button to find invoices
+    action: call(click_search_button)
+    next: load_invoice
+
+  - name: load_invoice
+    description: Open the invoice tied to the claim
+    action: call(open_invoice_for_claim)
+    on_fail:
+      - write_note: "[AI Agent] Failed to open invoice for claim ID: {{claim_id}}"
+        exit: true
+    next: attempt_submission
+
+  - name: attempt_submission
+    description: Run modular claim submission function
+    action: call(submit_claim)
+    on_success:
+      - write_note: "[AI Agent] VSP claim submitted successfully."
+    on_fail:
+      - conditions:
+          - if: "auth_not_found"
+            write_note: >
+              [AI Agent] VSP submission failed: no matching authorization found for patient.
+              Criteria used: DOB + last name. Claim left unsubmitted.
+            exit: true
+
+          - if: "refraction_missing"
+            write_note: >
+              [AI Agent] VSP submission failed: required refraction code not found.
+              Claim flagged for manual review.
+            exit: true
+
+          - else:
+            write_note: >
+              [AI Agent] VSP submission failed for unknown reason.
+            exit: true
+
+
+
