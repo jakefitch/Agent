@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 import time
 import os
+import random
 from dotenv import load_dotenv
 from core.logger import get_logger
 from core.stats_tracker import get_stats_tracker
@@ -8,9 +9,13 @@ from core.page_manager import PageManager
 from functools import wraps
 
 def track_function(func):
-    """Decorator to track function success/failure"""
+    """Decorator to track function success/failure and add natural delays"""
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+        # Add a random delay between 0.2 and 1.5 seconds
+        delay = random.uniform(0.2, 1.5)
+        time.sleep(delay)
+        
         try:
             result = func(self, *args, **kwargs)
             get_stats_tracker().track_function_call(func.__name__, True)

@@ -24,7 +24,7 @@ class PatientPage:
         self.handler = handler
         self.base_url = "https://revolutionehr.com/static/#/patients/search"
     
-    @check_alert_modal
+   
     def is_loaded(self):
         """Check if the page is loaded"""
         try:
@@ -57,7 +57,7 @@ class PatientPage:
             self.handler.take_screenshot("Failed to close patient tab")
             raise
 
-    @check_alert_modal
+    
     def click_advanced_search(self):
         """Click the advanced search link on the patient search page."""
         try:
@@ -68,7 +68,7 @@ class PatientPage:
             self.handler.take_screenshot("Failed to click advanced search link")
             raise
 
-    @check_alert_modal
+    
     def search_patient(self, last_name=None, first_name=None, dob=None, address=None, 
                        
                       phone=None, email=None, ssn=None, patient_id=None):
