@@ -2,7 +2,7 @@ from core.playwright_handler import get_handler, close_handler
 from core.stats_analyzer import get_analyzer
 from dotenv import load_dotenv
 import os
-#HI JAKE!!!!!!!
+#HI 
 # Initialize handler as None
 handler = None
 

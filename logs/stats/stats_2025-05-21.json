@@ -1,0 +1,50 @@
+{
+  "functions": {
+    "start": {
+      "calls": 2,
+      "success": 2,
+      "failures": 0,
+      "success_rate": 100.0
+    },
+    "goto": {
+      "calls": 4,
+      "success": 4,
+      "failures": 0,
+      "success_rate": 100.0
+    },
+    "wait_for_selector": {
+      "calls": 8,
+      "success": 8,
+      "failures": 0,
+      "success_rate": 100.0
+    },
+    "fill": {
+      "calls": 4,
+      "success": 4,
+      "failures": 0,
+      "success_rate": 100.0
+    },
+    "click": {
+      "calls": 2,
+      "success": 2,
+      "failures": 0,
+      "success_rate": 100.0
+    },
+    "login": {
+      "calls": 2,
+      "success": 2,
+      "failures": 0,
+      "success_rate": 100.0
+    },
+    "take_screenshot": {
+      "calls": 2,
+      "success": 2,
+      "failures": 0,
+      "success_rate": 100.0
+    }
+  },
+  "total_calls": 24,
+  "total_success": 24,
+  "total_failures": 0,
+  "last_updated": "2025-05-21T11:55:25.481793"
+}

@@ -1,0 +1,872 @@
+2025-05-14 08:30:03,265 - INFO - Starting Playwright session...
+2025-05-14 08:30:06,414 - INFO - Playwright session started successfully
+2025-05-14 08:30:06,417 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:30:11,273 - INFO - Navigation complete
+2025-05-14 08:30:11,275 - INFO - Attempting to log in...
+2025-05-14 08:30:11,275 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:30:11,344 - INFO - Element found
+2025-05-14 08:30:11,347 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:30:11,383 - INFO - Fill successful
+2025-05-14 08:30:11,387 - INFO - Username entered successfully
+2025-05-14 08:30:11,387 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:30:11,423 - INFO - Element found
+2025-05-14 08:30:11,426 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:30:11,470 - INFO - Fill successful
+2025-05-14 08:30:11,474 - INFO - Password entered successfully
+2025-05-14 08:30:11,474 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:30:11,509 - INFO - Element found
+2025-05-14 08:30:11,516 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:30:11,637 - INFO - Click successful
+2025-05-14 08:30:11,641 - INFO - Login button clicked
+2025-05-14 08:30:11,669 - INFO - Login process completed
+2025-05-14 08:30:11,682 - INFO - Navigating to invoices dashboard...
+2025-05-14 08:30:11,682 - INFO - Navigating to: https://revolutionehr.com/static/#/accounting/invoices/dashboard
+2025-05-14 08:30:11,748 - INFO - Navigation complete
+2025-05-14 08:30:11,753 - INFO - Waiting for element: [data-test-id="invoiceDashboard"]
+2025-05-14 08:30:21,783 - ERROR - Element not found: Locator.wait_for: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("[data-test-id=\"invoiceDashboard\"]") to be visible
+
+2025-05-14 08:30:21,996 - ERROR - Element not found [Screenshot: logs/screenshots/error_20250514_083021.png]
+2025-05-14 08:30:22,003 - ERROR - Failed to navigate to invoices dashboard: Locator.wait_for: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("[data-test-id=\"invoiceDashboard\"]") to be visible
+
+2025-05-14 08:30:22,235 - ERROR - Failed to navigate to invoices dashboard [Screenshot: logs/screenshots/error_20250514_083022.png]
+2025-05-14 08:30:22,238 - INFO - Closing Playwright session...
+2025-05-14 08:30:22,460 - INFO - Playwright session closed
+2025-05-14 08:41:53,140 - INFO - Starting Playwright session...
+2025-05-14 08:41:54,762 - INFO - Playwright session started successfully
+2025-05-14 08:41:54,769 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:41:59,433 - INFO - Navigation complete
+2025-05-14 08:41:59,439 - INFO - Attempting to log in...
+2025-05-14 08:41:59,440 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:41:59,524 - INFO - Element found
+2025-05-14 08:41:59,529 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:41:59,564 - INFO - Fill successful
+2025-05-14 08:41:59,571 - INFO - Username entered successfully
+2025-05-14 08:41:59,571 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:41:59,599 - INFO - Element found
+2025-05-14 08:41:59,603 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:41:59,634 - INFO - Fill successful
+2025-05-14 08:41:59,640 - INFO - Password entered successfully
+2025-05-14 08:41:59,640 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:41:59,669 - INFO - Element found
+2025-05-14 08:41:59,675 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:41:59,784 - INFO - Click successful
+2025-05-14 08:41:59,791 - INFO - Login button clicked
+2025-05-14 08:41:59,820 - INFO - Login process completed
+2025-05-14 08:41:59,830 - INFO - Navigating to invoices dashboard...
+2025-05-14 08:41:59,830 - INFO - Navigating to: https://revolutionehr.com/static/#/accounting/invoices/dashboard
+2025-05-14 08:41:59,886 - INFO - Navigation complete
+2025-05-14 08:41:59,891 - INFO - Waiting for element: [data-test-id="invoiceDashboard"]
+2025-05-14 08:42:09,912 - ERROR - Element not found: Locator.wait_for: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("[data-test-id=\"invoiceDashboard\"]") to be visible
+
+2025-05-14 08:42:10,155 - ERROR - Element not found [Screenshot: logs/screenshots/error_20250514_084209.png]
+2025-05-14 08:42:10,162 - ERROR - Failed to navigate to invoices dashboard: Locator.wait_for: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("[data-test-id=\"invoiceDashboard\"]") to be visible
+
+2025-05-14 08:42:10,360 - ERROR - Failed to navigate to invoices dashboard [Screenshot: logs/screenshots/error_20250514_084210.png]
+2025-05-14 08:42:10,365 - INFO - Closing Playwright session...
+2025-05-14 08:42:10,549 - INFO - Playwright session closed
+2025-05-14 08:47:47,795 - INFO - Starting Playwright session...
+2025-05-14 08:47:49,111 - INFO - Playwright session started successfully
+2025-05-14 08:47:49,118 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:47:53,496 - INFO - Navigation complete
+2025-05-14 08:47:53,502 - INFO - Attempting to log in...
+2025-05-14 08:47:53,502 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:47:53,575 - INFO - Element found
+2025-05-14 08:47:53,581 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:47:53,612 - INFO - Fill successful
+2025-05-14 08:47:53,617 - INFO - Username entered successfully
+2025-05-14 08:47:53,617 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:47:53,644 - INFO - Element found
+2025-05-14 08:47:53,648 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:47:53,682 - INFO - Fill successful
+2025-05-14 08:47:53,687 - INFO - Password entered successfully
+2025-05-14 08:47:53,687 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:47:53,725 - INFO - Element found
+2025-05-14 08:47:53,731 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:47:53,866 - INFO - Click successful
+2025-05-14 08:47:53,874 - INFO - Login button clicked
+2025-05-14 08:47:53,908 - INFO - Login process completed
+2025-05-14 08:49:53,356 - INFO - Starting Playwright session...
+2025-05-14 08:49:54,649 - INFO - Playwright session started successfully
+2025-05-14 08:49:54,655 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:49:58,415 - INFO - Navigation complete
+2025-05-14 08:49:58,423 - INFO - Attempting to log in...
+2025-05-14 08:49:58,424 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:49:58,476 - INFO - Element found
+2025-05-14 08:49:58,480 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:49:58,507 - INFO - Fill successful
+2025-05-14 08:49:58,511 - INFO - Username entered successfully
+2025-05-14 08:49:58,511 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:49:58,529 - INFO - Element found
+2025-05-14 08:49:58,533 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:49:58,556 - INFO - Fill successful
+2025-05-14 08:49:58,559 - INFO - Password entered successfully
+2025-05-14 08:49:58,560 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:49:58,578 - INFO - Element found
+2025-05-14 08:49:58,582 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:49:58,648 - INFO - Click successful
+2025-05-14 08:49:58,652 - INFO - Login button clicked
+2025-05-14 08:49:58,667 - INFO - Login process completed
+2025-05-14 08:51:44,538 - INFO - Starting Playwright session...
+2025-05-14 08:51:45,765 - INFO - Playwright session started successfully
+2025-05-14 08:51:45,774 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:51:49,646 - INFO - Navigation complete
+2025-05-14 08:51:49,655 - INFO - Attempting to log in...
+2025-05-14 08:51:49,656 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:51:49,708 - INFO - Element found
+2025-05-14 08:51:49,712 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:51:49,738 - INFO - Fill successful
+2025-05-14 08:51:49,742 - INFO - Username entered successfully
+2025-05-14 08:51:49,742 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:51:49,759 - INFO - Element found
+2025-05-14 08:51:49,763 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:51:49,784 - INFO - Fill successful
+2025-05-14 08:51:49,788 - INFO - Password entered successfully
+2025-05-14 08:51:49,788 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:51:49,806 - INFO - Element found
+2025-05-14 08:51:49,811 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:51:49,883 - INFO - Click successful
+2025-05-14 08:51:49,886 - INFO - Login button clicked
+2025-05-14 08:51:49,902 - INFO - Login process completed
+2025-05-14 08:54:12,829 - INFO - Starting Playwright session...
+2025-05-14 08:54:14,080 - INFO - Playwright session started successfully
+2025-05-14 08:54:14,087 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:54:17,988 - INFO - Navigation complete
+2025-05-14 08:54:17,997 - INFO - Attempting to log in...
+2025-05-14 08:54:17,997 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:54:18,049 - INFO - Element found
+2025-05-14 08:54:18,053 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:54:18,080 - INFO - Fill successful
+2025-05-14 08:54:18,083 - INFO - Username entered successfully
+2025-05-14 08:54:18,083 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:54:18,105 - INFO - Element found
+2025-05-14 08:54:18,110 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:54:18,133 - INFO - Fill successful
+2025-05-14 08:54:18,137 - INFO - Password entered successfully
+2025-05-14 08:54:18,137 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:54:18,162 - INFO - Element found
+2025-05-14 08:54:18,165 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:54:18,235 - INFO - Click successful
+2025-05-14 08:54:18,239 - INFO - Login button clicked
+2025-05-14 08:54:18,254 - INFO - Login process completed
+2025-05-14 08:55:44,188 - INFO - Starting Playwright session...
+2025-05-14 08:55:45,507 - INFO - Playwright session started successfully
+2025-05-14 08:55:45,513 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:55:49,437 - INFO - Navigation complete
+2025-05-14 08:55:49,447 - INFO - Attempting to log in...
+2025-05-14 08:55:49,447 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:55:49,500 - INFO - Element found
+2025-05-14 08:55:49,504 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:55:49,529 - INFO - Fill successful
+2025-05-14 08:55:49,533 - INFO - Username entered successfully
+2025-05-14 08:55:49,533 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:55:49,553 - INFO - Element found
+2025-05-14 08:55:49,556 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:55:49,579 - INFO - Fill successful
+2025-05-14 08:55:49,583 - INFO - Password entered successfully
+2025-05-14 08:55:49,583 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:55:49,600 - INFO - Element found
+2025-05-14 08:55:49,604 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:55:49,716 - INFO - Click successful
+2025-05-14 08:55:49,722 - INFO - Login button clicked
+2025-05-14 08:55:49,749 - INFO - Login process completed
+2025-05-14 08:56:51,190 - INFO - Starting Playwright session...
+2025-05-14 08:56:52,463 - INFO - Playwright session started successfully
+2025-05-14 08:56:52,471 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:56:56,375 - INFO - Navigation complete
+2025-05-14 08:56:56,382 - INFO - Attempting to log in...
+2025-05-14 08:56:56,383 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:56:56,438 - INFO - Element found
+2025-05-14 08:56:56,442 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:56:56,468 - INFO - Fill successful
+2025-05-14 08:56:56,472 - INFO - Username entered successfully
+2025-05-14 08:56:56,472 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:56:56,491 - INFO - Element found
+2025-05-14 08:56:56,495 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:56:56,518 - INFO - Fill successful
+2025-05-14 08:56:56,521 - INFO - Password entered successfully
+2025-05-14 08:56:56,521 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:56:56,543 - INFO - Element found
+2025-05-14 08:56:56,548 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:56:56,618 - INFO - Click successful
+2025-05-14 08:56:56,622 - INFO - Login button clicked
+2025-05-14 08:56:56,639 - INFO - Login process completed
+2025-05-14 08:58:24,211 - INFO - Starting Playwright session...
+2025-05-14 08:58:25,455 - INFO - Playwright session started successfully
+2025-05-14 08:58:25,462 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 08:58:29,371 - INFO - Navigation complete
+2025-05-14 08:58:29,378 - INFO - Attempting to log in...
+2025-05-14 08:58:29,378 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 08:58:29,430 - INFO - Element found
+2025-05-14 08:58:29,433 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 08:58:29,458 - INFO - Fill successful
+2025-05-14 08:58:29,463 - INFO - Username entered successfully
+2025-05-14 08:58:29,463 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 08:58:29,481 - INFO - Element found
+2025-05-14 08:58:29,484 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 08:58:29,506 - INFO - Fill successful
+2025-05-14 08:58:29,510 - INFO - Password entered successfully
+2025-05-14 08:58:29,511 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 08:58:29,528 - INFO - Element found
+2025-05-14 08:58:29,532 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 08:58:29,605 - INFO - Click successful
+2025-05-14 08:58:29,610 - INFO - Login button clicked
+2025-05-14 08:58:29,625 - INFO - Login process completed
+2025-05-14 08:59:13,618 - INFO - Navigating to invoices dashboard...
+2025-05-14 08:59:13,619 - INFO - Navigating to: https://revolutionehr.com/static/#/accounting/invoices/dashboard
+2025-05-14 08:59:13,669 - INFO - Navigation complete
+2025-05-14 08:59:13,670 - INFO - Waiting for element: [data-test-id="invoiceDashboardReceiveCollectionsPaymentButton"]
+2025-05-14 08:59:14,053 - INFO - Element found
+2025-05-14 08:59:14,054 - INFO - Successfully navigated to invoices dashboard
+2025-05-14 09:02:39,909 - INFO - Setting start date: 05/01/2025
+2025-05-14 09:02:39,910 - INFO - Filling field: #date_start
+2025-05-14 09:03:09,933 - ERROR - Fill failed: Locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#date_start")
+
+2025-05-14 09:03:10,438 - ERROR - Fill failed [Screenshot: logs/screenshots/error_20250514_090309.png]
+2025-05-14 09:03:10,439 - ERROR - Failed to set start date: Locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#date_start")
+
+2025-05-14 09:03:10,768 - ERROR - Failed to set start date [Screenshot: logs/screenshots/error_20250514_090310.png]
+2025-05-14 09:05:17,230 - INFO - Setting start date: 05/01/2025
+2025-05-14 09:05:17,230 - INFO - Filling field: #date_start
+2025-05-14 09:05:47,248 - ERROR - Fill failed: Locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#date_start")
+
+2025-05-14 09:05:47,465 - ERROR - Fill failed [Screenshot: logs/screenshots/error_20250514_090547.png]
+2025-05-14 09:05:47,466 - ERROR - Failed to set start date: Locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#date_start")
+
+2025-05-14 09:05:47,685 - ERROR - Failed to set start date [Screenshot: logs/screenshots/error_20250514_090547.png]
+2025-05-14 09:06:41,579 - INFO - Starting Playwright session...
+2025-05-14 09:06:42,871 - INFO - Playwright session started successfully
+2025-05-14 09:06:42,878 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 09:06:47,027 - INFO - Navigation complete
+2025-05-14 09:06:47,032 - INFO - Attempting to log in...
+2025-05-14 09:06:47,032 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 09:06:47,081 - INFO - Element found
+2025-05-14 09:06:47,084 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 09:06:47,111 - INFO - Fill successful
+2025-05-14 09:06:47,115 - INFO - Username entered successfully
+2025-05-14 09:06:47,116 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 09:06:47,133 - INFO - Element found
+2025-05-14 09:06:47,136 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 09:06:47,158 - INFO - Fill successful
+2025-05-14 09:06:47,163 - INFO - Password entered successfully
+2025-05-14 09:06:47,163 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 09:06:47,182 - INFO - Element found
+2025-05-14 09:06:47,185 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 09:06:47,256 - INFO - Click successful
+2025-05-14 09:06:47,260 - INFO - Login button clicked
+2025-05-14 09:06:47,275 - INFO - Login process completed
+2025-05-14 09:07:22,994 - INFO - Starting Playwright session...
+2025-05-14 09:07:24,351 - INFO - Playwright session started successfully
+2025-05-14 09:07:24,366 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 09:07:28,335 - INFO - Navigation complete
+2025-05-14 09:07:28,343 - INFO - Attempting to log in...
+2025-05-14 09:07:28,344 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 09:07:28,399 - INFO - Element found
+2025-05-14 09:07:28,402 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 09:07:28,430 - INFO - Fill successful
+2025-05-14 09:07:28,435 - INFO - Username entered successfully
+2025-05-14 09:07:28,435 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 09:07:28,453 - INFO - Element found
+2025-05-14 09:07:28,457 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 09:07:28,480 - INFO - Fill successful
+2025-05-14 09:07:28,484 - INFO - Password entered successfully
+2025-05-14 09:07:28,484 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 09:07:28,502 - INFO - Element found
+2025-05-14 09:07:28,506 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 09:07:28,574 - INFO - Click successful
+2025-05-14 09:07:28,580 - INFO - Login button clicked
+2025-05-14 09:07:28,595 - INFO - Login process completed
+2025-05-14 09:08:26,182 - INFO - Navigating to invoices dashboard...
+2025-05-14 09:08:26,183 - INFO - Navigating to: https://revolutionehr.com/static/#/accounting/invoices/dashboard
+2025-05-14 09:08:26,249 - INFO - Navigation complete
+2025-05-14 09:08:26,250 - INFO - Waiting for element: [data-test-id="invoiceDashboardReceiveCollectionsPaymentButton"]
+2025-05-14 09:08:26,637 - INFO - Element found
+2025-05-14 09:08:26,637 - INFO - Successfully navigated to invoices dashboard
+2025-05-14 09:08:42,132 - INFO - Setting start date: 05/01/2025
+2025-05-14 09:08:42,133 - INFO - Filling field: #ej2-datepicker_8_input
+2025-05-14 09:08:42,187 - INFO - Fill successful
+2025-05-14 09:08:42,188 - INFO - Start date set successfully
+2025-05-14 10:20:01,821 - INFO - Starting Playwright session...
+2025-05-14 10:20:03,554 - INFO - Playwright session started successfully
+2025-05-14 10:20:03,568 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:20:07,500 - INFO - Navigation complete
+2025-05-14 10:20:07,504 - INFO - Attempting to log in...
+2025-05-14 10:20:07,504 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:20:07,557 - INFO - Element found
+2025-05-14 10:20:07,562 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:20:07,595 - INFO - Fill successful
+2025-05-14 10:20:07,599 - INFO - Username entered successfully
+2025-05-14 10:20:07,600 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:20:07,616 - INFO - Element found
+2025-05-14 10:20:07,620 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:20:07,645 - INFO - Fill successful
+2025-05-14 10:20:07,649 - INFO - Password entered successfully
+2025-05-14 10:20:07,650 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:20:07,668 - INFO - Element found
+2025-05-14 10:20:07,671 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:20:07,743 - INFO - Click successful
+2025-05-14 10:20:07,747 - INFO - Login button clicked
+2025-05-14 10:20:07,766 - INFO - Login process completed
+2025-05-14 10:21:59,962 - INFO - Navigating to invoices dashboard...
+2025-05-14 10:21:59,963 - INFO - Navigating to: https://revolutionehr.com/static/#/accounting/invoices/dashboard
+2025-05-14 10:22:00,023 - INFO - Navigation complete
+2025-05-14 10:22:00,024 - INFO - Waiting for element: [data-test-id="invoiceDashboardReceiveCollectionsPaymentButton"]
+2025-05-14 10:22:00,398 - INFO - Element found
+2025-05-14 10:22:00,399 - INFO - Successfully navigated to invoices dashboard
+2025-05-14 10:22:35,690 - INFO - Setting start date: 2024-01-01
+2025-05-14 10:22:35,690 - INFO - Filling field: #ej2-datepicker_8_input
+2025-05-14 10:22:35,737 - INFO - Fill successful
+2025-05-14 10:22:35,738 - INFO - Start date set successfully
+2025-05-14 10:22:42,828 - INFO - Setting end date: 2024-03-20
+2025-05-14 10:22:42,828 - INFO - Filling field: #ej2-datepicker_9_input
+2025-05-14 10:22:42,877 - INFO - Fill successful
+2025-05-14 10:22:42,879 - INFO - End date set successfully
+2025-05-14 10:23:01,396 - INFO - Entering invoice number: 12345
+2025-05-14 10:23:01,452 - INFO - Invoice number entered successfully
+2025-05-14 10:23:06,791 - INFO - Entering payor name: Vision
+2025-05-14 10:23:06,838 - INFO - Payor name entered successfully
+2025-05-14 10:23:16,895 - INFO - Selecting location: Borger
+2025-05-14 10:23:16,895 - INFO - Clicking element: [data-test-id="invoicesLocationFormGroup"] span
+2025-05-14 10:23:17,430 - ERROR - Click failed: Locator.click: Error: strict mode violation: locator("[data-test-id=\"invoicesLocationFormGroup\"] span") resolved to 3 elements:
+    1) <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> aka get_by_role("combobox", name="Amarillo")
+    2) <span role="button" aria-label="close" class="e-clear-icon e-clear-icon-hide e-clear-icon-show"></span> aka locator("[data-test-id=\"invoicesLocationFormGroup\"]").get_by_role("button", name="close")
+    3) <span class="e-input-group-icon e-ddl-icon e-search-icon"></span> aka locator("[data-test-id=\"invoicesLocationFormGroup\"] span").nth(2)
+
+Call log:
+  - waiting for locator("[data-test-id=\"invoicesLocationFormGroup\"] span")
+
+2025-05-14 10:23:17,786 - ERROR - Click failed [Screenshot: logs/screenshots/error_20250514_102317.png]
+2025-05-14 10:23:17,788 - ERROR - Failed to select location: Locator.click: Error: strict mode violation: locator("[data-test-id=\"invoicesLocationFormGroup\"] span") resolved to 3 elements:
+    1) <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> aka get_by_role("combobox", name="Amarillo")
+    2) <span role="button" aria-label="close" class="e-clear-icon e-clear-icon-hide e-clear-icon-show"></span> aka locator("[data-test-id=\"invoicesLocationFormGroup\"]").get_by_role("button", name="close")
+    3) <span class="e-input-group-icon e-ddl-icon e-search-icon"></span> aka locator("[data-test-id=\"invoicesLocationFormGroup\"] span").nth(2)
+
+Call log:
+  - waiting for locator("[data-test-id=\"invoicesLocationFormGroup\"] span")
+
+2025-05-14 10:23:18,084 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_102317.png]
+2025-05-14 10:25:34,323 - INFO - Starting Playwright session...
+2025-05-14 10:25:35,558 - INFO - Playwright session started successfully
+2025-05-14 10:25:35,566 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:25:39,526 - INFO - Navigation complete
+2025-05-14 10:25:39,536 - INFO - Attempting to log in...
+2025-05-14 10:25:39,537 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:25:39,591 - INFO - Element found
+2025-05-14 10:25:39,595 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:25:39,621 - INFO - Fill successful
+2025-05-14 10:25:39,624 - INFO - Username entered successfully
+2025-05-14 10:25:39,624 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:25:39,644 - INFO - Element found
+2025-05-14 10:25:39,648 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:25:39,671 - INFO - Fill successful
+2025-05-14 10:25:39,674 - INFO - Password entered successfully
+2025-05-14 10:25:39,674 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:25:39,694 - INFO - Element found
+2025-05-14 10:25:39,697 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:25:39,780 - INFO - Click successful
+2025-05-14 10:25:39,784 - INFO - Login button clicked
+2025-05-14 10:25:39,801 - INFO - Login process completed
+2025-05-14 10:26:13,380 - INFO - Starting invoice search
+2025-05-14 10:26:13,381 - INFO - Setting start date: 2024-01-01
+2025-05-14 10:26:13,381 - INFO - Filling field: #ej2-datepicker_8_input
+2025-05-14 10:26:13,425 - INFO - Fill successful
+2025-05-14 10:26:13,425 - INFO - Start date set successfully
+2025-05-14 10:26:13,426 - INFO - Setting end date: 2024-03-20
+2025-05-14 10:26:13,426 - INFO - Filling field: #ej2-datepicker_9_input
+2025-05-14 10:26:13,475 - INFO - Fill successful
+2025-05-14 10:26:13,476 - INFO - End date set successfully
+2025-05-14 10:26:13,476 - INFO - Entering invoice number: 12345
+2025-05-14 10:26:13,534 - INFO - Invoice number entered successfully
+2025-05-14 10:26:13,534 - INFO - Entering payor name: Vision
+2025-05-14 10:26:13,559 - INFO - Payor name entered successfully
+2025-05-14 10:26:13,559 - INFO - Selecting location: Borger
+2025-05-14 10:26:13,623 - INFO - Clicking element: option:text-is('Borger')
+2025-05-14 10:26:43,635 - ERROR - Click failed: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("option:text-is('Borger')")
+
+2025-05-14 10:26:43,858 - ERROR - Click failed [Screenshot: logs/screenshots/error_20250514_102643.png]
+2025-05-14 10:26:43,859 - ERROR - Failed to select location: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("option:text-is('Borger')")
+
+2025-05-14 10:26:44,076 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_102643.png]
+2025-05-14 10:26:44,077 - ERROR - Failed to complete invoice search: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("option:text-is('Borger')")
+
+2025-05-14 10:26:44,293 - ERROR - Failed to complete invoice search [Screenshot: logs/screenshots/error_20250514_102644.png]
+2025-05-14 10:28:34,097 - INFO - Starting Playwright session...
+2025-05-14 10:28:35,416 - INFO - Playwright session started successfully
+2025-05-14 10:28:35,424 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:28:39,194 - INFO - Navigation complete
+2025-05-14 10:28:39,203 - INFO - Attempting to log in...
+2025-05-14 10:28:39,204 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:28:39,259 - INFO - Element found
+2025-05-14 10:28:39,263 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:28:39,289 - INFO - Fill successful
+2025-05-14 10:28:39,292 - INFO - Username entered successfully
+2025-05-14 10:28:39,293 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:28:39,313 - INFO - Element found
+2025-05-14 10:28:39,316 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:28:39,339 - INFO - Fill successful
+2025-05-14 10:28:39,343 - INFO - Password entered successfully
+2025-05-14 10:28:39,343 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:28:39,362 - INFO - Element found
+2025-05-14 10:28:39,365 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:28:39,446 - INFO - Click successful
+2025-05-14 10:28:39,450 - INFO - Login button clicked
+2025-05-14 10:28:39,465 - INFO - Login process completed
+2025-05-14 10:29:02,202 - INFO - Starting invoice search
+2025-05-14 10:29:02,202 - INFO - Setting start date: 2024-01-01
+2025-05-14 10:29:02,202 - INFO - Filling field: #ej2-datepicker_8_input
+2025-05-14 10:29:02,247 - INFO - Fill successful
+2025-05-14 10:29:02,248 - INFO - Start date set successfully
+2025-05-14 10:29:02,248 - INFO - Setting end date: 2024-03-20
+2025-05-14 10:29:02,249 - INFO - Filling field: #ej2-datepicker_9_input
+2025-05-14 10:29:02,286 - INFO - Fill successful
+2025-05-14 10:29:02,287 - INFO - End date set successfully
+2025-05-14 10:29:02,287 - INFO - Entering invoice number: 12345
+2025-05-14 10:29:02,326 - INFO - Invoice number entered successfully
+2025-05-14 10:29:02,326 - INFO - Entering payor name: Vision
+2025-05-14 10:29:02,353 - INFO - Payor name entered successfully
+2025-05-14 10:29:02,353 - INFO - Selecting location: Borger
+2025-05-14 10:29:32,369 - ERROR - Failed to select location: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("option", name="Borger")
+
+2025-05-14 10:29:32,591 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_102932.png]
+2025-05-14 10:29:32,592 - ERROR - Failed to complete invoice search: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("option", name="Borger")
+
+2025-05-14 10:29:32,812 - ERROR - Failed to complete invoice search [Screenshot: logs/screenshots/error_20250514_102932.png]
+2025-05-14 10:30:27,238 - INFO - Starting Playwright session...
+2025-05-14 10:30:28,804 - INFO - Playwright session started successfully
+2025-05-14 10:30:28,811 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:30:32,777 - INFO - Navigation complete
+2025-05-14 10:30:32,786 - INFO - Attempting to log in...
+2025-05-14 10:30:32,786 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:30:32,842 - INFO - Element found
+2025-05-14 10:30:32,848 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:30:32,881 - INFO - Fill successful
+2025-05-14 10:30:32,885 - INFO - Username entered successfully
+2025-05-14 10:30:32,885 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:30:32,914 - INFO - Element found
+2025-05-14 10:30:32,919 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:30:32,951 - INFO - Fill successful
+2025-05-14 10:30:32,957 - INFO - Password entered successfully
+2025-05-14 10:30:32,957 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:30:32,982 - INFO - Element found
+2025-05-14 10:30:32,987 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:30:33,071 - INFO - Click successful
+2025-05-14 10:30:33,074 - INFO - Login button clicked
+2025-05-14 10:30:33,093 - INFO - Login process completed
+2025-05-14 10:30:40,629 - INFO - Selecting location: Borger
+2025-05-14 10:30:40,798 - INFO - Location selected successfully
+2025-05-14 10:30:48,061 - INFO - Selecting location: Borger
+2025-05-14 10:30:48,197 - INFO - Location selected successfully
+2025-05-14 10:34:12,057 - INFO - Starting Playwright session...
+2025-05-14 10:34:13,760 - INFO - Playwright session started successfully
+2025-05-14 10:34:13,768 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:34:17,973 - INFO - Navigation complete
+2025-05-14 10:34:17,983 - INFO - Attempting to log in...
+2025-05-14 10:34:17,984 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:34:18,038 - INFO - Element found
+2025-05-14 10:34:18,042 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:34:18,069 - INFO - Fill successful
+2025-05-14 10:34:18,073 - INFO - Username entered successfully
+2025-05-14 10:34:18,073 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:34:18,092 - INFO - Element found
+2025-05-14 10:34:18,095 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:34:18,118 - INFO - Fill successful
+2025-05-14 10:34:18,123 - INFO - Password entered successfully
+2025-05-14 10:34:18,123 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:34:18,143 - INFO - Element found
+2025-05-14 10:34:18,147 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:34:18,217 - INFO - Click successful
+2025-05-14 10:34:18,221 - INFO - Login button clicked
+2025-05-14 10:34:18,234 - INFO - Login process completed
+2025-05-14 10:38:28,553 - INFO - Selecting location: Borger
+2025-05-14 10:38:28,695 - INFO - Waiting for element: ul.e-listbox
+2025-05-14 10:38:33,712 - ERROR - Element not found: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("ul.e-listbox") to be visible
+
+2025-05-14 10:38:34,050 - ERROR - Element not found [Screenshot: logs/screenshots/error_20250514_103833.png]
+2025-05-14 10:38:34,051 - ERROR - Failed to select location: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("ul.e-listbox") to be visible
+
+2025-05-14 10:38:34,386 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_103834.png]
+2025-05-14 10:41:31,649 - INFO - Starting Playwright session...
+2025-05-14 10:41:33,114 - INFO - Playwright session started successfully
+2025-05-14 10:41:33,121 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:41:36,972 - INFO - Navigation complete
+2025-05-14 10:41:36,979 - INFO - Attempting to log in...
+2025-05-14 10:41:36,980 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:41:37,032 - INFO - Element found
+2025-05-14 10:41:37,035 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:41:37,061 - INFO - Fill successful
+2025-05-14 10:41:37,065 - INFO - Username entered successfully
+2025-05-14 10:41:37,065 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:41:37,082 - INFO - Element found
+2025-05-14 10:41:37,086 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:41:37,111 - INFO - Fill successful
+2025-05-14 10:41:37,115 - INFO - Password entered successfully
+2025-05-14 10:41:37,115 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:41:37,134 - INFO - Element found
+2025-05-14 10:41:37,137 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:41:37,222 - INFO - Click successful
+2025-05-14 10:41:37,227 - INFO - Login button clicked
+2025-05-14 10:41:37,242 - INFO - Login process completed
+2025-05-14 10:43:28,446 - INFO - Selecting location: Borger
+2025-05-14 10:43:28,605 - ERROR - Failed to select location: Locator.click: Error: strict mode violation: locator("[formcontrolname=\"locationId\"]") resolved to 2 elements:
+    1) <ejs-dropdownlist tabindex="-1" aria-disabled="false" id="ej2_dropdownlist_4" placeholder="All Locations" formcontrolname="locationId" class="ng-untouched ng-pristine ng-valid e-control e-dropdownlist e-lib">…</ejs-dropdownlist> aka locator("#ej2_dropdownlist_4")
+    2) <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> aka get_by_role("combobox", name="Amarillo")
+
+Call log:
+  - waiting for locator("[formcontrolname=\"locationId\"]")
+
+2025-05-14 10:43:28,868 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_104328.png]
+2025-05-14 10:47:18,788 - INFO - Starting Playwright session...
+2025-05-14 10:47:20,101 - INFO - Playwright session started successfully
+2025-05-14 10:47:20,106 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:47:24,372 - INFO - Navigation complete
+2025-05-14 10:47:24,385 - INFO - Attempting to log in...
+2025-05-14 10:47:24,386 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:47:24,480 - INFO - Element found
+2025-05-14 10:47:24,486 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:47:24,526 - INFO - Fill successful
+2025-05-14 10:47:24,533 - INFO - Username entered successfully
+2025-05-14 10:47:24,534 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:47:24,562 - INFO - Element found
+2025-05-14 10:47:24,568 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:47:24,604 - INFO - Fill successful
+2025-05-14 10:47:24,610 - INFO - Password entered successfully
+2025-05-14 10:47:24,610 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:47:24,630 - INFO - Element found
+2025-05-14 10:47:24,633 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:47:24,705 - INFO - Click successful
+2025-05-14 10:47:24,709 - INFO - Login button clicked
+2025-05-14 10:47:24,724 - INFO - Login process completed
+2025-05-14 10:47:42,227 - INFO - Selecting location: Borger
+2025-05-14 10:47:42,356 - ERROR - Failed to select location: Locator.fill: Error: Element is not an <input>, <textarea>, <select> or [contenteditable] and does not have a role allowing [aria-readonly]
+Call log:
+  - waiting for locator("[data-test-id=\"invoicesLocationFormGroup\"]")
+  -     - locator resolved to <div class="form-group" data-test-id="invoicesLocationFormGroup">…</div>
+  -     - fill("Borger")
+  -   - attempting fill action
+  -     - waiting for element to be visible, enabled and editable
+
+2025-05-14 10:47:42,613 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_104742.png]
+2025-05-14 10:48:42,668 - INFO - Starting Playwright session...
+2025-05-14 10:48:43,945 - INFO - Playwright session started successfully
+2025-05-14 10:48:43,953 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:48:48,348 - INFO - Navigation complete
+2025-05-14 10:48:48,360 - INFO - Attempting to log in...
+2025-05-14 10:48:48,361 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:48:48,418 - INFO - Element found
+2025-05-14 10:48:48,422 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:48:48,448 - INFO - Fill successful
+2025-05-14 10:48:48,452 - INFO - Username entered successfully
+2025-05-14 10:48:48,452 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:48:48,470 - INFO - Element found
+2025-05-14 10:48:48,473 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:48:48,498 - INFO - Fill successful
+2025-05-14 10:48:48,502 - INFO - Password entered successfully
+2025-05-14 10:48:48,502 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:48:48,520 - INFO - Element found
+2025-05-14 10:48:48,524 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:48:48,590 - INFO - Click successful
+2025-05-14 10:48:48,595 - INFO - Login button clicked
+2025-05-14 10:48:48,612 - INFO - Login process completed
+2025-05-14 10:49:31,623 - INFO - Selecting location: Borger
+2025-05-14 10:50:01,665 - ERROR - Failed to select location: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("[data-test-id=\"invoicesLocationFormGroup\"] input")
+  -     - locator resolved to <input readonly type="text" tabindex="-1" role="combobox" class="e-input" value="Amarillo " aria-expanded="false" aria-label="dropdownlist" placeholder="All Locations"/>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> intercepts pointer events
+  -     - retrying click action
+  -       - waiting 100ms
+  -     58 × waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+
+2025-05-14 10:50:01,894 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_105001.png]
+2025-05-14 10:54:13,818 - INFO - Starting Playwright session...
+2025-05-14 10:54:15,142 - INFO - Playwright session started successfully
+2025-05-14 10:54:15,149 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:54:19,237 - INFO - Navigation complete
+2025-05-14 10:54:19,244 - INFO - Attempting to log in...
+2025-05-14 10:54:19,245 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:54:19,298 - INFO - Element found
+2025-05-14 10:54:19,301 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:54:19,326 - INFO - Fill successful
+2025-05-14 10:54:19,330 - INFO - Username entered successfully
+2025-05-14 10:54:19,331 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:54:19,351 - INFO - Element found
+2025-05-14 10:54:19,355 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:54:19,379 - INFO - Fill successful
+2025-05-14 10:54:19,385 - INFO - Password entered successfully
+2025-05-14 10:54:19,385 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:54:19,412 - INFO - Element found
+2025-05-14 10:54:19,417 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:54:19,495 - INFO - Click successful
+2025-05-14 10:54:19,499 - INFO - Login button clicked
+2025-05-14 10:54:19,513 - INFO - Login process completed
+2025-05-14 10:54:34,758 - INFO - Selecting location: Borger
+2025-05-14 10:54:34,888 - ERROR - Failed to select location: Locator.click: Error: strict mode violation: locator("[formcontrolname=\"locationId\"]") resolved to 2 elements:
+    1) <ejs-dropdownlist tabindex="-1" aria-disabled="false" id="ej2_dropdownlist_4" placeholder="All Locations" formcontrolname="locationId" class="ng-untouched ng-pristine ng-valid e-control e-dropdownlist e-lib">…</ejs-dropdownlist> aka locator("#ej2_dropdownlist_4")
+    2) <span tabindex="0" role="combobox" aria-disabled="false" aria-expanded="false" aria-label="dropdownlist" formcontrolname="locationId" aria-describedby="ej2_dropdownlist_4" aria-labelledby="ej2_dropdownlist_4_hidden" class="e-input-group e-control-wrapper e-ddl e-lib e-keyboard e-valid-input">…</span> aka get_by_role("combobox", name="Amarillo")
+
+Call log:
+  - waiting for locator("[formcontrolname=\"locationId\"]")
+
+2025-05-14 10:54:35,087 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_105434.png]
+2025-05-14 10:56:35,167 - INFO - Starting Playwright session...
+2025-05-14 10:56:36,435 - INFO - Playwright session started successfully
+2025-05-14 10:56:36,443 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 10:56:40,389 - INFO - Navigation complete
+2025-05-14 10:56:40,397 - INFO - Attempting to log in...
+2025-05-14 10:56:40,397 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 10:56:40,450 - INFO - Element found
+2025-05-14 10:56:40,453 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 10:56:40,479 - INFO - Fill successful
+2025-05-14 10:56:40,483 - INFO - Username entered successfully
+2025-05-14 10:56:40,483 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 10:56:40,501 - INFO - Element found
+2025-05-14 10:56:40,505 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 10:56:40,528 - INFO - Fill successful
+2025-05-14 10:56:40,531 - INFO - Password entered successfully
+2025-05-14 10:56:40,532 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 10:56:40,551 - INFO - Element found
+2025-05-14 10:56:40,554 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 10:56:40,654 - INFO - Click successful
+2025-05-14 10:56:40,659 - INFO - Login button clicked
+2025-05-14 10:56:40,682 - INFO - Login process completed
+2025-05-14 10:57:23,962 - INFO - Selecting location: Borger
+2025-05-14 10:57:24,037 - INFO - Waiting for element: .e-popup.e-list-popup
+2025-05-14 10:57:29,056 - ERROR - Element not found: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator(".e-popup.e-list-popup") to be visible
+
+2025-05-14 10:57:29,280 - ERROR - Element not found [Screenshot: logs/screenshots/error_20250514_105729.png]
+2025-05-14 10:57:29,281 - ERROR - Failed to select location: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator(".e-popup.e-list-popup") to be visible
+
+2025-05-14 10:57:29,476 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_105729.png]
+2025-05-14 11:02:24,860 - INFO - Starting Playwright session...
+2025-05-14 11:02:26,187 - INFO - Playwright session started successfully
+2025-05-14 11:02:26,194 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 11:02:30,894 - INFO - Navigation complete
+2025-05-14 11:02:30,902 - INFO - Attempting to log in...
+2025-05-14 11:02:30,903 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 11:02:30,955 - INFO - Element found
+2025-05-14 11:02:30,960 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 11:02:30,987 - INFO - Fill successful
+2025-05-14 11:02:30,991 - INFO - Username entered successfully
+2025-05-14 11:02:30,991 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 11:02:31,008 - INFO - Element found
+2025-05-14 11:02:31,012 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 11:02:31,034 - INFO - Fill successful
+2025-05-14 11:02:31,038 - INFO - Password entered successfully
+2025-05-14 11:02:31,038 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 11:02:31,056 - INFO - Element found
+2025-05-14 11:02:31,060 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 11:02:31,132 - INFO - Click successful
+2025-05-14 11:02:31,137 - INFO - Login button clicked
+2025-05-14 11:02:31,151 - INFO - Login process completed
+2025-05-14 11:02:51,143 - INFO - Selecting location: Borger
+2025-05-14 11:02:51,231 - INFO - Waiting for element: .e-popup.e-list-popup
+2025-05-14 11:02:56,244 - ERROR - Element not found: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator(".e-popup.e-list-popup") to be visible
+
+2025-05-14 11:02:56,454 - ERROR - Element not found [Screenshot: logs/screenshots/error_20250514_110256.png]
+2025-05-14 11:02:56,456 - ERROR - Failed to select location: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator(".e-popup.e-list-popup") to be visible
+
+2025-05-14 11:02:56,702 - ERROR - Failed to select location [Screenshot: logs/screenshots/error_20250514_110256.png]
+2025-05-14 11:12:01,489 - INFO - Starting Playwright session...
+2025-05-14 11:12:02,681 - INFO - Playwright session started successfully
+2025-05-14 11:12:02,688 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 11:12:07,306 - INFO - Navigation complete
+2025-05-14 11:12:07,313 - INFO - Attempting to log in...
+2025-05-14 11:12:07,314 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 11:12:07,413 - INFO - Element found
+2025-05-14 11:12:07,419 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 11:12:07,467 - INFO - Fill successful
+2025-05-14 11:12:07,475 - INFO - Username entered successfully
+2025-05-14 11:12:07,476 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 11:12:07,508 - INFO - Element found
+2025-05-14 11:12:07,514 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 11:12:07,549 - INFO - Fill successful
+2025-05-14 11:12:07,554 - INFO - Password entered successfully
+2025-05-14 11:12:07,554 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 11:12:07,583 - INFO - Element found
+2025-05-14 11:12:07,589 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 11:12:07,684 - INFO - Click successful
+2025-05-14 11:12:07,689 - INFO - Login button clicked
+2025-05-14 11:12:07,711 - INFO - Login process completed
+2025-05-14 15:24:00,447 - INFO - Starting Playwright session...
+2025-05-14 15:24:05,664 - INFO - Playwright session started successfully
+2025-05-14 15:24:05,671 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 15:24:09,725 - INFO - Navigation complete
+2025-05-14 15:24:09,733 - INFO - Attempting to log in...
+2025-05-14 15:24:09,734 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 15:24:09,790 - INFO - Element found
+2025-05-14 15:24:09,793 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 15:24:09,820 - INFO - Fill successful
+2025-05-14 15:24:09,823 - INFO - Username entered successfully
+2025-05-14 15:24:09,824 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 15:24:09,842 - INFO - Element found
+2025-05-14 15:24:09,847 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 15:24:09,869 - INFO - Fill successful
+2025-05-14 15:24:09,872 - INFO - Password entered successfully
+2025-05-14 15:24:09,872 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 15:24:09,895 - INFO - Element found
+2025-05-14 15:24:09,899 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 15:24:09,999 - INFO - Click successful
+2025-05-14 15:24:10,004 - INFO - Login button clicked
+2025-05-14 15:24:10,022 - INFO - Login process completed
+2025-05-14 17:33:33,795 - INFO - Starting Playwright session...
+2025-05-14 17:33:36,591 - INFO - Playwright session started successfully
+2025-05-14 17:33:36,597 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 17:33:40,460 - INFO - Navigation complete
+2025-05-14 17:33:40,469 - INFO - Attempting to log in...
+2025-05-14 17:33:40,470 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 17:33:40,524 - INFO - Element found
+2025-05-14 17:33:40,527 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 17:33:40,554 - INFO - Fill successful
+2025-05-14 17:33:40,558 - INFO - Username entered successfully
+2025-05-14 17:33:40,559 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 17:33:40,579 - INFO - Element found
+2025-05-14 17:33:40,582 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 17:33:40,605 - INFO - Fill successful
+2025-05-14 17:33:40,608 - INFO - Password entered successfully
+2025-05-14 17:33:40,609 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 17:33:40,630 - INFO - Element found
+2025-05-14 17:33:40,633 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 17:33:40,707 - INFO - Click successful
+2025-05-14 17:33:40,711 - INFO - Login button clicked
+2025-05-14 17:33:40,726 - INFO - Login process completed
+2025-05-14 17:34:08,895 - INFO - Selecting location: Borger
+2025-05-14 17:34:09,058 - INFO - Location selected successfully
+2025-05-14 17:44:41,987 - INFO - Starting Playwright session...
+2025-05-14 17:44:43,750 - INFO - Playwright session started successfully
+2025-05-14 17:44:43,758 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 17:44:47,669 - INFO - Navigation complete
+2025-05-14 17:44:47,674 - INFO - Attempting to log in...
+2025-05-14 17:44:47,674 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 17:44:47,748 - INFO - Element found
+2025-05-14 17:44:47,757 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 17:44:47,794 - INFO - Fill successful
+2025-05-14 17:44:47,799 - INFO - Username entered successfully
+2025-05-14 17:44:47,799 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 17:44:47,828 - INFO - Element found
+2025-05-14 17:44:47,833 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 17:44:47,863 - INFO - Fill successful
+2025-05-14 17:44:47,868 - INFO - Password entered successfully
+2025-05-14 17:44:47,868 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 17:44:47,895 - INFO - Element found
+2025-05-14 17:44:47,900 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 17:44:47,998 - INFO - Click successful
+2025-05-14 17:44:48,005 - INFO - Login button clicked
+2025-05-14 17:44:48,033 - INFO - Login process completed
+2025-05-14 17:45:01,150 - INFO - Selecting location: Borger
+2025-05-14 17:45:01,796 - INFO - Location selected successfully
+2025-05-14 17:48:09,074 - INFO - Starting invoice search
+2025-05-14 17:48:09,076 - INFO - Setting start date: 01/01/2024
+2025-05-14 17:48:09,076 - INFO - Filling field: #ej2-datepicker_8_input
+2025-05-14 17:48:09,183 - INFO - Fill successful
+2025-05-14 17:48:09,184 - INFO - Start date set successfully
+2025-05-14 17:48:09,184 - INFO - Setting end date: 03/19/2024
+2025-05-14 17:48:09,184 - INFO - Filling field: #ej2-datepicker_9_input
+2025-05-14 17:48:09,278 - INFO - Fill successful
+2025-05-14 17:48:09,279 - INFO - End date set successfully
+2025-05-14 17:48:09,279 - INFO - Selecting location: Borger
+2025-05-14 17:48:09,950 - INFO - Location selected successfully
+2025-05-14 17:48:09,950 - INFO - Clicking search button
+2025-05-14 17:48:09,950 - INFO - Clicking element: [data-test-id="invoiceDashboardSearchButton"]
+2025-05-14 17:48:10,046 - INFO - Click successful
+2025-05-14 17:48:10,047 - INFO - Search button clicked successfully
+2025-05-14 17:48:10,047 - INFO - Invoice search completed successfully
+2025-05-14 17:49:22,207 - INFO - Starting invoice search
+2025-05-14 17:49:22,208 - INFO - Setting start date: 01/01/2024
+2025-05-14 17:49:22,208 - INFO - Filling field: #ej2-datepicker_8_input
+2025-05-14 17:49:22,246 - INFO - Fill successful
+2025-05-14 17:49:22,247 - INFO - Start date set successfully
+2025-05-14 17:49:22,247 - INFO - Setting end date: 03/19/2024
+2025-05-14 17:49:22,247 - INFO - Filling field: #ej2-datepicker_9_input
+2025-05-14 17:49:22,306 - INFO - Fill successful
+2025-05-14 17:49:22,307 - INFO - End date set successfully
+2025-05-14 17:49:22,307 - INFO - Entering invoice number: 12345
+2025-05-14 17:49:22,370 - INFO - Invoice number entered successfully
+2025-05-14 17:49:22,370 - INFO - Entering payor name: Blue Cross & Blue Shield
+2025-05-14 17:49:22,404 - INFO - Payor name entered successfully
+2025-05-14 17:49:22,405 - INFO - Selecting location: Borger
+2025-05-14 17:49:23,040 - INFO - Location selected successfully
+2025-05-14 17:49:23,041 - INFO - Clicking search button
+2025-05-14 17:49:23,041 - INFO - Clicking element: [data-test-id="invoiceDashboardSearchButton"]
+2025-05-14 17:49:23,112 - INFO - Click successful
+2025-05-14 17:49:23,113 - INFO - Search button clicked successfully
+2025-05-14 17:49:23,113 - INFO - Invoice search completed successfully
+2025-05-14 17:54:20,447 - INFO - Starting Playwright session...
+2025-05-14 17:54:23,320 - INFO - Playwright session started successfully
+2025-05-14 17:54:23,326 - INFO - Navigating to: https://revolutionehr.com/static/
+2025-05-14 17:54:27,210 - INFO - Navigation complete
+2025-05-14 17:54:27,221 - INFO - Attempting to log in...
+2025-05-14 17:54:27,221 - INFO - Waiting for element: [data-test-id="loginUsername"]
+2025-05-14 17:54:27,280 - INFO - Element found
+2025-05-14 17:54:27,283 - INFO - Filling field: [data-test-id="loginUsername"]
+2025-05-14 17:54:27,313 - INFO - Fill successful
+2025-05-14 17:54:27,316 - INFO - Username entered successfully
+2025-05-14 17:54:27,316 - INFO - Waiting for element: [data-test-id="loginPassword"]
+2025-05-14 17:54:27,342 - INFO - Element found
+2025-05-14 17:54:27,346 - INFO - Filling field: [data-test-id="loginPassword"]
+2025-05-14 17:54:27,369 - INFO - Fill successful
+2025-05-14 17:54:27,373 - INFO - Password entered successfully
+2025-05-14 17:54:27,373 - INFO - Waiting for element: [data-test-id="loginBtn"]
+2025-05-14 17:54:27,393 - INFO - Element found
+2025-05-14 17:54:27,397 - INFO - Clicking element: [data-test-id="loginBtn"]
+2025-05-14 17:54:27,476 - INFO - Click successful
+2025-05-14 17:54:27,479 - INFO - Login button clicked
+2025-05-14 17:54:27,494 - INFO - Login process completed
+2025-05-14 17:54:57,909 - INFO - Selecting payor type: patient
+2025-05-14 17:54:58,599 - INFO - Payor type selected successfully
+2025-05-14 17:55:09,135 - INFO - Selecting payor type: guest
+2025-05-14 17:55:09,801 - INFO - Payor type selected successfully
