@@ -1,5 +1,6 @@
 from core.playwright_handler import get_handler
 import random
+from datetime import datetime
 
 class InsuranceTab:
     def __init__(self, handler):
@@ -406,3 +407,133 @@ class InsuranceTab:
             self.handler.logger.log_error(f"Failed to upload document: {str(e)}")
             self.handler.take_screenshot("Failed to upload document")
             return False 
+
+    def list_insurance_documents(self):
+        """
+        List all documents in the insurance documents table.
+        
+        Returns:
+            list: List of dictionaries containing document details (name, date, description) and action buttons
+        """
+        try:
+            # Wait for the documents table to be present
+            self.handler.wait_for_selector('[data-test-id="patientDocumentsComponentTable"]', timeout=10000)
+            
+            # Get all rows in the table
+            rows = self.handler.page.locator('.e-row').all()
+            documents = []
+            
+            for row in rows:
+                try:
+                    # Extract document details from each column using data-colindex
+                    doc = {
+                        'name': row.locator('[data-colindex="0"]').inner_text().strip(),
+                        'date': row.locator('[data-colindex="1"]').inner_text().strip(),
+                        'description': row.locator('[data-colindex="2"]').inner_text().strip(),
+                        'actions': {
+                            'preview': row.locator('[data-test-id="patientDocumentPreviewButton"]').is_visible(),
+                            'download': row.locator('[data-test-id="patientDocumentDownloadButton"]').is_visible(),
+                            'delete': row.locator('[data-test-id="patientDocumentDeleteButton"]').is_visible()
+                        }
+                    }
+                    documents.append(doc)
+                except Exception as e:
+                    self.handler.logger.log_error(f"Failed to extract document details from row: {str(e)}")
+                    continue
+            
+            self.handler.logger.log(f"Found {len(documents)} documents in the table")
+            return documents
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to list insurance documents: {str(e)}")
+            self.handler.take_screenshot("Failed to list insurance documents")
+            return [] 
+
+    def delete_insurance_documents(self, cutoff_date):
+        """
+        Delete all insurance documents that are older than or equal to the cutoff date.
+        
+        Args:
+            cutoff_date (str): Date in MM/DD/YYYY format to use as cutoff
+            
+        Returns:
+            tuple: (int, int) - (number of documents deleted, number of documents skipped)
+        """
+        try:
+            # Convert cutoff date string to datetime object
+            cutoff = datetime.strptime(cutoff_date, '%m/%d/%Y')
+            
+            # Get all documents
+            documents = self.list_insurance_documents()
+            deleted_count = 0
+            skipped_count = 0
+            
+            for doc in documents:
+                try:
+                    # Convert document date to datetime object
+                    doc_date = datetime.strptime(doc['date'], '%m/%d/%Y')
+                    
+                    # Check if document is older than or equal to cutoff date
+                    if doc_date <= cutoff:
+                        # Find the row containing this document
+                        row = self.handler.page.locator('.e-row').filter(has_text=doc['name'])
+                        if not row.is_visible(timeout=5000):
+                            self.handler.logger.log_error(f"Could not find row for document: {doc['name']}")
+                            skipped_count += 1
+                            continue
+                        
+                        # Click the delete button for this row
+                        delete_button = row.locator('[data-test-id="patientDocumentDeleteButton"]')
+                        if not delete_button.is_visible(timeout=5000):
+                            self.handler.logger.log_error(f"Delete button not visible for document: {doc['name']}")
+                            skipped_count += 1
+                            continue
+                            
+                        delete_button.click()
+                        
+                        # Wait for and confirm the delete action using role and text
+                        try:
+                            confirm_button = self.handler.page.get_by_role('button', name='Yes')
+                            confirm_button.wait_for(state="visible", timeout=5000)
+                            confirm_button.click()
+                            
+                            # Wait for the confirmation dialog to disappear
+                            confirm_button.wait_for(state="hidden", timeout=5000)
+                            
+                            # Wait for the document to be removed from the table
+                            row.wait_for(state="hidden", timeout=5000)
+                            
+                            self.handler.logger.log(f"Deleted document: {doc['name']} from {doc['date']}")
+                            deleted_count += 1
+                            
+                            # Wait for the table to stabilize
+                            self.handler.page.wait_for_timeout(2000)
+                            
+                        except Exception as e:
+                            self.handler.logger.log_error(f"Failed to confirm deletion for {doc['name']}: {str(e)}")
+                            # Try to close the dialog if it's still open
+                            try:
+                                cancel_button = self.handler.page.get_by_role('button', name='No')
+                                if cancel_button.is_visible(timeout=2000):
+                                    cancel_button.click()
+                            except:
+                                pass
+                            skipped_count += 1
+                            continue
+                            
+                    else:
+                        self.handler.logger.log(f"Skipped document: {doc['name']} from {doc['date']} (newer than cutoff)")
+                        skipped_count += 1
+                        
+                except Exception as e:
+                    self.handler.logger.log_error(f"Failed to process document {doc['name']}: {str(e)}")
+                    skipped_count += 1
+                    continue
+            
+            self.handler.logger.log(f"Document cleanup complete. Deleted: {deleted_count}, Skipped: {skipped_count}")
+            return deleted_count, skipped_count
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to delete old documents: {str(e)}")
+            self.handler.take_screenshot("Failed to delete old documents")
+            return 0, 0 
