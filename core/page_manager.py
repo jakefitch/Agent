@@ -12,6 +12,9 @@ class PageManager:
             elif name == 'patient_page':
                 from config.rev_map.patient_page import PatientPage
                 self._pages[name] = PatientPage(self.handler)
+            elif name == 'insurance_tab':
+                from config.rev_map.insurance_tab import InsuranceTab
+                self._pages[name] = InsuranceTab(self.handler)
             # Add other page imports here as needed
             # elif name == 'claims_page':
             #     from core.claims_page import ClaimsPage

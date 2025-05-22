@@ -2,6 +2,7 @@
 
 from core.playwright_handler import get_handler
 import random
+from config.rev_map.insurance_tab import InsuranceTab
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -24,6 +25,7 @@ class PatientPage:
     def __init__(self, handler):
         self.handler = handler
         self.base_url = "https://revolutionehr.com/static/#/patients/search"
+        self.insurance_tab = InsuranceTab(handler)
     
    
     def is_loaded(self):
@@ -235,68 +237,4 @@ class PatientPage:
         except Exception as e:
             self.handler.logger.log_error(f"Failed to select patient from results: {str(e)}")
             self.handler.take_screenshot("Failed to select patient from results")
-            raise
-
-#################### these are the functions for insurance within the patient page.####################
-
-    def click_insurance_tab(self):
-        """Click the Insurance tab in the patient menu."""
-        try:
-            self.handler.page.locator('[data-test-id="insuranceMenu"]').click()
-            self.handler.logger.log("Clicked Insurance tab")
-        except Exception as e:
-            self.handler.logger.log_error(f"Failed to click Insurance tab: {str(e)}")
-            self.handler.take_screenshot("Failed to click Insurance tab")
-            raise
-
-    def close_insurance_tab(self):
-        """Close the Insurance tab in the patient menu."""
-        try:
-            self.handler.page.locator('[data-test-id="insuranceCloseButton"]').click()
-            self.handler.logger.log("Closed Insurance tab")
-        except Exception as e:
-            self.handler.logger.log_error(f"Failed to close Insurance tab: {str(e)}")
-            self.handler.take_screenshot("Failed to close Insurance tab")
-            raise
-
-    def select_insurance(self, insurance_name, select_mode='random'):
-        """
-        Select an insurance entry by (partial) name. By default, selects a random match if multiple are found.
-        Args:
-            insurance_name (str): The (partial) name of the insurance to match.
-            select_mode (str): 'random' (default) to select one at random, 'all' to process all matches (calls process_insurance_row for each).
-        Returns:
-            bool: True if at least one match was found and clicked/processed, False otherwise.
-        """
-        try:
-            # Find all insurance name cells in the first column of the insurance table
-            rows = self.handler.page.locator('.ag-center-cols-container .ag-row')
-            matches = []
-            for i in range(rows.count()):
-                row = rows.nth(i)
-                # The company name is in the first gridcell (col-id="0")
-                name_cell = row.locator('[col-id="0"] span')
-                cell_text = name_cell.inner_text().strip()
-                if insurance_name.lower() in cell_text.lower():
-                    matches.append(row)
-            
-            if not matches:
-                self.handler.logger.log(f"No insurance found matching: {insurance_name}")
-                return False
-            
-            self.handler.logger.log(f"Found {len(matches)} insurance(s) matching: {insurance_name}")
-            
-            if select_mode == 'all':
-                for row in matches:
-                    row.click()
-                    self.handler.logger.log(f"Clicked insurance: {row.locator('[col-id=\"0\"] span').inner_text().strip()}")
-                return True
-            else:  # default: random
-                chosen_row = random.choice(matches)
-                chosen_row.click()
-                self.handler.logger.log(f"Clicked insurance: {chosen_row.locator('[col-id=\"0\"] span').inner_text().strip()}")
-                return True
-        except Exception as e:
-            self.handler.logger.log_error(f"Failed to select insurance by name: {str(e)}")
-            self.handler.take_screenshot("Failed to select insurance by name")
             raise
