@@ -116,96 +116,142 @@ class InsuranceTab:
         scraped = {}
         try:
             # Company
-            if company_name:
-                dialog = self.handler.page.get_by_role('dialog', name=dialog_name)
-                combobox = dialog.get_by_role('combobox')
-                combobox.click()
-                combobox.fill(company_name)
-                combobox.press('Enter')
-                self.handler.logger.log(f"Selected insurance company '{company_name}' in dialog '{dialog_name}'")
-            else:
-                dialog = self.handler.page.get_by_role('dialog', name=dialog_name)
-                combobox = dialog.get_by_role('combobox')
-                scraped['company_name'] = combobox.input_value() if hasattr(combobox, 'input_value') else combobox.inner_text()
+            try:
+                if company_name:
+                    dialog = self.handler.page.get_by_role('dialog', name=dialog_name)
+                    combobox = dialog.get_by_role('combobox')
+                    combobox.click()
+                    combobox.fill(company_name)
+                    combobox.press('Enter')
+                    self.handler.logger.log(f"Selected insurance company '{company_name}' in dialog '{dialog_name}'")
+                else:
+                    dialog = self.handler.page.get_by_role('dialog', name=dialog_name)
+                    combobox = dialog.get_by_role('combobox')
+                    scraped['company_name'] = combobox.input_value() if hasattr(combobox, 'input_value') else combobox.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle company name field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle company name field")
+                raise
 
             # Priority (Primary/Secondary)
-            if priority:
-                cb = self.handler.page.get_by_role('combobox', name='Primary')
-                cb.click()
-                self.handler.page.get_by_role('option', name=priority).click()
-                self.handler.logger.log(f"Set priority to {priority}")
-            else:
-                cb = self.handler.page.get_by_role('combobox', name='Primary')
-                scraped['priority'] = cb.input_value() if hasattr(cb, 'input_value') else cb.inner_text()
+            try:
+                if priority:
+                    cb = self.handler.page.get_by_role('combobox', name='Primary')
+                    cb.click()
+                    self.handler.page.get_by_role('option', name=priority).click()
+                    self.handler.logger.log(f"Set priority to {priority}")
+                else:
+                    cb = self.handler.page.get_by_role('combobox', name='Primary')
+                    scraped['priority'] = cb.input_value() if hasattr(cb, 'input_value') else cb.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle priority field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle priority field")
+                raise
 
             # Insurance Type
-            if insurance_type:
-                cb = self.handler.page.locator('[data-test-id="basicInformationTypeFormGroup"]').get_by_role('combobox')
-                cb.click()
-                self.handler.page.get_by_role('option', name=insurance_type).click()
-                self.handler.logger.log(f"Set insurance type to {insurance_type}")
-            else:
-                cb = self.handler.page.locator('[data-test-id="basicInformationTypeFormGroup"]').get_by_role('combobox')
-                scraped['insurance_type'] = cb.input_value() if hasattr(cb, 'input_value') else cb.inner_text()
+            try:
+                if insurance_type:
+                    cb = self.handler.page.locator('[data-test-id="basicInformationTypeFormGroup"]').get_by_role('combobox')
+                    cb.click()
+                    self.handler.page.get_by_role('option', name=insurance_type).click()
+                    self.handler.logger.log(f"Set insurance type to {insurance_type}")
+                else:
+                    cb = self.handler.page.locator('[data-test-id="basicInformationTypeFormGroup"]').get_by_role('combobox')
+                    scraped['insurance_type'] = cb.input_value() if hasattr(cb, 'input_value') else cb.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle insurance type field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle insurance type field")
+                raise
 
             # Plan Name
-            if plan_name:
-                tb = self.handler.page.locator('[data-test-id="basicInformationPlanFormGroup"]').get_by_role('textbox')
-                tb.click()
-                tb.fill(plan_name)
-                self.handler.logger.log(f"Filled plan name: {plan_name}")
-            else:
-                tb = self.handler.page.locator('[data-test-id="basicInformationPlanFormGroup"]').get_by_role('textbox')
-                scraped['plan_name'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            try:
+                if plan_name:
+                    tb = self.handler.page.locator('[data-test-id="basicInformationPlanFormGroup"]').get_by_role('textbox')
+                    tb.click()
+                    tb.fill(plan_name)
+                    self.handler.logger.log(f"Filled plan name: {plan_name}")
+                else:
+                    tb = self.handler.page.locator('[data-test-id="basicInformationPlanFormGroup"]').get_by_role('textbox')
+                    scraped['plan_name'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle plan name field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle plan name field")
+                raise
 
             # Policy Holder
-            if policy_holder:
-                holder = self.handler.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"]').get_by_text(policy_holder)
-                holder.click()
-                self.handler.logger.log(f"Selected policy holder: {policy_holder}")
-            else:
-                holder = self.handler.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"]')
-                scraped['policy_holder'] = holder.inner_text()
+            try:
+                if policy_holder:
+                    holder = self.handler.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"]').get_by_text(policy_holder)
+                    holder.click()
+                    self.handler.logger.log(f"Selected policy holder: {policy_holder}")
+                else:
+                    holder_element = self.handler.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"] .form-control-static')
+                    scraped['policy_holder'] = holder_element.inner_text().strip()
+                    self.handler.logger.log(f"Successfully scraped policy holder: {scraped['policy_holder']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle policy holder field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle policy holder field")
+                raise
 
             # DOB
-            if dob:
-                dob_field = self.handler.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"]')
-                dob_field.click()
-                dob_field.fill(dob)
-                self.handler.logger.log(f"Filled DOB: {dob}")
-            else:
-                dob_field = self.handler.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"]')
-                scraped['dob'] = dob_field.input_value() if hasattr(dob_field, 'input_value') else dob_field.inner_text()
+            try:
+                if dob:
+                    dob_field = self.handler.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"]')
+                    dob_field.click()
+                    dob_field.fill(dob)
+                    self.handler.logger.log(f"Filled DOB: {dob}")
+                else:
+                    dob_field = self.handler.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"]')
+                    scraped['dob'] = dob_field.input_value() if hasattr(dob_field, 'input_value') else dob_field.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle DOB field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle DOB field")
+                raise
 
             # Policy Number
-            if policy_number:
-                tb = self.handler.page.locator('[data-test-id="basicInformationPolicyNumberFormGroup"]').get_by_role('textbox')
-                tb.click()
-                tb.fill(policy_number)
-                self.handler.logger.log(f"Filled policy number: {policy_number}")
-            else:
-                tb = self.handler.page.locator('[data-test-id="basicInformationPolicyNumberFormGroup"]').get_by_role('textbox')
-                scraped['policy_number'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            try:
+                if policy_number:
+                    tb = self.handler.page.locator('[data-test-id="basicInformationPolicyNumberFormGroup"]').get_by_role('textbox')
+                    tb.click()
+                    tb.fill(policy_number)
+                    self.handler.logger.log(f"Filled policy number: {policy_number}")
+                else:
+                    tb = self.handler.page.locator('[data-test-id="basicInformationPolicyNumberFormGroup"]').get_by_role('textbox')
+                    scraped['policy_number'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle policy number field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle policy number field")
+                raise
 
             # Group Number
-            if group_number:
-                tb = self.handler.page.locator('[data-test-id="basicInformationGroupNumberFormGroup"]').get_by_role('textbox')
-                tb.click()
-                tb.fill(group_number)
-                self.handler.logger.log(f"Filled group number: {group_number}")
-            else:
-                tb = self.handler.page.locator('[data-test-id="basicInformationGroupNumberFormGroup"]').get_by_role('textbox')
-                scraped['group_number'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            try:
+                if group_number:
+                    tb = self.handler.page.locator('[data-test-id="basicInformationGroupNumberFormGroup"]').get_by_role('textbox')
+                    tb.click()
+                    tb.fill(group_number)
+                    self.handler.logger.log(f"Filled group number: {group_number}")
+                else:
+                    tb = self.handler.page.locator('[data-test-id="basicInformationGroupNumberFormGroup"]').get_by_role('textbox')
+                    scraped['group_number'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle group number field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle group number field")
+                raise
 
             # Authorization
-            if authorization:
-                tb = self.handler.page.locator('[data-test-id="individualBenefitsAuthorizationNumberFormGroup"]').get_by_role('textbox')
-                tb.click()
-                tb.fill(authorization)
-                self.handler.logger.log(f"Filled authorization: {authorization}")
-            else:
-                tb = self.handler.page.locator('[data-test-id="individualBenefitsAuthorizationNumberFormGroup"]').get_by_role('textbox')
-                scraped['authorization'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            try:
+                if authorization:
+                    tb = self.handler.page.locator('[data-test-id="individualBenefitsAuthorizationNumberFormGroup"]').get_by_role('textbox')
+                    tb.click()
+                    tb.fill(authorization)
+                    self.handler.logger.log(f"Filled authorization: {authorization}")
+                else:
+                    tb = self.handler.page.locator('[data-test-id="individualBenefitsAuthorizationNumberFormGroup"]').get_by_role('textbox')
+                    scraped['authorization'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to handle authorization field: {str(e)}")
+                self.handler.take_screenshot("Failed to handle authorization field")
+                raise
 
             self.handler.logger.log("Filled/scraped insurance dialog fields")
             return scraped
@@ -222,41 +268,141 @@ class InsuranceTab:
         """
         scraped = {}
         try:
-            # Priority
-            cb = self.handler.page.get_by_role('combobox', name='Primary')
-            scraped['priority'] = cb.input_value() if hasattr(cb, 'input_value') else cb.inner_text()
+            # Priority (dropdown)
+            try:
+                priority_element = self.handler.page.locator('[data-test-id="basicInformationPriorityFormGroup"] .e-input')
+                scraped['priority'] = priority_element.get_attribute('value')
+                self.handler.logger.log(f"Successfully scraped priority: {scraped['priority']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape priority field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape priority field")
+                raise
 
-            # Insurance Type
-            cb = self.handler.page.locator('[data-test-id="basicInformationTypeFormGroup"]').get_by_role('combobox')
-            scraped['insurance_type'] = cb.input_value() if hasattr(cb, 'input_value') else cb.inner_text()
+            # Insurance Type (dropdown)
+            try:
+                type_element = self.handler.page.locator('[data-test-id="basicInformationTypeFormGroup"] .e-input')
+                scraped['insurance_type'] = type_element.get_attribute('value')
+                self.handler.logger.log(f"Successfully scraped insurance type: {scraped['insurance_type']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape insurance type field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape insurance type field")
+                raise
 
-            # Plan Name
-            tb = self.handler.page.locator('[data-test-id="basicInformationPlanFormGroup"]').get_by_role('textbox')
-            scraped['plan_name'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            # Plan Name (text input)
+            try:
+                plan_element = self.handler.page.locator('[formcontrolname="planName"]')
+                scraped['plan_name'] = plan_element.evaluate('el => el.value')
+                self.handler.logger.log(f"Successfully scraped plan name: {scraped['plan_name']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape plan name field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape plan name field")
+                raise
 
-            # Policy Holder
-            holder = self.handler.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"]')
-            scraped['policy_holder'] = holder.inner_text()
+            # Policy Holder (static text)
+            try:
+                holder_element = self.handler.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"] .form-control-static')
+                scraped['policy_holder'] = holder_element.inner_text().strip()
+                self.handler.logger.log(f"Successfully scraped policy holder: {scraped['policy_holder']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape policy holder field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape policy holder field")
+                raise
 
-            # DOB
-            dob_field = self.handler.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"]')
-            scraped['dob'] = dob_field.input_value() if hasattr(dob_field, 'input_value') else dob_field.inner_text()
+            # DOB (static text)
+            try:
+                dob_element = self.handler.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"] .form-control-static')
+                scraped['dob'] = dob_element.inner_text().strip()
+                self.handler.logger.log(f"Successfully scraped DOB: {scraped['dob']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape DOB field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape DOB field")
+                raise
 
-            # Policy Number
-            tb = self.handler.page.locator('[data-test-id="basicInformationPolicyNumberFormGroup"]').get_by_role('textbox')
-            scraped['policy_number'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            # Policy Number (text input)
+            try:
+                policy_element = self.handler.page.locator('[formcontrolname="policyNumber"]')
+                scraped['policy_number'] = policy_element.evaluate('el => el.value')
+                self.handler.logger.log(f"Successfully scraped policy number: {scraped['policy_number']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape policy number field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape policy number field")
+                raise
 
-            # Group Number
-            tb = self.handler.page.locator('[data-test-id="basicInformationGroupNumberFormGroup"]').get_by_role('textbox')
-            scraped['group_number'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            # Group Number (text input)
+            try:
+                group_element = self.handler.page.locator('[formcontrolname="groupNumber"]')
+                scraped['group_number'] = group_element.evaluate('el => el.value')
+                self.handler.logger.log(f"Successfully scraped group number: {scraped['group_number']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape group number field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape group number field")
+                raise
 
-            # Authorization
-            tb = self.handler.page.locator('[data-test-id="individualBenefitsAuthorizationNumberFormGroup"]').get_by_role('textbox')
-            scraped['authorization'] = tb.input_value() if hasattr(tb, 'input_value') else tb.inner_text()
+            # Authorization (text input)
+            try:
+                auth_element = self.handler.page.locator('[formcontrolname="authorizationNumber"]')
+                scraped['authorization'] = auth_element.evaluate('el => el.value')
+                self.handler.logger.log(f"Successfully scraped authorization: {scraped['authorization']}")
+            except Exception as e:
+                self.handler.logger.log_error(f"Failed to scrape authorization field: {str(e)}")
+                self.handler.take_screenshot("Failed to scrape authorization field")
+                raise
 
-            self.handler.logger.log("Scraped insurance dialog fields (excluding company name)")
             return scraped
         except Exception as e:
             self.handler.logger.log_error(f"Failed to scrape insurance dialog: {str(e)}")
             self.handler.take_screenshot("Failed to scrape insurance dialog")
-            raise 
+            raise
+
+    def upload_insurance_document(self, file_path):
+        """
+        Upload a document to the insurance tab.
+        
+        Args:
+            file_path (str): Path to the file to upload
+            
+        Returns:
+            bool: True if upload was successful, False otherwise
+        """
+        try:
+            # Click the upload button
+            upload_button = self.handler.page.locator('[data-test-id="patientDocumentsUploadButton"]')
+            upload_button.wait_for(state="visible", timeout=10000)
+            upload_button.click()
+            self.handler.logger.log("Clicked upload button")
+            
+            # Wait for and click on Documents folder
+            docs_folder = self.handler.page.locator('[data-test-id="folder-1"] div').filter(has_text='Documents').locator('div')
+            docs_folder.wait_for(state="visible", timeout=10000)
+            docs_folder.click()
+            self.handler.logger.log("Clicked Documents folder")
+            
+            # Wait for and click on Insurance folder
+            insurance_folder = self.handler.page.locator('[data-test-id="folder-230a01acc0ae40b6fa53f63d990766f29bc51af7"] div').first
+            insurance_folder.wait_for(state="visible", timeout=10000)
+            insurance_folder.click()
+            self.handler.logger.log("Clicked Insurance folder")
+            
+            # Wait for the upload container to be ready
+            upload_container = self.handler.page.locator('[data-test-id="fileUpload"]')
+            upload_container.wait_for(state="attached", timeout=10000)
+            
+            # Get the file input (it's intentionally hidden)
+            file_input = upload_container.locator('input[type="file"]')
+            
+            # Set the file path
+            file_input.set_input_files(file_path)
+            self.handler.logger.log(f"Selected file: {file_path}")
+            
+            # Wait for and click the upload/submit button
+            submit_button = self.handler.page.locator('[data-test-id="fileModalUploadButton"]')
+            submit_button.wait_for(state="visible", timeout=10000)
+            submit_button.click()
+            self.handler.logger.log("Clicked submit button")
+            
+            
+                
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to upload document: {str(e)}")
+            self.handler.take_screenshot("Failed to upload document")
+            return False 
