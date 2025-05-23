@@ -475,52 +475,60 @@ class InsuranceTab:
                     
                     # Check if document is older than or equal to cutoff date
                     if doc_date <= cutoff:
-                        # Find the row containing this document
-                        row = self.handler.page.locator('.e-row').filter(has_text=doc['name'])
-                        if not row.is_visible(timeout=5000):
-                            self.handler.logger.log_error(f"Could not find row for document: {doc['name']}")
+                        # Find all rows that match this document's name and date
+                        rows = self.handler.page.locator('.e-row').filter(
+                            has_text=doc['name']
+                        ).filter(
+                            has_text=doc['date']
+                        ).all()
+                        
+                        if not rows:
+                            self.handler.logger.log_error(f"Could not find row for document: {doc['name']} from {doc['date']}")
                             skipped_count += 1
                             continue
                         
-                        # Click the delete button for this row
-                        delete_button = row.locator('[data-test-id="patientDocumentDeleteButton"]')
-                        if not delete_button.is_visible(timeout=5000):
-                            self.handler.logger.log_error(f"Delete button not visible for document: {doc['name']}")
-                            skipped_count += 1
-                            continue
-                            
-                        delete_button.click()
-                        
-                        # Wait for and confirm the delete action using role and text
-                        try:
-                            confirm_button = self.handler.page.get_by_role('button', name='Yes')
-                            confirm_button.wait_for(state="visible", timeout=5000)
-                            confirm_button.click()
-                            
-                            # Wait for the confirmation dialog to disappear
-                            confirm_button.wait_for(state="hidden", timeout=5000)
-                            
-                            # Wait for the document to be removed from the table
-                            row.wait_for(state="hidden", timeout=5000)
-                            
-                            self.handler.logger.log(f"Deleted document: {doc['name']} from {doc['date']}")
-                            deleted_count += 1
-                            
-                            # Wait for the table to stabilize
-                            self.handler.page.wait_for_timeout(2000)
-                            
-                        except Exception as e:
-                            self.handler.logger.log_error(f"Failed to confirm deletion for {doc['name']}: {str(e)}")
-                            # Try to close the dialog if it's still open
+                        # Process each matching row
+                        for row in rows:
                             try:
-                                cancel_button = self.handler.page.get_by_role('button', name='No')
-                                if cancel_button.is_visible(timeout=2000):
-                                    cancel_button.click()
-                            except:
-                                pass
-                            skipped_count += 1
-                            continue
-                            
+                                # Click the delete button for this row
+                                delete_button = row.locator('[data-test-id="patientDocumentDeleteButton"]')
+                                if not delete_button.is_visible(timeout=5000):
+                                    self.handler.logger.log_error(f"Delete button not visible for document: {doc['name']} from {doc['date']}")
+                                    skipped_count += 1
+                                    continue
+                                    
+                                delete_button.click()
+                                
+                                # Wait for and confirm the delete action using role and text
+                                try:
+                                    confirm_button = self.handler.page.get_by_role('button', name='Yes')
+                                    confirm_button.wait_for(state="visible", timeout=5000)
+                                    confirm_button.click()
+                                    
+                                    # Wait for the confirmation dialog to disappear
+                                    confirm_button.wait_for(state="hidden", timeout=5000)
+                                    
+                                    self.handler.logger.log(f"Deleted document: {doc['name']} from {doc['date']}")
+                                    deleted_count += 1
+                                    
+                                    # Wait for the table to stabilize
+                                    self.handler.page.wait_for_timeout(2000)
+                                    
+                                except Exception as e:
+                                    self.handler.logger.log_error(f"Failed to confirm deletion for {doc['name']} from {doc['date']}: {str(e)}")
+                                    # Try to close the dialog if it's still open
+                                    try:
+                                        cancel_button = self.handler.page.get_by_role('button', name='No')
+                                        if cancel_button.is_visible(timeout=2000):
+                                            cancel_button.click()
+                                    except:
+                                        pass
+                                    skipped_count += 1
+                                    continue
+                            except Exception as e:
+                                self.handler.logger.log_error(f"Failed to process row for document {doc['name']} from {doc['date']}: {str(e)}")
+                                skipped_count += 1
+                                continue
                     else:
                         self.handler.logger.log(f"Skipped document: {doc['name']} from {doc['date']} (newer than cutoff)")
                         skipped_count += 1
