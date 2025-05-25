@@ -1,10 +1,12 @@
 from core.playwright_handler import get_handler
 import random
 from datetime import datetime
+from core.base import BasePage, PatientContext
 
-class InsuranceTab:
-    def __init__(self, handler):
-        self.handler = handler
+class InsuranceTab(BasePage):
+    def _validate_patient_required(self):
+        if not self.context or not self.context.patient:
+            raise ValueError("InsuranceTab requires a patient context to be set")
 
     def close_insurance_tab(self):
         """Close the Insurance tab in the patient menu."""
@@ -26,6 +28,7 @@ class InsuranceTab:
             bool: True if at least one match was found and clicked/processed, False otherwise.
         """
         try:
+            self.handler.logger.log(f"Selecting insurance for patient {self.context.patient.first_name} {self.context.patient.last_name}")
             # Find all insurance name cells in the first column of the insurance table
             rows = self.handler.page.locator('.ag-center-cols-container .ag-row')
             matches = []
@@ -262,11 +265,11 @@ class InsuranceTab:
             raise 
 
     def scrape_insurance(self):
-        """
-        Scrape all insurance dialog fields (except company name) and return their values as a dictionary.
-        Returns:
-            dict: All field values as text (excluding company_name).
-        """
+        """Scrape insurance information for the current patient."""
+        if not self.context or not self.context.patient:
+            raise ValueError("No patient context set for insurance scraping")
+            
+        self.handler.logger.log(f"Scraping insurance for {self.context.patient.first_name} {self.context.patient.last_name}")
         scraped = {}
         try:
             # Priority (dropdown)

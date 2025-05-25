@@ -1,6 +1,8 @@
 from core.playwright_handler import get_handler, close_handler
 from core.stats_analyzer import get_analyzer
+from core.base import Patient
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 #HI 
 # Initialize handler as None
@@ -57,7 +59,33 @@ def close_session():
         close_handler()
         handler = None
 
-
+# Example of how to use the Patient class during debugging
+def example_patient_usage():
+    # Create a patient
+    patient = Patient(
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=datetime(1990, 1, 1)
+    )
+    
+    # When you're at a breakpoint and have scraped some data:
+    # Add insurance data
+    patient.add_insurance_data("policy_number", "123456789")
+    patient.add_insurance_data("insurance_company", "Blue Cross")
+    
+    # Add demographic data
+    patient.add_demographic_data("address", "123 Main St")
+    patient.add_demographic_data("phone", "555-0123")
+    
+    # Add medical data
+    patient.add_medical_data("allergies", ["Penicillin", "Peanuts"])
+    
+    # Print all data to verify
+    patient.print_data()
+    
+    # Access specific data
+    policy_number = patient.get_insurance_data("policy_number")
+    print(f"Policy Number: {policy_number}")
 
 initialize_session()
     

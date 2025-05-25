@@ -2,7 +2,10 @@
 
 from core.playwright_handler import get_handler
 import random
-from config.rev_map.insurance_tab import InsuranceTab
+from core.base import BasePage, PatientContext, Patient
+from .insurance_tab import InsuranceTab
+from datetime import datetime
+from typing import Optional
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -21,17 +24,19 @@ def check_alert_modal(func):
         return func(self, *args, **kwargs)
     return wrapper
 
-class PatientPage:
-    def __init__(self, handler):
-        self.handler = handler
+class PatientPage(BasePage):
+    def __init__(self, handler, context: Optional[PatientContext] = None):
+        super().__init__(handler, context)
         self.base_url = "https://revolutionehr.com/static/#/patients/search"
-        self.insurance_tab = InsuranceTab(handler)
+        self.insurance_tab = InsuranceTab(handler, context)
     
-   
+    def _validate_patient_required(self):
+        # Patient is not required for initial navigation
+        pass
+    
     def is_loaded(self):
         """Check if the page is loaded"""
         try:
-            # We'll need to add the appropriate selector for the patient page
             return self.handler.page.locator('[data-test-id="patientPageIdentifier"]').is_visible()
         except Exception as e:
             self.handler.logger.log_error(f"Failed to check if patient page is loaded: {str(e)}")
@@ -49,7 +54,7 @@ class PatientPage:
             self.handler.logger.log_error(f"Failed to navigate to patient page: {str(e)}")
             self.handler.take_screenshot("Failed to navigate to patient page")
             raise
-            
+    
     @check_alert_modal
     def click_patient_tab(self):
         """Click the open patient tab."""
@@ -59,7 +64,7 @@ class PatientPage:
         except Exception as e:
             self.handler.logger.log_error(f"Failed to click patient tab: {str(e)}")
             self.handler.take_screenshot("Failed to click patient tab")
-            raise 
+            raise
 
     @check_alert_modal
     def close_patient_tab(self):
@@ -73,7 +78,6 @@ class PatientPage:
             self.handler.take_screenshot("Failed to close patient tab")
             raise
 
-    
     def click_advanced_search(self):
         """Click the advanced search link on the patient search page."""
         try:
@@ -84,9 +88,8 @@ class PatientPage:
             self.handler.take_screenshot("Failed to click advanced search link")
             raise
 
-    
     def search_patient(self, last_name=None, first_name=None, dob=None, address=None, 
-                      phone=None, email=None, ssn=None, patient_id=None):
+                      phone=None, email=None, ssn=None, patient_id=None) -> Optional[Patient]:
         """Perform an advanced patient search with all available fields.
         
         Args:
@@ -98,11 +101,14 @@ class PatientPage:
             email (str, optional): Patient's email
             ssn (str, optional): Patient's social security number
             patient_id (str, optional): Patient's ID
+            
+        Returns:
+            Optional[Patient]: Patient object if found, None otherwise
         """
         self.handler.logger.log("Starting advanced patient search")
         try:
             # Check if we're already in advanced search mode
-            advanced_search_visible = self.handler.page.locator('[data-test-id="advancedSearchSearchButton"]').is_visible(timeout=1000)  # 1 second timeout
+            advanced_search_visible = self.handler.page.locator('[data-test-id="advancedSearchSearchButton"]').is_visible(timeout=1000)
             if not advanced_search_visible:
                 self.click_advanced_search()
             
@@ -134,6 +140,21 @@ class PatientPage:
             # Click the search button
             self.handler.page.locator('[data-test-id="advancedSearchSearchButton"]').click()
             self.handler.logger.log("Advanced patient search completed")
+            
+            # Create and return a Patient object if we have the necessary information
+            if first_name and last_name:
+                return Patient(
+                    first_name=first_name,
+                    last_name=last_name,
+                    date_of_birth=datetime.strptime(dob, '%Y-%m-%d') if dob else None,
+                    patient_id=patient_id,
+                    address=address,
+                    phone=phone,
+                    email=email,
+                    ssn=ssn,
+                    source_system='revolution_ehr'
+                )
+            return None
             
         except Exception as e:
             self.handler.logger.log_error(f"Failed to perform advanced patient search: {str(e)}")
