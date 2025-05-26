@@ -1,0 +1,38 @@
+.
+├── 1.pdf
+├── actions
+│   └── __init__.py
+├── config
+│   ├── agent_instructions
+│   │   └── agent_instruction.txt
+│   ├── rev_map
+│   │   ├── claims_page.py
+│   │   ├── insurance_tab.py
+│   │   ├── invoice_page.py
+│   │   └── patient_page.py
+│   └── workflows
+│       └── vsp_submission.yaml
+├── core
+│   ├── base.py
+│   ├── __init__.py
+│   ├── logger.py
+│   ├── page_manager.py
+│   ├── playwright_handler.py
+│   ├── stats_analyzer.py
+│   ├── stats_tracker.py
+│   └── workflow.py
+├── __init__.py
+├── logs
+│   ├── playwright_2025-05-25.log
+│   ├── screenshots
+│   └── stats
+│       ├── stats_2025-05-25.json
+│       ├── trend_fill.png
+│       └── trend_wait_for_selector.png
+├── main.py
+├── project_structure.txt
+├── README.md
+└── tests
+    └── test_patient_workflow.py
+
+10 directories, 25 files

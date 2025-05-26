@@ -49,12 +49,18 @@ class InsuranceTab(BasePage):
             if select_mode == 'all':
                 for row in matches:
                     row.click()
-                    self.handler.logger.log(f"Clicked insurance: {row.locator('[col-id=\"0\"] span').inner_text().strip()}")
+                    locator_str = "[col-id='0'] span"
+                    value = row.locator(locator_str).inner_text().strip()
+                    self.handler.logger.log(f"Clicked insurance: {value}")
+
                 return True
             else:  # default: random
                 chosen_row = random.choice(matches)
                 chosen_row.click()
-                self.handler.logger.log(f"Clicked insurance: {chosen_row.locator('[col-id=\"0\"] span').inner_text().strip()}")
+                locator = "[col-id='0'] span"
+                text = chosen_row.locator(locator).inner_text().strip()
+                self.handler.logger.log(f"Clicked insurance: {text}")
+
                 return True
         except Exception as e:
             self.handler.logger.log_error(f"Failed to select insurance by name: {str(e)}")
