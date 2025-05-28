@@ -1,6 +1,9 @@
 #/invoice_page.py
 
 from core.playwright_handler import get_handler
+import re
+from bs4 import BeautifulSoup
+from core.base import ClaimItem
 
 class InvoicePage:
     def __init__(self, handler):
@@ -555,6 +558,20 @@ class InvoicePage:
         try:
             self.handler.page.locator('[data-test-id="invoiceHeaderPatientNameLink"]').click()
             self.handler.logger.log("Clicked patient name link successfully")
+            # wait for the patient page to load
+            self.handler.wait_for_selector('[data-test-id="patientHeaderDemographicList"]', timeout=10000)
+            self.handler.logger.log("Patient page loaded successfully")
+            #wait for a moment to allow a popup to have a chance to appear
+            self.handler.page.wait_for_timeout(1000)
+            
+            #look for popup modal and close it
+            try:
+                close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                if close_button.is_visible(timeout=3000):  # 3 second timeout
+                    close_button.click()
+                    self.handler.logger.log("Closed alert history modal after patient selection")
+            except Exception as e:
+                self.handler.logger.log(f"Alert modal check after patient selection: {str(e)}")
         except Exception as e:
             self.handler.logger.log_error(f"Failed to click patient name link: {str(e)}")
             self.handler.take_screenshot("Failed to click patient name link")
@@ -572,6 +589,124 @@ class InvoicePage:
         except Exception as e:
             self.handler.logger.log_error(f"Failed to click invoice tab: {str(e)}")
             self.handler.take_screenshot("Failed to click invoice tab")
+            raise
+
+    def scrape_invoice_details(self, patient, default_diagnosis='H52.223'):
+        """Scrape invoice details from the current invoice page.
+        
+        Args:
+            patient: Patient object to store the scraped data
+            default_diagnosis: Default diagnosis code to use if none found (defaults to 'H52.223')
+        """
+        try:
+            # Get the page content and parse with BeautifulSoup
+            html_content = self.handler.page.content()
+            soup = BeautifulSoup(html_content, 'html.parser')
+
+            # Locate the table
+            table = soup.find('div', class_='e-gridcontent').find('table')
+
+            # Initialize a list to store each row's data
+            data_rows = []
+
+            # Iterate through the table rows
+            for row in table.find_all('tr', class_='e-row'):
+                # Extract data from each cell in the row
+                cells = row.find_all('td')
+                row_data = {
+                    'post_date': cells[1].get_text(strip=True),
+                    'code': cells[2].get_text(strip=True),
+                    'modifiers': cells[3].get_text(strip=True),
+                    'diagnoses': cells[4].get_text(strip=True),
+                    'description': cells[5].get_text(strip=True),
+                    'Qty': cells[6].get_text(strip=True),
+                    'Price': cells[10].get_text(strip=True),
+                    'copay': cells[11].get_text(strip=True)
+                }
+                data_rows.append(row_data)
+
+            # Merge duplicate codes
+            from decimal import Decimal
+            merged_data = {}
+
+            for row in data_rows:
+                code = row['code']
+                if code in merged_data:
+                    # Update existing entry
+                    merged_data[code]['Qty'] = str(int(merged_data[code]['Qty']) + int(row['Qty']))
+                    merged_data[code]['Price'] = str(Decimal(merged_data[code]['Price'].strip('$')) + Decimal(row['Price'].strip('$')))
+                else:
+                    # Add new entry
+                    merged_data[code] = row
+                    merged_data[code]['Price'] = row['Price'].strip('$')
+
+            # Convert to ClaimItem objects and store in patient.claims
+            patient.claims = []
+            for row in merged_data.values():
+                claim_item = ClaimItem(
+                    vcode=row['code'],
+                    description=row['description'],
+                    billed_amount=float(row['Price'].strip('$')),
+                    code=row['code'],
+                    quantity=int(row['Qty']),
+                    modifier=row['modifiers'] if row['modifiers'] else None
+                )
+                patient.claims.append(claim_item)
+
+            # Store DOS in insurance_data
+            if data_rows:
+                patient.insurance_data['dos'] = data_rows[0]['post_date']
+
+            # Get doctor name
+            doctor_icon = soup.find('i', class_='fa-user-md')
+            if doctor_icon:
+                doctor_li = doctor_icon.find_parent('li')
+                if doctor_li:
+                    patient.medical_data['provider'] = doctor_li.get_text(strip=True)
+
+            # Get location
+            building_icon = soup.find('i', class_='fa-building')
+            if building_icon:
+                building_li = building_icon.find_parent('li')
+                if building_li:
+                    location = building_li.get_text(strip=True)
+                    if location == "Borger":
+                        patient.demographics['location'] = "Borger"
+                    elif location == "Amarillo":
+                        patient.demographics['location'] = "Amarillo"
+                    else:
+                        patient.demographics['location'] = location
+
+            # Handle diagnoses
+            if data_rows and data_rows[0]['diagnoses']:
+                patient.medical_data['dx'] = data_rows[0]['diagnoses']
+            else:
+                patient.medical_data['dx'] = default_diagnosis
+                # Click diagnosis button and search for H52. pattern
+                self.handler.page.locator('[data-test-id="invoiceHeaderDiagnosisButton"]').click()
+                
+                # Wait for the diagnosis dialog to load
+                self.handler.wait_for_selector('[data-test-id="selectADiagnosisCancelButton"]', timeout=10000)
+                
+                # Find diagnosis code
+                diagnosis_elements = self.handler.page.locator('[revtooltip]').all()
+                for element in diagnosis_elements:
+                    text = element.inner_text()
+                    if 'H52.' in text:
+                        diagnosis_code_pattern = r'H\d{2}\.\d+'
+                        match = re.search(diagnosis_code_pattern, text)
+                        if match:
+                            patient.medical_data['dx'] = match.group(0)
+                            break
+                
+                # Close diagnosis dialog
+                self.handler.page.locator('[data-test-id="selectADiagnosisCancelButton"]').click()
+
+            self.handler.logger.log("Successfully scraped invoice details")
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to scrape invoice details: {str(e)}")
+            self.handler.take_screenshot("Failed to scrape invoice details")
             raise
 
 

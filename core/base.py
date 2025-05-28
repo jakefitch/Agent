@@ -18,7 +18,7 @@ class Patient:
     """A simple class to store patient data during scraping."""
     first_name: str
     last_name: str
-    date_of_birth: datetime
+    dob: str  # Changed from date_of_birth: datetime to dob: str
     
     # Insurance information
     insurance_data: Dict[str, Any] = field(default_factory=dict)
@@ -36,6 +36,26 @@ class Patient:
     frames: Dict[str, Any] = field(default_factory=dict)
     lenses: Dict[str, Any] = field(default_factory=dict)
     contacts: Dict[str, Any] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        """Convert dob string to datetime if needed"""
+        if isinstance(self.dob, str):
+            try:
+                # Try MM/DD/YYYY format first
+                self._dob_datetime = datetime.strptime(self.dob, '%m/%d/%Y')
+            except ValueError:
+                try:
+                    # Try YYYY-MM-DD format
+                    self._dob_datetime = datetime.strptime(self.dob, '%Y-%m-%d')
+                except ValueError:
+                    raise ValueError("DOB must be in MM/DD/YYYY or YYYY-MM-DD format")
+        else:
+            self._dob_datetime = self.dob
+    
+    @property
+    def date_of_birth(self) -> datetime:
+        """Get the date of birth as a datetime object"""
+        return self._dob_datetime
     
     def add_insurance_data(self, key: str, value: Any) -> None:
         """Add insurance data to the patient record."""
@@ -110,7 +130,7 @@ class Patient:
         """Print all patient data for debugging."""
         print("\nPatient Information:")
         print(f"Name: {self.first_name} {self.last_name}")
-        print(f"DOB: {self.date_of_birth}")
+        print(f"DOB: {self.dob}")
         
         print("\nInsurance Data:")
         for key, value in self.insurance_data.items():
@@ -147,6 +167,17 @@ class Patient:
         for key, value in self.contacts.items():
             print(f"{key}: {value}")
 
+    def to_dict(self) -> dict:
+        """Convert patient data to a dictionary for easy printing/viewing."""
+        return {
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "dob": self.dob,
+            "demographics": self.demographics,
+            "insurance_data": self.insurance_data,
+            "medical_data": self.medical_data
+        }
+
 @dataclass
 class PatientContext:
     patient: Patient
@@ -164,22 +195,31 @@ class BasePage:
     def __init__(self, handler, context: Optional[PatientContext] = None):
         self.handler = handler
         self.context = context
-        self._validate_patient_required()
     
     def set_context(self, context: PatientContext):
         self.context = context
-        if self.context.cookies:
+        if self.context and self.context.cookies:
             self.handler.page.context.add_cookies(self.context.cookies)
-        self._validate_patient_required()
     
     def _validate_patient_required(self):
-        """Override this method in subclasses that require a patient"""
-        pass
+        """Warns if no patient context is available but allows execution to continue"""
+        if not self.context or not getattr(self.context, 'patient', None):
+            self.handler.logger.log("WARNING: Running without patient context.")
 
 class PatientManager:
     def __init__(self):
         self._patients: Dict[str, Patient] = {}
         self._lock = Lock()
+    
+    def create_patient(self, first_name: str, last_name: str, dob: str) -> Patient:
+        """Create a new patient and add it to the manager"""
+        patient = Patient(
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob
+        )
+        self.add_patient(patient)
+        return patient
     
     def add_patient(self, patient: Patient) -> None:
         """Add or update a patient in the manager"""
@@ -187,21 +227,32 @@ class PatientManager:
             key = self._generate_patient_key(patient)
             self._patients[key] = patient
     
-    def get_patient(self, first_name: str, last_name: str, patient_id: Optional[str] = None) -> Optional[Patient]:
-        """Retrieve a patient by their identifying information"""
+    def get_patient(self, first_name: str, last_name: str) -> Optional[Patient]:
+        """Retrieve a patient by their name"""
         with self._lock:
-            key = self._generate_patient_key(Patient(first_name=first_name, last_name=last_name, patient_id=patient_id))
+            key = self._generate_patient_key(Patient(
+                first_name=first_name,
+                last_name=last_name,
+                dob="01/01/2000"  # Temporary DOB for key generation
+            ))
             return self._patients.get(key)
     
-    def remove_patient(self, patient: Patient) -> None:
-        """Remove a patient from the manager"""
+    def remove_patient(self, first_name: str, last_name: str) -> None:
+        """Remove a patient from the manager by name"""
         with self._lock:
-            key = self._generate_patient_key(patient)
+            key = self._generate_patient_key(Patient(
+                first_name=first_name,
+                last_name=last_name,
+                dob="01/01/2000"  # Temporary DOB for key generation
+            ))
             self._patients.pop(key, None)
+    
+    def get_all_patients(self) -> List[Patient]:
+        """Get all patients in the manager"""
+        with self._lock:
+            return list(self._patients.values())
     
     @staticmethod
     def _generate_patient_key(patient: Patient) -> str:
         """Generate a unique key for a patient"""
-        if patient.patient_id:
-            return f"id_{patient.patient_id}"
-        return f"name_{patient.first_name.lower()}_{patient.last_name.lower()}" 
+        return f"{patient.last_name.lower()}_{patient.first_name.lower()}" 

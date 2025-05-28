@@ -6,6 +6,7 @@ from core.base import BasePage, PatientContext, Patient
 from .insurance_tab import InsuranceTab
 from datetime import datetime
 from typing import Optional
+import time
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -37,7 +38,23 @@ class PatientPage(BasePage):
     def is_loaded(self):
         """Check if the page is loaded"""
         try:
-            return self.handler.page.locator('[data-test-id="patientPageIdentifier"]').is_visible()
+            # First check for advanced search button
+            self.handler.logger.log("Checking for advanced search button...")
+            advanced_search = self.handler.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').is_visible(timeout=5000)
+            if advanced_search:
+                self.handler.logger.log("Found advanced search button - page is loaded")
+                return True
+            
+            # If advanced search isn't visible, check for simple search form
+            self.handler.logger.log("Advanced search not found, checking for simple search form...")
+            simple_search = self.handler.page.locator('[data-test-id="simpleSearchForm"]').is_visible(timeout=5000)
+            if simple_search:
+                self.handler.logger.log("Found simple search form - page is loaded")
+                return True
+                
+            self.handler.logger.log("Neither advanced search nor simple search form found")
+            return False
+            
         except Exception as e:
             self.handler.logger.log_error(f"Failed to check if patient page is loaded: {str(e)}")
             return False
@@ -47,9 +64,14 @@ class PatientPage(BasePage):
         try:
             self.handler.page.goto(self.base_url)
             self.handler.logger.log("Navigated to patient search page")
+            
+            # Add a small delay to ensure the page has time to load
+            self.handler.page.wait_for_timeout(2000)  # 2 second delay
+            
             # Wait for the page to be loaded
             if not self.is_loaded():
                 raise Exception("Patient page failed to load after navigation")
+                
         except Exception as e:
             self.handler.logger.log_error(f"Failed to navigate to patient page: {str(e)}")
             self.handler.take_screenshot("Failed to navigate to patient page")
@@ -88,19 +110,11 @@ class PatientPage(BasePage):
             self.handler.take_screenshot("Failed to click advanced search link")
             raise
 
-    def search_patient(self, last_name=None, first_name=None, dob=None, address=None, 
-                      phone=None, email=None, ssn=None, patient_id=None) -> Optional[Patient]:
-        """Perform an advanced patient search with all available fields.
+    def search_patient(self, patient: Patient) -> Optional[Patient]:
+        """Perform an advanced patient search using the provided Patient object.
         
         Args:
-            last_name (str, optional): Patient's last name
-            first_name (str, optional): Patient's first name
-            dob (str, optional): Date of birth
-            address (str, optional): Patient's address
-            phone (str, optional): Patient's phone number
-            email (str, optional): Patient's email
-            ssn (str, optional): Patient's social security number
-            patient_id (str, optional): Patient's ID
+            patient (Patient): The Patient object containing the data to search for
             
         Returns:
             Optional[Patient]: Patient object if found, None otherwise
@@ -112,28 +126,33 @@ class PatientPage(BasePage):
             if not advanced_search_visible:
                 self.click_advanced_search()
             
-            # Fill in each field if provided
-            if last_name:
-                self.handler.page.get_by_role('textbox', name='Last Name').fill(last_name)
+            # Fill in each field if available in the patient object
+            if patient.last_name:
+                self.handler.page.get_by_role('textbox', name='Last Name').fill(patient.last_name)
                 
-            if first_name:
-                self.handler.page.get_by_role('textbox', name='First Name').fill(first_name)
+            if patient.first_name:
+                self.handler.page.get_by_role('textbox', name='First Name').fill(patient.first_name)
                 
-            if dob:
-                self.handler.page.get_by_role('combobox', name='datepicker').fill(dob)
+            if patient.dob:
+                self.handler.page.get_by_role('combobox', name='datepicker').fill(patient.dob)
                 
+            address = patient.get_demographic_data("address")
             if address:
                 self.handler.page.get_by_role('textbox', name='Address').fill(address)
                 
+            phone = patient.get_demographic_data("phone")
             if phone:
                 self.handler.page.locator('[data-test-id="advancedSearchPhoneFormGroup"]').get_by_role('textbox', name='maskedtextbox').fill(phone)
                 
+            email = patient.get_demographic_data("email")
             if email:
                 self.handler.page.get_by_role('textbox', name='Email').fill(email)
                 
+            ssn = patient.get_demographic_data("ssn")
             if ssn:
                 self.handler.page.locator('[data-test-id="advancedSearchSocialSecurityNumberFormGroup"]').get_by_role('textbox', name='maskedtextbox').fill(ssn)
                 
+            patient_id = patient.get_demographic_data("patient_id")
             if patient_id:
                 self.handler.page.get_by_role('textbox', name='ID').fill(patient_id)
             
@@ -141,20 +160,7 @@ class PatientPage(BasePage):
             self.handler.page.locator('[data-test-id="advancedSearchSearchButton"]').click()
             self.handler.logger.log("Advanced patient search completed")
             
-            # Create and return a Patient object if we have the necessary information
-            if first_name and last_name:
-                return Patient(
-                    first_name=first_name,
-                    last_name=last_name,
-                    date_of_birth=datetime.strptime(dob, '%Y-%m-%d') if dob else None,
-                    patient_id=patient_id,
-                    address=address,
-                    phone=phone,
-                    email=email,
-                    ssn=ssn,
-                    source_system='revolution_ehr'
-                )
-            return None
+            return patient
             
         except Exception as e:
             self.handler.logger.log_error(f"Failed to perform advanced patient search: {str(e)}")
@@ -164,6 +170,9 @@ class PatientPage(BasePage):
     def _check_alert_modal(self):
         """Check for and close the alert modal if it appears."""
         try:
+            # Add a small wait to allow the modal to appear
+            self.handler.page.wait_for_timeout(1000)  # 1 second wait
+            
             close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
             if close_button.is_visible(timeout=3000):
                 close_button.click()
@@ -172,21 +181,18 @@ class PatientPage(BasePage):
             self.handler.logger.log(f"Alert modal check completed: {str(e)}")
 
    
-    def select_patient_from_results(self, last_name=None, first_name=None, dob=None, address=None, 
-                                  phone=None, patient_id=None):
-        """Select a patient from the search results based on matching criteria.
+    def select_patient_from_results(self, patient: Patient) -> bool:
+        """Select a patient from the search results based on the provided Patient object.
         
         Args:
-            last_name (str, optional): Patient's last name
-            first_name (str, optional): Patient's first name
-            dob (str, optional): Date of birth
-            address (str, optional): Patient's address
-            phone (str, optional): Patient's phone number
-            patient_id (str, optional): Patient's ID
+            patient (Patient): The Patient object containing the data to match
             
         Returns:
             bool: True if a matching patient was found and selected, False otherwise
         """
+        # Add a small wait to allow the modal to appear
+        self.handler.page.wait_for_timeout(1000)  # 1 second wait
+        
         try:
             # Wait for the results table to be visible
             self.handler.page.wait_for_selector('.ag-center-cols-container', timeout=5000)
@@ -207,32 +213,36 @@ class PatientPage(BasePage):
             for row in rows:
                 match_score = 0
                 
-                # Check each criterion if provided
-                if last_name:
+                # Check each criterion if available in the patient object
+                if patient.last_name:
                     name_cell = row.locator('[col-id="name"]').text_content()
-                    if last_name.lower() in name_cell.lower():
+                    if patient.last_name.lower() in name_cell.lower():
                         match_score += 1
                         
-                if first_name:
+                if patient.first_name:
                     name_cell = row.locator('[col-id="name"]').text_content()
-                    if first_name.lower() in name_cell.lower():
+                    if patient.first_name.lower() in name_cell.lower():
                         match_score += 1
                         
-                if dob:
+                if patient.dob:
                     dob_cell = row.locator('[col-id="dateOfBirth"]').text_content()
-                    if dob in dob_cell:
+                    if patient.dob in dob_cell:
                         match_score += 1
                         
+                # Use get_demographic_data for optional fields
+                address = patient.get_demographic_data("address")
                 if address:
                     address_cell = row.locator('[col-id="addressResponse"]').text_content()
                     if address.lower() in address_cell.lower():
                         match_score += 1
                         
+                phone = patient.get_demographic_data("phone")
                 if phone:
                     phone_cell = row.locator('[col-id="preferredPhoneNumber"]').text_content()
                     if phone in phone_cell:
                         match_score += 1
                         
+                patient_id = patient.get_demographic_data("patient_id")
                 if patient_id:
                     id_cell = row.locator('[col-id="patientId"]').text_content()
                     if patient_id in id_cell:
@@ -247,9 +257,18 @@ class PatientPage(BasePage):
             if best_match and best_match_score > 0:
                 best_match.click()
                 self.handler.logger.log(f"Selected patient with match score: {best_match_score}")
-
+                self.handler.page.wait_for_timeout(2000)  # 2 second wait
                 
-                self._check_alert_modal()  # Check for modal after clicking
+                # Check for alert modal after clicking
+                try:
+                    close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                    if close_button.is_visible(timeout=3000):  # 3 second timeout
+                        close_button.click()
+                        self.handler.logger.log("Closed alert history modal after patient selection")
+                except Exception as e:
+                    # Log but don't raise - we don't want this to break the main flow
+                    self.handler.logger.log(f"Alert modal check after patient selection: {str(e)}")
+                
                 return True
             else:
                 self.handler.logger.log("No matching patient found")

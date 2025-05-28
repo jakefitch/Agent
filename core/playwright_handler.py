@@ -17,6 +17,13 @@ def track_function(func):
         time.sleep(delay)
         
         try:
+            # Ensure page is ready before any action, but skip for initialization and about:blank
+            if (self.is_running and 
+                hasattr(self, 'page') and 
+                self.page.url != 'about:blank' and
+                not func.__name__ in ['start', 'close']):
+                self._wait_for_page_ready_internal()  # Use internal version
+            
             result = func(self, *args, **kwargs)
             get_stats_tracker().track_function_call(func.__name__, True)
             return result
@@ -86,9 +93,55 @@ class PlaywrightHandler:
             self.take_screenshot("Failed to start Playwright session")
             raise
 
+    def _wait_for_page_ready_internal(self, timeout=30000):
+        """Internal version of wait_for_page_ready without the track_function decorator"""
+        if not self.is_running:
+            self.logger.log_error("Playwright session not running")
+            return False
+            
+        try:
+            self.logger.log("Waiting for page to be ready...")
+            
+            # Wait for network to be idle (this also implies DOM is loaded)
+            self.page.wait_for_load_state("networkidle", timeout=timeout)
+            self.logger.log("Network is idle")
+            
+            # Quick check for loading spinners
+            try:
+                loading_spinner = self.page.locator('.loading-spinner, .spinner, [data-test-id="loadingSpinner"]')
+                if loading_spinner.is_visible(timeout=2000):  # Reduced timeout
+                    loading_spinner.wait_for(state="hidden", timeout=timeout)
+                    self.logger.log("Loading spinner disappeared")
+            except Exception:
+                # No spinner found, that's fine
+                pass
+            
+            # Quick check for error messages
+            error_messages = self.page.locator('.error-message, .alert-error, [data-test-id="errorMessage"]')
+            if error_messages.is_visible(timeout=1000):
+                error_text = error_messages.inner_text()
+                self.logger.log_error(f"Error message found on page: {error_text}")
+                return False
+            
+            # Small wait for any final animations
+            self.page.wait_for_timeout(500)  # Reduced from 1000ms to 500ms
+            
+            self.logger.log("Page is ready")
+            return True
+            
+        except Exception as e:
+            self.logger.log_error(f"Failed to wait for page ready: {str(e)}")
+            self.take_screenshot("Failed to wait for page ready")
+            return False
+
+    @track_function
+    def wait_for_page_ready(self, timeout=30000):
+        """Public version of wait_for_page_ready with tracking"""
+        return self._wait_for_page_ready_internal(timeout)
+
     @track_function
     def goto(self, url):
-        """Navigate to a URL"""
+        """Navigate to a URL and wait for the page to be ready"""
         if not self.is_running:
             self.logger.log_error("Playwright session not running")
             return
@@ -96,7 +149,8 @@ class PlaywrightHandler:
         self.logger.log(f"Navigating to: {url}")
         try:
             self.page.goto(url)
-            self.page.wait_for_load_state("networkidle")
+            if not self.wait_for_page_ready():
+                raise Exception("Page failed to load properly")
             self.logger.log("Navigation complete")
         except Exception as e:
             self.logger.log_error(f"Navigation failed: {str(e)}")
@@ -201,8 +255,15 @@ class PlaywrightHandler:
             self.click(login_button_selector)
             self.logger.log("Login button clicked")
             
-            # Wait for navigation to complete
-            self.page.wait_for_load_state("networkidle")
+            # Wait for the page to be fully loaded after login
+            if not self.wait_for_page_ready():
+                raise Exception("Page failed to load properly after login")
+            
+            # Add a delay to ensure EMR is fully ready
+            self.logger.log("Waiting for EMR to be fully ready...")
+            self.page.wait_for_timeout(3000)  # 3 second delay
+            self.logger.log("EMR should be ready now")
+            
             self.logger.log("Login process completed")
             
         except Exception as e:
