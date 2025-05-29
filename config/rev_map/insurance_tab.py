@@ -28,7 +28,7 @@ class InsuranceTab(BasePage):
             bool: True if at least one match was found and clicked/processed, False otherwise.
         """
         try:
-            self.handler.logger.log(f"Selecting insurance for patient {self.context.patient.first_name} {self.context.patient.last_name}")
+            self.handler.logger.log(f"Selecting insurance: {insurance_name}")
             # Find all insurance name cells in the first column of the insurance table
             rows = self.handler.page.locator('.ag-center-cols-container .ag-row')
             matches = []
@@ -65,7 +65,7 @@ class InsuranceTab(BasePage):
         except Exception as e:
             self.handler.logger.log_error(f"Failed to select insurance by name: {str(e)}")
             self.handler.take_screenshot("Failed to select insurance by name")
-            raise
+            return False
 
     def click_back_to_all_insurances(self):
         """Click the 'Back to All Insurances' button."""

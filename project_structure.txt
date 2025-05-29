@@ -21,18 +21,61 @@
 │   ├── stats_analyzer.py
 │   ├── stats_tracker.py
 │   └── workflow.py
+├── defs_overview.txt
+├── .gitignore
 ├── __init__.py
 ├── logs
-│   ├── playwright_2025-05-25.log
+│   ├── playwright_2025-05-22.log
+│   ├── playwright_2025-05-27.log
+│   ├── playwright_2025-05-28.log
 │   ├── screenshots
+│   │   ├── error_20250522_102118.png
+│   │   ├── error_20250522_102727.png
+│   │   ├── error_20250522_102728.png
+│   │   ├── error_20250522_104023.png
+│   │   ├── error_20250522_104024.png
+│   │   ├── error_20250522_105645.png
+│   │   ├── error_20250522_105646.png
+│   │   ├── error_20250522_154406.png
+│   │   ├── error_20250522_154407.png
+│   │   ├── error_20250522_154844.png
+│   │   ├── error_20250522_160503.png
+│   │   ├── error_20250522_160809.png
+│   │   ├── error_20250522_161713.png
+│   │   ├── error_20250522_171528.png
+│   │   ├── error_20250522_172141.png
+│   │   ├── error_20250527_101833.png
+│   │   ├── error_20250527_102954.png
+│   │   ├── error_20250527_103000.png
+│   │   ├── error_20250528_083831.png
+│   │   ├── error_20250528_091034.png
+│   │   ├── error_20250528_091035.png
+│   │   ├── error_20250528_091328.png
+│   │   ├── error_20250528_091330.png
+│   │   ├── error_20250528_091504.png
+│   │   ├── error_20250528_091559.png
+│   │   ├── error_20250528_091816.png
+│   │   ├── error_20250528_091829.png
+│   │   ├── error_20250528_091845.png
+│   │   ├── error_20250528_091847.png
+│   │   ├── error_20250528_092223.png
+│   │   ├── error_20250528_092224.png
+│   │   ├── error_20250528_104012.png
+│   │   ├── error_20250528_104014.png
+│   │   ├── error_20250528_104419.png
+│   │   ├── error_20250528_104420.png
+│   │   ├── error_20250528_104926.png
+│   │   ├── error_20250528_105029.png
+│   │   ├── error_20250528_105641.png
+│   │   └── error_20250528_105643.png
 │   └── stats
-│       ├── stats_2025-05-25.json
-│       ├── trend_fill.png
-│       └── trend_wait_for_selector.png
+│       ├── stats_2025-05-22.json
+│       ├── stats_2025-05-27.json
+│       └── stats_2025-05-28.json
 ├── main.py
 ├── project_structure.txt
 ├── README.md
 └── tests
     └── test_patient_workflow.py
 
-10 directories, 25 files
+11 directories, 68 files

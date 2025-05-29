@@ -49,51 +49,50 @@ def close_session():
         rev = None
 
 if __name__ == "__main__":
-    try:
-        # Initialize the session
-        initialize_session()
+
+    initialize_session()
+    
+    # Create a patient manager
+    patient_manager = PatientManager()
+    
+    # Navigate to patient page first
+    print("Attempting to navigate to patient page...")
+    rev.pages.patient_page.navigate_to_patient_page()
+    print("Successfully navigated to patient page")
+    
+    # Now create a new patient
+    print("\nCreating new patient...")
+    patient = patient_manager.create_patient(
+        first_name="Jacob",
+        last_name="Fitch",
+        dob="11/24/1982"
+    )
+    print(f"Created patient: {patient.first_name} {patient.last_name}")
+    
+    # Print patient data
+    patient.print_data()
+    
+    # Search for the patient
+    print("\nSearching for patient...")
+    rev.pages.patient_page.search_patient(patient)
+    
+    # Select the patient from results
+    if rev.pages.patient_page.select_patient_from_results(patient):
+        print("Successfully selected patient from results")
+    else:
+        print("No matching patient found in results")
+    
+    # Update the patient in the manager
+    patient_manager.add_patient(patient) 
+    print("Patient data updated in manager")
+    #select VSP from insurance tab
+    #rev.pages.patient_page.expand_insurance()
+    #rev.pages.insurance_tab.select_insurance("VSP")
+    import code
+    code.interact(local=locals())
+
         
-        # Create a patient manager
-        patient_manager = PatientManager()
-        
-        # Navigate to patient page first
-        print("Attempting to navigate to patient page...")
-        rev.pages.patient_page.navigate_to_patient_page()
-        print("Successfully navigated to patient page")
-        
-        # Now create a new patient
-        print("\nCreating new patient...")
-        patient = patient_manager.create_patient(
-            first_name="Jacob",
-            last_name="Fitch",
-            dob="11/24/1982"
-        )
-        print(f"Created patient: {patient.first_name} {patient.last_name}")
-        
-        # Print patient data
-        patient.print_data()
-        
-        # Search for the patient
-        print("\nSearching for patient...")
-        rev.pages.patient_page.search_patient(patient)
-        
-        # Select the patient from results
-        if rev.pages.patient_page.select_patient_from_results(patient):
-            print("Successfully selected patient from results")
-        else:
-            print("No matching patient found in results")
-        
-        # Update the patient in the manager
-        patient_manager.add_patient(patient) 
-        print("Patient data updated in manager")
-        
-    except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        if hasattr(rev, 'take_screenshot'):
-            rev.take_screenshot("error_screenshot")
-    finally:
-        # Always close the session
-        close_session()
+
     
     
     

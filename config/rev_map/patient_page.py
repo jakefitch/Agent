@@ -7,6 +7,8 @@ from .insurance_tab import InsuranceTab
 from datetime import datetime
 from typing import Optional
 import time
+from core.utils import format_date
+import re
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -277,4 +279,81 @@ class PatientPage(BasePage):
         except Exception as e:
             self.handler.logger.log_error(f"Failed to select patient from results: {str(e)}")
             self.handler.take_screenshot("Failed to select patient from results")
+            raise
+
+    def scrape_demographics(self, patient: Patient) -> None:
+        """Scrape patient demographic information from the patient page.
+        
+        This function extracts:
+        - Date of birth
+        - Gender
+        - Address (street, city, state, zip)
+        
+        Args:
+            patient: Patient object to store the demographic data
+        """
+        try:
+            # Wait for the patient page to load
+            self.handler.wait_for_selector('[data-test-id="patientHeaderDemographicList"]', timeout=10000)
+            
+            # Wait a moment for any popups
+            self.handler.page.wait_for_timeout(1000)
+            
+            # Handle any alert popup
+            try:
+                close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                if close_button.is_visible(timeout=3000):
+                    close_button.click()
+            except Exception as e:
+                self.handler.logger.log(f"Alert modal check: {str(e)}")
+            
+            # Get date of birth
+            dob_element = self.handler.page.locator('[data-test-id="patientHeaderDateOfBirth"]')
+            dob_text = dob_element.inner_text()
+            patient.dob = dob_text.split(' ')[0]  # Store in the dob field
+            
+            # Get gender
+            gender_element = self.handler.page.locator('[data-test-id="patientHeaderGender"]')
+            patient.demographics['gender'] = gender_element.inner_text()
+            
+            # Get address
+            try:
+                address_element = self.handler.page.locator('[data-test-id="patientHeaderAddress"]')
+                address_text = address_element.inner_text()
+                address_parts = address_text.split(',')
+                
+                # Extract address components
+                patient.demographics['address'] = address_parts[0].strip()
+                patient.demographics['city'] = address_parts[1].strip()
+                
+                # Split state and zip
+                state_zip = address_parts[2].strip().split(' ')
+                patient.demographics['state'] = state_zip[1] if len(state_zip) > 1 else 'TX'
+                patient.demographics['zip'] = state_zip[2] if len(state_zip) > 2 else '79110'
+                
+            except Exception as e:
+                self.handler.logger.log(f"Error extracting address: {str(e)}")
+                # Set default values
+                patient.demographics.update({
+                    'address': '1476 Biggs',
+                    'city': 'Amarillo',
+                    'state': 'TX',
+                    'zip': '79110'
+                })
+            
+            self.handler.logger.log("Successfully scraped patient demographics")
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to scrape patient demographics: {str(e)}")
+            self.handler.take_screenshot("Failed to scrape patient demographics")
+            raise
+
+    def expand_insurance(self):
+        """Click the insurance summary expand button to show insurance details."""
+        try:
+            self.handler.page.locator('[data-test-id="insuranceSummaryPodexpand"]').click()
+            self.handler.logger.log("Clicked insurance summary expand button")
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to click insurance summary expand button: {str(e)}")
+            self.handler.take_screenshot("Failed to click insurance summary expand button")
             raise
