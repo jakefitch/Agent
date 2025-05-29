@@ -554,3 +554,33 @@ class InsuranceTab(BasePage):
             self.handler.logger.log_error(f"Failed to delete old documents: {str(e)}")
             self.handler.take_screenshot("Failed to delete old documents")
             return 0, 0 
+
+    def delete_auth(self):
+        """
+        Deletes teh authorization from insurance details page
+        """
+        try:
+            # Get the authorization field
+            auth_field = self.handler.page.locator('[formcontrolname="authorizationNumber"]')
+            auth_value = auth_field.input_value()
+            
+            # If the authorization doesn't contain numbers, return None
+            if not any(char.isdigit() for char in auth_value):
+                self.handler.logger.log("No valid authorization number found")
+                return None
+            
+            # Clear the authorization field and set it to '0'
+            auth_field.click()
+            auth_field.fill('0')
+            self.handler.logger.log(f"Cleared authorization number: {auth_value}")
+            
+            # Save the changes
+            save_button = self.handler.page.locator('[data-test-id="insuranceDetailsSaveButton"]')
+            save_button.click()
+            self.handler.logger.log("Saved insurance details")
+
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to delete authorization: {str(e)}")
+            self.handler.take_screenshot("Failed to delete authorization")
+            return None 

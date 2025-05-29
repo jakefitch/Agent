@@ -91,4 +91,43 @@ def set_copay(patient: Patient) -> None:
     # Store the formatted copay amount
     patient.claims['copay'] = format_currency(total_copay)
 
+def has_glasses_order(patient: Patient) -> bool:
+    """Check if a patient has any claims indicating a glasses order.
+    
+    This function checks for V21 or V22 codes in the patient's claims,
+    which indicate a glasses order in the system.
+    
+    Args:
+        patient: Patient object containing claims to check
+        
+    Returns:
+        bool: True if a glasses order is found, False otherwise
+    """
+    if not hasattr(patient, 'claims') or not patient.claims:
+        return False
+        
+    for claim in patient.claims:
+        if claim.code.startswith('V21') or claim.code.startswith('V22'):
+            return True
+            
+    return False
+
+def has_frame_claim(patient: Patient) -> bool:
+    """Check if the patient has a frame claim by looking for V202 codes.
+    
+    Args:
+        patient: Patient object containing claims data
+        
+    Returns:
+        bool: True if a frame claim is found, False otherwise
+    """
+    if not patient.claims:
+        return False
+        
+    for claim in patient.claims:
+        if claim.code and claim.code.upper().startswith('V202'):
+            return True
+            
+    return False
+
 

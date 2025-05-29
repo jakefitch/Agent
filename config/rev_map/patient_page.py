@@ -326,10 +326,12 @@ class PatientPage(BasePage):
                 patient.demographics['address'] = address_parts[0].strip()
                 patient.demographics['city'] = address_parts[1].strip()
                 
-                # Split state and zip
-                state_zip = address_parts[2].strip().split(' ')
-                patient.demographics['state'] = state_zip[1] if len(state_zip) > 1 else 'TX'
-                patient.demographics['zip'] = state_zip[2] if len(state_zip) > 2 else '79110'
+                # Split state and zip - handle cases where state might be abbreviated or full name
+                state_zip = address_parts[2].strip()
+                # Split on last space to separate state and zip
+                last_space_index = state_zip.rindex(' ')
+                patient.demographics['state'] = state_zip[:last_space_index].strip()
+                patient.demographics['zip'] = state_zip[last_space_index:].strip()
                 
             except Exception as e:
                 self.handler.logger.log(f"Error extracting address: {str(e)}")
@@ -357,3 +359,209 @@ class PatientPage(BasePage):
             self.handler.logger.log_error(f"Failed to click insurance summary expand button: {str(e)}")
             self.handler.take_screenshot("Failed to click insurance summary expand button")
             raise
+
+    
+    def click_patient_summary_menu(self):
+        """Click the patient summary menu button."""
+        try:
+            self.handler.page.locator('[data-test-id="patientSummaryMenu"]').click()
+            self.handler.logger.log("Clicked patient summary menu")
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to click patient summary menu: {str(e)}")
+            self.handler.take_screenshot("Failed to click patient summary menu")
+            raise
+
+    def scrape_family_demographics(self, patient: Patient) -> None:
+        """Scrape family member demographic information for VSP search combinations.
+        
+        This function extracts family member information and stores it in the patient's
+        insurance_data dictionary under 'search_combinations'. Each family member's data
+        is stored as a dictionary with keys: first_name, last_name, dob.
+        
+        Args:
+            patient: Patient object to store the family demographic data
+        """
+        try:
+            # Initialize search_combinations list in insurance_data if it doesn't exist
+            if 'search_combinations' not in patient.insurance_data:
+                patient.insurance_data['search_combinations'] = []
+
+            # Add primary patient as first search combination
+            primary_patient = {
+                'first_name': patient.first_name,
+                'last_name': patient.last_name,
+                'dob': patient.dob
+            }
+            patient.insurance_data['search_combinations'].append(primary_patient)
+
+            # Click on patient summary menu to access family members
+            self.click_patient_summary_menu()
+            self.handler.page.wait_for_timeout(3000)  # Wait for contacts to load
+
+            # Get all listed contacts
+            listed_contacts = self.handler.page.locator("//*[@col-id='formattedName']").all()
+            self.handler.logger.log(f"Found {len(listed_contacts)} contacts")
+
+            # Use a counter to iterate through contacts to avoid stale elements
+            for i in range(len(listed_contacts)):
+                # Skip the first iteration (primary patient)
+                if i > 0:
+                    try:
+                        # Refresh contacts list to avoid stale elements
+                        listed_contacts = self.handler.page.locator("//*[@col-id='formattedName']").all()
+                        contact = listed_contacts[i]
+                        contact.click()
+                        self.handler.page.wait_for_timeout(1000)
+
+                        # Check for and close alert popup
+                        try:
+                            close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                            if close_button.is_visible(timeout=2000):
+                                close_button.click()
+                        except:
+                            pass
+
+                        # Get name information
+                        name_field = self.handler.page.locator("//*[@class='media-heading display-inline-block vertical-align-middle margin-top-0 margin-bottom-0 margin-right-lg']")
+                        name = name_field.inner_text()
+                        name_parts = name.split(',')
+                        last_name = name_parts[0].strip()
+                        first_name = name_parts[1].strip() if len(name_parts) > 1 else ''
+                        
+                        # Strip everything from the hashtag in the first name
+                        first_name = re.sub(r'#.*', '', first_name)
+
+                        # Get DOB
+                        try:
+                            dob = self.handler.page.locator("//*[@class='fa fa-birthday-cake text-primary margin-right-xs']")
+                            if dob.is_visible():
+                                dob = dob.locator("..").inner_text()
+                            else:
+                                dob = self.handler.page.locator("//*[@class='fa fa-birthday-cake text-info margin-right-xs']").locator("..").inner_text()
+                            
+                            # Strip the age in () from the text
+                            dob = re.sub(r'\([^)]*\)', '', dob)
+                        except:
+                            dob = None
+
+                        # Create family member data dictionary
+                        family_member = {
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'dob': dob
+                        }
+
+                        # Add to search combinations
+                        patient.insurance_data['search_combinations'].append(family_member)
+                        self.handler.logger.log(f"Added family member: {first_name} {last_name}")
+
+                        # Close the patient tab
+                        closing_name = f"{last_name}, {first_name[0]}".lower().replace(" ", "")
+                        close_icon = self.handler.page.locator(f"//span[@data-test-id='{closing_name}.navigationTab']/ancestor::div[contains(@class, 'e-text-wrap')]/span[contains(@class, 'e-close-icon')]")
+                        close_icon.click()
+                        self.handler.page.wait_for_timeout(1000)
+
+                    except Exception as e:
+                        self.handler.logger.log(f"Error processing contact {i}: {str(e)}")
+                        continue
+
+            self.handler.logger.log(f"Successfully scraped {len(patient.insurance_data['search_combinations'])} family member records")
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to scrape family demographics: {str(e)}")
+            self.handler.take_screenshot("Failed to scrape family demographics")
+            raise
+
+    def expand_optical_orders(self):
+        """Click the optical orders expand button to show optical order details."""
+        try:
+            self.handler.page.locator('[data-test-id="ordersOpticalPodexpand"]').click()
+            self.handler.logger.log("Clicked optical orders expand button")
+            # Add a small wait to allow the orders to load
+            self.handler.page.wait_for_timeout(1500)  # 1.5second wait
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to click optical orders expand button: {str(e)}")
+            self.handler.take_screenshot("Failed to click optical orders expand button")
+            raise
+
+    def open_optical_order(self, patient: Patient) -> bool:
+        """Find and open the correct optical order based on date and VSP text.
+        
+        Args:
+            patient: Patient object containing the claims data with date of service
+            
+        Returns:
+            bool: True if order was found and opened, False otherwise
+        """
+        try:
+            # Get the date from the first claim in claims data
+            if not patient.claims or len(patient.claims) == 0:
+                self.handler.logger.log("No claims data found for patient")
+                return False
+                
+            # Get the date from the first claim
+            claim_date = patient.claims[0].date
+            if not claim_date:
+                self.handler.logger.log("No date found in claims data")
+                return False
+                
+            # Wait for the table to be visible
+            self.handler.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=5000)
+            
+            # Text options to match in the order
+            text_options = [
+                'VSP IOF PROGRAM - Sacramento, CA',
+                'CARL ZEISS VISION KENTUCKY - Hebron, KY **CA-RNP** **ADVTG/NAT-RNP** **SELECT**',
+                'VSP',
+                'vsp'
+            ]
+            
+            # Maximum retries for stale elements
+            max_retries = 3
+            
+            for attempt in range(max_retries):
+                try:
+                    # Get all rows
+                    rows = self.handler.page.locator("//table[@role='presentation']/tbody/tr").all()
+                    
+                    for row in rows:
+                        try:
+                            # Find the date cell
+                            date_cell = row.locator(".//*[@data-colindex='1']")
+                            date_text = date_cell.inner_text()
+                            
+                            if date_text == claim_date:
+                                # Check for matching text options
+                                for text_option in text_options:
+                                    try:
+                                        text_cell = row.locator(f".//td[contains(text(), '{text_option}')]")
+                                        if text_cell.is_visible():
+                                            self.handler.logger.log(f"Found matching order with text: {text_option}")
+                                            text_cell.click()
+                                            # Wait for order to open
+                                            self.handler.page.wait_for_timeout(1500)
+                                            return True
+                                    except Exception as e:
+                                        continue
+                                        
+                        except Exception as e:
+                            self.handler.logger.log(f"Error processing row: {str(e)}")
+                            continue
+                            
+                    # If we get here, no matching order was found in this attempt
+                    if attempt < max_retries - 1:
+                        self.handler.logger.log(f"Retrying order search (Attempt {attempt + 1}/{max_retries})")
+                        self.handler.page.wait_for_timeout(100)
+                        
+                except Exception as e:
+                    self.handler.logger.log(f"Error during order search attempt {attempt + 1}: {str(e)}")
+                    if attempt < max_retries - 1:
+                        self.handler.page.wait_for_timeout(100)
+            
+            self.handler.logger.log("No matching optical order found")
+            return False
+            
+        except Exception as e:
+            self.handler.logger.log_error(f"Failed to open optical order: {str(e)}")
+            self.handler.take_screenshot("Failed to open optical order")
+            return False
