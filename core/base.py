@@ -218,10 +218,11 @@ class BasePage:
             error_message: A message describing the error.
         """
         try:
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
-            filename = f"screenshot_{timestamp}.png"
-            self.page.screenshot(path=filename)
-            self.logger.log(f"Screenshot saved as {filename} for error: {error_message}")
+            # Get screenshot path from logger
+            screenshot_path = self.logger.get_screenshot_path()
+            # Take screenshot
+            self.page.screenshot(path=str(screenshot_path))
+            self.logger.log(f"Screenshot saved as {screenshot_path} for error: {error_message}")
         except Exception as e:
             self.logger.log(f"Failed to take screenshot: {str(e)}")
 
