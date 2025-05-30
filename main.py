@@ -12,7 +12,7 @@ def launch_browser():
     p = sync_playwright().start()
     browser = p.chromium.launch(headless=False)
     logger = Logger()
-    rev = RevSession(browser.new_context().new_page(), logger)
+    rev = RevSession(browser.new_context().new_page(), logger, browser.new_context())
     vsp = VspSession(browser.new_context().new_page(), logger)
     return p, browser, rev, vsp
 
@@ -33,13 +33,14 @@ if __name__ == "__main__":
     patient = create_test_patient()
     rev.login()
 
-    vsp.auth_page.login("ama")
+    #vsp.login("ama")
     # vsp.claim_page.submit_claim(patient)
 
     #navigate to patient page
     rev.patient_page.navigate_to_patient_page()
     
     rev.patient_page.search_patient(patient)
+    rev.patient_page.select_patient_from_results(patient)
    
     rev.patient_page.expand_optical_orders()
 

@@ -214,14 +214,34 @@ class PatientPage(BasePage):
                     name_cell = row.locator('[col-id="name"]').text_content()
                     if patient.last_name.lower() in name_cell.lower():
                         match_score += 1
-                
+                        
                 if patient.first_name:
+                    name_cell = row.locator('[col-id="name"]').text_content()
                     if patient.first_name.lower() in name_cell.lower():
                         match_score += 1
-                
+                        
                 if patient.dob:
-                    dob_cell = row.locator('[col-id="dob"]').text_content()
+                    dob_cell = row.locator('[col-id="dateOfBirth"]').text_content()
                     if patient.dob in dob_cell:
+                        match_score += 1
+                        
+                # Use get_demographic_data for optional fields
+                address = patient.get_demographic_data("address")
+                if address:
+                    address_cell = row.locator('[col-id="addressResponse"]').text_content()
+                    if address.lower() in address_cell.lower():
+                        match_score += 1
+                        
+                phone = patient.get_demographic_data("phone")
+                if phone:
+                    phone_cell = row.locator('[col-id="preferredPhoneNumber"]').text_content()
+                    if phone in phone_cell:
+                        match_score += 1
+                        
+                patient_id = patient.get_demographic_data("patient_id")
+                if patient_id:
+                    id_cell = row.locator('[col-id="patientId"]').text_content()
+                    if patient_id in id_cell:
                         match_score += 1
                 
                 # Update best match if this row has a higher score
@@ -229,9 +249,22 @@ class PatientPage(BasePage):
                     best_match = row
                     best_match_score = match_score
             
-            if best_match:
+            # If we found a match, click it
+            if best_match and best_match_score > 0:
                 best_match.click()
-                self.logger.log(f"Selected patient with match score {best_match_score}")
+                self.logger.log(f"Selected patient with match score: {best_match_score}")
+                self.page.wait_for_timeout(2000)  # 2 second wait
+                
+                # Check for alert modal after clicking
+                try:
+                    close_button = self.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                    if close_button.is_visible(timeout=3000):  # 3 second timeout
+                        close_button.click()
+                        self.logger.log("Closed alert history modal after patient selection")
+                except Exception as e:
+                    # Log but don't raise - we don't want this to break the main flow
+                    self.logger.log(f"Alert modal check after patient selection: {str(e)}")
+                
                 return True
             else:
                 self.logger.log("No matching patient found")
@@ -239,6 +272,7 @@ class PatientPage(BasePage):
                 
         except Exception as e:
             self.logger.log_error(f"Failed to select patient from results: {str(e)}")
+            self.take_screenshot("Failed to select patient from results")
             return False
 
     def scrape_demographics(self, patient: Patient) -> None:

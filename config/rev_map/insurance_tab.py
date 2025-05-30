@@ -3,7 +3,8 @@ from core.base import BasePage, PatientContext
 from playwright.sync_api import Page
 from core.logger import Logger
 from typing import Optional
-import random
+from random import choice
+import time
 
 class InsuranceTab(BasePage):
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
@@ -22,66 +23,47 @@ class InsuranceTab(BasePage):
             self.logger.log_error(f"Failed to close Insurance tab: {str(e)}")
             raise
 
-    def select_insurance(self, insurance_name, select_mode='random'):
-        """Select an insurance by name from the list.
-        
-        Args:
-            insurance_name: Name or partial name of insurance to select
-            select_mode: 'random' to select one match, 'all' to select all matches
-            
-        Returns:
-            bool: True if selection was successful
-        """
+   
+
+    def select_insurance(self, insurance_name: str, select_mode: str = "random") -> bool:
+        """Select an insurance entry by (partial) name."""
         try:
-            self.logger.log(f"Searching for insurance: {insurance_name}")
-            
-            # Wait for the insurance list to be visible
-            self.page.wait_for_selector('.ag-center-cols-container', timeout=5000)
-            
-            # Get all rows
-            rows = self.page.locator('.ag-center-cols-container .ag-row').all()
-            
-            if not rows:
-                self.logger.log("No insurance options found")
-                return False
-                
-            self.logger.log(f"Found {len(rows)} insurance options")
-            
-            # Find matching rows
+            self.logger.log(f"Selecting insurance: {insurance_name}")
+            rows = self.page.locator('.ag-center-cols-container .ag-row')
+            count = rows.count()
             matches = []
-            for row in rows:
-                try:
-                    name = row.locator('[col-id="0"] span').inner_text()
-                    if insurance_name.lower() in name.lower():
-                        matches.append(row)
-                except Exception as e:
-                    self.logger.log(f"Error processing row: {str(e)}")
-                    continue
-            
+
+            for i in range(count):
+                row = rows.nth(i)
+                # 🔧 Fix: explicitly select the *first* span to avoid strict mode violation
+                name_cell = row.locator('[col-id="0"] span').first
+                cell_text = name_cell.inner_text().strip()
+
+                if insurance_name.lower() in cell_text.lower():
+                    matches.append(row)
+
             if not matches:
-                self.logger.log(f"No matches found for: {insurance_name}")
+                self.logger.log(f"No insurance found matching: {insurance_name}")
                 return False
-                
-            self.logger.log(f"Found {len(matches)} matching insurance options")
-            
-            if select_mode == 'all':
+
+            self.logger.log(f"Found {len(matches)} insurance(s) matching: {insurance_name}")
+
+            if select_mode == "all":
                 for row in matches:
                     row.click()
-                    locator_str = "[col-id='0'] span"
-                    value = row.locator(locator_str).inner_text().strip()
-                    self.logger.log(f"Clicked insurance: {value}")
+                    self.logger.log(f"Clicked insurance option matching: {insurance_name}")
                 return True
-            else:  # default: random
-                chosen_row = random.choice(matches)
+            else:
+                chosen_row = choice(matches)
                 chosen_row.click()
-                locator = "[col-id='0'] span"
-                text = chosen_row.locator(locator).inner_text().strip()
-                self.logger.log(f"Clicked insurance: {text}")
+                self.logger.log(f"Clicked insurance option matching: {insurance_name}")
                 return True
-                
+
         except Exception as e:
-            self.logger.log(f"Failed to select insurance by name: {str(e)}")
+            self.logger.log_error(f"Failed to select insurance by name: {str(e)}")
+            self.take_screenshot("Failed to select insurance by name")
             return False
+
 
     def click_back_to_all_insurances(self):
         """Click the 'Back to All Insurances' button."""
@@ -274,19 +256,30 @@ class InsuranceTab(BasePage):
             self.logger.log_error(f"Failed to fill insurance form: {str(e)}")
             raise
 
-    def scrape_insurance(self):
-        """Scrape insurance information for the current patient."""
-        if not self.context or not self.context.patient:
-            raise ValueError("No patient context set for insurance scraping")
-            
-        self.logger.log(f"Scraping insurance for {self.context.patient.first_name} {self.context.patient.last_name}")
-        scraped = {}
+    def scrape_insurance(self, patient):
+        """Scrape insurance information for the current patient and store it in the patient object.
+        
+        Args:
+            patient: The patient object to store the insurance data in
+        """
+        # Update the patient in the existing context
+        if self.context:
+            self.context.patient = patient
+        else:
+            self.logger.log("WARNING: No context available for insurance scraping")
+        
+        self.logger.log(f"Scraping insurance for {patient.first_name} {patient.last_name}")
+        
         try:
+            # Initialize insurance_data if it doesn't exist
+            if not hasattr(patient, 'insurance_data'):
+                patient.insurance_data = {}
+            
             # Priority (dropdown)
             try:
                 priority_element = self.page.locator('[data-test-id="basicInformationPriorityFormGroup"] .e-input')
-                scraped['priority'] = priority_element.get_attribute('value')
-                self.logger.log(f"Successfully scraped priority: {scraped['priority']}")
+                patient.insurance_data['priority'] = priority_element.get_attribute('value')
+                self.logger.log(f"Successfully scraped priority: {patient.insurance_data['priority']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape priority field: {str(e)}")
                 self.take_screenshot("Failed to scrape priority field")
@@ -295,8 +288,8 @@ class InsuranceTab(BasePage):
             # Insurance Type (dropdown)
             try:
                 type_element = self.page.locator('[data-test-id="basicInformationTypeFormGroup"] .e-input')
-                scraped['insurance_type'] = type_element.get_attribute('value')
-                self.logger.log(f"Successfully scraped insurance type: {scraped['insurance_type']}")
+                patient.insurance_data['insurance_type'] = type_element.get_attribute('value')
+                self.logger.log(f"Successfully scraped insurance type: {patient.insurance_data['insurance_type']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape insurance type field: {str(e)}")
                 self.take_screenshot("Failed to scrape insurance type field")
@@ -305,8 +298,8 @@ class InsuranceTab(BasePage):
             # Plan Name (text input)
             try:
                 plan_element = self.page.locator('[formcontrolname="planName"]')
-                scraped['plan_name'] = plan_element.evaluate('el => el.value')
-                self.logger.log(f"Successfully scraped plan name: {scraped['plan_name']}")
+                patient.insurance_data['plan_name'] = plan_element.evaluate('el => el.value')
+                self.logger.log(f"Successfully scraped plan name: {patient.insurance_data['plan_name']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape plan name field: {str(e)}")
                 self.take_screenshot("Failed to scrape plan name field")
@@ -315,8 +308,8 @@ class InsuranceTab(BasePage):
             # Policy Holder (static text)
             try:
                 holder_element = self.page.locator('[data-test-id="basicInformationPolicyHolderFormGroup"] .form-control-static')
-                scraped['policy_holder'] = holder_element.inner_text().strip()
-                self.logger.log(f"Successfully scraped policy holder: {scraped['policy_holder']}")
+                patient.insurance_data['policy_holder'] = holder_element.inner_text().strip()
+                self.logger.log(f"Successfully scraped policy holder: {patient.insurance_data['policy_holder']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape policy holder field: {str(e)}")
                 self.take_screenshot("Failed to scrape policy holder field")
@@ -325,8 +318,8 @@ class InsuranceTab(BasePage):
             # DOB (static text)
             try:
                 dob_element = self.page.locator('[data-test-id="basicInformationPolicyDateOfBirthFormGroup"] .form-control-static')
-                scraped['dob'] = dob_element.inner_text().strip()
-                self.logger.log(f"Successfully scraped DOB: {scraped['dob']}")
+                patient.insurance_data['dob'] = dob_element.inner_text().strip()
+                self.logger.log(f"Successfully scraped DOB: {patient.insurance_data['dob']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape DOB field: {str(e)}")
                 self.take_screenshot("Failed to scrape DOB field")
@@ -335,8 +328,8 @@ class InsuranceTab(BasePage):
             # Policy Number (text input)
             try:
                 policy_element = self.page.locator('[formcontrolname="policyNumber"]')
-                scraped['policy_number'] = policy_element.evaluate('el => el.value')
-                self.logger.log(f"Successfully scraped policy number: {scraped['policy_number']}")
+                patient.insurance_data['policy_number'] = policy_element.evaluate('el => el.value')
+                self.logger.log(f"Successfully scraped policy number: {patient.insurance_data['policy_number']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape policy number field: {str(e)}")
                 self.take_screenshot("Failed to scrape policy number field")
@@ -345,8 +338,8 @@ class InsuranceTab(BasePage):
             # Group Number (text input)
             try:
                 group_element = self.page.locator('[formcontrolname="groupNumber"]')
-                scraped['group_number'] = group_element.evaluate('el => el.value')
-                self.logger.log(f"Successfully scraped group number: {scraped['group_number']}")
+                patient.insurance_data['group_number'] = group_element.evaluate('el => el.value')
+                self.logger.log(f"Successfully scraped group number: {patient.insurance_data['group_number']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape group number field: {str(e)}")
                 self.take_screenshot("Failed to scrape group number field")
@@ -355,14 +348,15 @@ class InsuranceTab(BasePage):
             # Authorization (text input)
             try:
                 auth_element = self.page.locator('[formcontrolname="authorizationNumber"]')
-                scraped['authorization'] = auth_element.evaluate('el => el.value')
-                self.logger.log(f"Successfully scraped authorization: {scraped['authorization']}")
+                patient.insurance_data['authorization'] = auth_element.evaluate('el => el.value')
+                self.logger.log(f"Successfully scraped authorization: {patient.insurance_data['authorization']}")
             except Exception as e:
                 self.logger.log_error(f"Failed to scrape authorization field: {str(e)}")
                 self.take_screenshot("Failed to scrape authorization field")
                 raise
 
-            return scraped
+            self.logger.log("Successfully scraped all insurance information")
+            
         except Exception as e:
             self.logger.log_error(f"Failed to scrape insurance dialog: {str(e)}")
             self.take_screenshot("Failed to scrape insurance dialog")
