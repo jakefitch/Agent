@@ -9,7 +9,7 @@ import time
 class InvoicePage(BasePage):
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         super().__init__(page, logger, context)
-        self.base_url = "https://revolutionehr.com/static/#/billing/invoices"
+        self.base_url = "https://revolutionehr.com/static/#/accounting/invoices/dashboard"
 
     def _validate_patient_required(self):
         if not self.context or not self.context.patient:
@@ -19,7 +19,7 @@ class InvoicePage(BasePage):
         """Check if the invoice page is loaded."""
         try:
             # Check for the invoice table
-            self.page.wait_for_selector('[data-test-id="invoiceTable"]', timeout=5000)
+            self.page.wait_for_selector('[data-test-id="invoiceDashboardReceiveInsurancePaymentButton"]', timeout=5000)
             self.logger.log("Invoice page is loaded")
             return True
         except Exception as e:
@@ -47,8 +47,8 @@ class InvoicePage(BasePage):
         """Search for an invoice by its number."""
         try:
             # Enter invoice number
-            self.page.locator('[data-test-id="invoiceSearch"]').fill(invoice_number)
-            self.page.locator('[data-test-id="searchButton"]').click()
+            self.page.locator('[data-test-id="invoiceId"]').fill(invoice_number)
+            self.page.locator('[data-test-id="invoiceDashboardSearchButton"]').click()
             
             # Wait for results
             self.page.wait_for_selector('[data-test-id="invoiceTable"]', timeout=5000)

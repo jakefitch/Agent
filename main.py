@@ -11,9 +11,10 @@ from config.rev_map.rev_session import RevSession
 def launch_browser():
     p = sync_playwright().start()
     browser = p.chromium.launch(headless=False)
+    context = browser.new_context(viewport={"width": 1920, "height": 1080})
     logger = Logger()
-    rev = RevSession(browser.new_context().new_page(), logger, browser.new_context())
-    vsp = VspSession(browser.new_context().new_page(), logger)
+    rev = RevSession(context.new_page(), logger, context)
+    vsp = VspSession(context.new_page(), logger)
     return p, browser, rev, vsp
 
 
