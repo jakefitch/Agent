@@ -1,7 +1,5 @@
 #/patient_page.py
 
-from core.playwright_handler import get_handler
-import random
 from core.base import BasePage, PatientContext, Patient
 from .insurance_tab import InsuranceTab
 from datetime import datetime
@@ -9,29 +7,31 @@ from typing import Optional
 import time
 from core.utils import format_date
 import re
+from playwright.sync_api import Page
+from core.logger import Logger
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
     def wrapper(self, *args, **kwargs):
         try:
             # Look for the modal close button with a short timeout
-            close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+            close_button = self.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
             if close_button.is_visible(timeout=3000):  # 3 second timeout
                 close_button.click()
-                self.handler.logger.log("Closed alert history modal")
+                self.logger.log("Closed alert history modal")
         except Exception as e:
             # Log but don't raise - we don't want this to break the main flow
-            self.handler.logger.log(f"Alert modal check completed: {str(e)}")
+            self.logger.log(f"Alert modal check completed: {str(e)}")
         
         # Execute the original method
         return func(self, *args, **kwargs)
     return wrapper
 
 class PatientPage(BasePage):
-    def __init__(self, handler, context: Optional[PatientContext] = None):
-        super().__init__(handler, context)
+    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+        super().__init__(page, logger, context)
         self.base_url = "https://revolutionehr.com/static/#/patients/search"
-        self.insurance_tab = InsuranceTab(handler, context)
+        self.insurance_tab = InsuranceTab(page, logger, context)
     
     def _validate_patient_required(self):
         # Patient is not required for initial navigation
@@ -41,53 +41,51 @@ class PatientPage(BasePage):
         """Check if the page is loaded"""
         try:
             # First check for advanced search button
-            self.handler.logger.log("Checking for advanced search button...")
-            advanced_search = self.handler.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').is_visible(timeout=5000)
+            self.logger.log("Checking for advanced search button...")
+            advanced_search = self.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').is_visible(timeout=5000)
             if advanced_search:
-                self.handler.logger.log("Found advanced search button - page is loaded")
+                self.logger.log("Found advanced search button - page is loaded")
                 return True
             
             # If advanced search isn't visible, check for simple search form
-            self.handler.logger.log("Advanced search not found, checking for simple search form...")
-            simple_search = self.handler.page.locator('[data-test-id="simpleSearchForm"]').is_visible(timeout=5000)
+            self.logger.log("Advanced search not found, checking for simple search form...")
+            simple_search = self.page.locator('[data-test-id="simpleSearchForm"]').is_visible(timeout=5000)
             if simple_search:
-                self.handler.logger.log("Found simple search form - page is loaded")
+                self.logger.log("Found simple search form - page is loaded")
                 return True
                 
-            self.handler.logger.log("Neither advanced search nor simple search form found")
+            self.logger.log("Neither advanced search nor simple search form found")
             return False
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to check if patient page is loaded: {str(e)}")
+            self.logger.log_error(f"Failed to check if patient page is loaded: {str(e)}")
             return False
     
     def navigate_to_patient_page(self):
         """Navigate to the patient search page."""
         try:
-            self.handler.page.goto(self.base_url)
-            self.handler.logger.log("Navigated to patient search page")
+            self.page.goto(self.base_url)
+            self.logger.log("Navigated to patient search page")
             
             # Add a small delay to ensure the page has time to load
-            self.handler.page.wait_for_timeout(2000)  # 2 second delay
+            self.page.wait_for_timeout(2000)  # 2 second delay
             
             # Wait for the page to be loaded
             if not self.is_loaded():
                 raise Exception("Patient page failed to load after navigation")
                 
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to navigate to patient page: {str(e)}")
-            self.handler.take_screenshot("Failed to navigate to patient page")
+            self.logger.log_error(f"Failed to navigate to patient page: {str(e)}")
             raise
     
     @check_alert_modal
     def click_patient_tab(self):
         """Click the open patient tab."""
         try:
-            self.handler.page.locator('[data-test-id$=".navigationTab"]').click()
-            self.handler.logger.log("Clicked patient tab")
+            self.page.locator('[data-test-id$=".navigationTab"]').click()
+            self.logger.log("Clicked patient tab")
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to click patient tab: {str(e)}")
-            self.handler.take_screenshot("Failed to click patient tab")
+            self.logger.log_error(f"Failed to click patient tab: {str(e)}")
             raise
 
     @check_alert_modal
@@ -95,21 +93,19 @@ class PatientPage(BasePage):
         """Click the close button (x) on the patient tab."""
         try:
             # Find the last navigation tab and get its close button
-            self.handler.page.locator('[data-test-id$=".navigationTab"]').get_by_title('Close').click()
-            self.handler.logger.log("Closed patient tab")
+            self.page.locator('[data-test-id$=".navigationTab"]').get_by_title('Close').click()
+            self.logger.log("Closed patient tab")
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to close patient tab: {str(e)}")
-            self.handler.take_screenshot("Failed to close patient tab")
+            self.logger.log_error(f"Failed to close patient tab: {str(e)}")
             raise
 
     def click_advanced_search(self):
         """Click the advanced search link on the patient search page."""
         try:
-            self.handler.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').click()
-            self.handler.logger.log("Clicked advanced search link")
+            self.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').click()
+            self.logger.log("Clicked advanced search link")
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to click advanced search link: {str(e)}")
-            self.handler.take_screenshot("Failed to click advanced search link")
+            self.logger.log_error(f"Failed to click advanced search link: {str(e)}")
             raise
 
     def search_patient(self, patient: Patient) -> Optional[Patient]:
@@ -121,68 +117,66 @@ class PatientPage(BasePage):
         Returns:
             Optional[Patient]: Patient object if found, None otherwise
         """
-        self.handler.logger.log("Starting advanced patient search")
+        self.logger.log("Starting advanced patient search")
         try:
             # Check if we're already in advanced search mode
-            advanced_search_visible = self.handler.page.locator('[data-test-id="advancedSearchSearchButton"]').is_visible(timeout=1000)
+            advanced_search_visible = self.page.locator('[data-test-id="advancedSearchSearchButton"]').is_visible(timeout=1000)
             if not advanced_search_visible:
                 self.click_advanced_search()
             
             # Fill in each field if available in the patient object
             if patient.last_name:
-                self.handler.page.get_by_role('textbox', name='Last Name').fill(patient.last_name)
+                self.page.get_by_role('textbox', name='Last Name').fill(patient.last_name)
                 
             if patient.first_name:
-                self.handler.page.get_by_role('textbox', name='First Name').fill(patient.first_name)
+                self.page.get_by_role('textbox', name='First Name').fill(patient.first_name)
                 
             if patient.dob:
-                self.handler.page.get_by_role('combobox', name='datepicker').fill(patient.dob)
+                self.page.get_by_role('combobox', name='datepicker').fill(patient.dob)
                 
             address = patient.get_demographic_data("address")
             if address:
-                self.handler.page.get_by_role('textbox', name='Address').fill(address)
+                self.page.get_by_role('textbox', name='Address').fill(address)
                 
             phone = patient.get_demographic_data("phone")
             if phone:
-                self.handler.page.locator('[data-test-id="advancedSearchPhoneFormGroup"]').get_by_role('textbox', name='maskedtextbox').fill(phone)
+                self.page.locator('[data-test-id="advancedSearchPhoneFormGroup"]').get_by_role('textbox', name='maskedtextbox').fill(phone)
                 
             email = patient.get_demographic_data("email")
             if email:
-                self.handler.page.get_by_role('textbox', name='Email').fill(email)
+                self.page.get_by_role('textbox', name='Email').fill(email)
                 
             ssn = patient.get_demographic_data("ssn")
             if ssn:
-                self.handler.page.locator('[data-test-id="advancedSearchSocialSecurityNumberFormGroup"]').get_by_role('textbox', name='maskedtextbox').fill(ssn)
+                self.page.locator('[data-test-id="advancedSearchSocialSecurityNumberFormGroup"]').get_by_role('textbox', name='maskedtextbox').fill(ssn)
                 
             patient_id = patient.get_demographic_data("patient_id")
             if patient_id:
-                self.handler.page.get_by_role('textbox', name='ID').fill(patient_id)
+                self.page.get_by_role('textbox', name='ID').fill(patient_id)
             
             # Click the search button
-            self.handler.page.locator('[data-test-id="advancedSearchSearchButton"]').click()
-            self.handler.logger.log("Advanced patient search completed")
+            self.page.locator('[data-test-id="advancedSearchSearchButton"]').click()
+            self.logger.log("Advanced patient search completed")
             
             return patient
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to perform advanced patient search: {str(e)}")
-            self.handler.take_screenshot("Failed to perform advanced patient search")
+            self.logger.log_error(f"Failed to perform advanced patient search: {str(e)}")
             raise
 
     def _check_alert_modal(self):
         """Check for and close the alert modal if it appears."""
         try:
             # Add a small wait to allow the modal to appear
-            self.handler.page.wait_for_timeout(1000)  # 1 second wait
+            self.page.wait_for_timeout(1000)  # 1 second wait
             
-            close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+            close_button = self.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
             if close_button.is_visible(timeout=3000):
                 close_button.click()
-                self.handler.logger.log("Closed alert history modal")
+                self.logger.log("Closed alert history modal")
         except Exception as e:
-            self.handler.logger.log(f"Alert modal check completed: {str(e)}")
+            self.logger.log(f"Alert modal check completed: {str(e)}")
 
-   
     def select_patient_from_results(self, patient: Patient) -> bool:
         """Select a patient from the search results based on the provided Patient object.
         
@@ -193,20 +187,20 @@ class PatientPage(BasePage):
             bool: True if a matching patient was found and selected, False otherwise
         """
         # Add a small wait to allow the modal to appear
-        self.handler.page.wait_for_timeout(1000)  # 1 second wait
+        self.page.wait_for_timeout(1000)  # 1 second wait
         
         try:
             # Wait for the results table to be visible
-            self.handler.page.wait_for_selector('.ag-center-cols-container', timeout=5000)
+            self.page.wait_for_selector('.ag-center-cols-container', timeout=5000)
             
             # Get all rows in the table
-            rows = self.handler.page.locator('.ag-center-cols-container .ag-row').all()
+            rows = self.page.locator('.ag-center-cols-container .ag-row').all()
             
             if not rows:
-                self.handler.logger.log("No search results found")
+                self.logger.log("No search results found")
                 return False
                 
-            self.handler.logger.log(f"Found {len(rows)} search results")
+            self.logger.log(f"Found {len(rows)} search results")
             
             # Find the best matching row
             best_match = None
@@ -220,34 +214,14 @@ class PatientPage(BasePage):
                     name_cell = row.locator('[col-id="name"]').text_content()
                     if patient.last_name.lower() in name_cell.lower():
                         match_score += 1
-                        
+                
                 if patient.first_name:
-                    name_cell = row.locator('[col-id="name"]').text_content()
                     if patient.first_name.lower() in name_cell.lower():
                         match_score += 1
-                        
+                
                 if patient.dob:
-                    dob_cell = row.locator('[col-id="dateOfBirth"]').text_content()
+                    dob_cell = row.locator('[col-id="dob"]').text_content()
                     if patient.dob in dob_cell:
-                        match_score += 1
-                        
-                # Use get_demographic_data for optional fields
-                address = patient.get_demographic_data("address")
-                if address:
-                    address_cell = row.locator('[col-id="addressResponse"]').text_content()
-                    if address.lower() in address_cell.lower():
-                        match_score += 1
-                        
-                phone = patient.get_demographic_data("phone")
-                if phone:
-                    phone_cell = row.locator('[col-id="preferredPhoneNumber"]').text_content()
-                    if phone in phone_cell:
-                        match_score += 1
-                        
-                patient_id = patient.get_demographic_data("patient_id")
-                if patient_id:
-                    id_cell = row.locator('[col-id="patientId"]').text_content()
-                    if patient_id in id_cell:
                         match_score += 1
                 
                 # Update best match if this row has a higher score
@@ -255,31 +229,17 @@ class PatientPage(BasePage):
                     best_match = row
                     best_match_score = match_score
             
-            # If we found a match, click it
-            if best_match and best_match_score > 0:
+            if best_match:
                 best_match.click()
-                self.handler.logger.log(f"Selected patient with match score: {best_match_score}")
-                self.handler.page.wait_for_timeout(2000)  # 2 second wait
-                
-                # Check for alert modal after clicking
-                try:
-                    close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
-                    if close_button.is_visible(timeout=3000):  # 3 second timeout
-                        close_button.click()
-                        self.handler.logger.log("Closed alert history modal after patient selection")
-                except Exception as e:
-                    # Log but don't raise - we don't want this to break the main flow
-                    self.handler.logger.log(f"Alert modal check after patient selection: {str(e)}")
-                
+                self.logger.log(f"Selected patient with match score {best_match_score}")
                 return True
             else:
-                self.handler.logger.log("No matching patient found")
+                self.logger.log("No matching patient found")
                 return False
                 
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to select patient from results: {str(e)}")
-            self.handler.take_screenshot("Failed to select patient from results")
-            raise
+            self.logger.log_error(f"Failed to select patient from results: {str(e)}")
+            return False
 
     def scrape_demographics(self, patient: Patient) -> None:
         """Scrape patient demographic information from the patient page.
@@ -294,31 +254,31 @@ class PatientPage(BasePage):
         """
         try:
             # Wait for the patient page to load
-            self.handler.wait_for_selector('[data-test-id="patientHeaderDemographicList"]', timeout=10000)
+            self.page.wait_for_selector('[data-test-id="patientHeaderDemographicList"]', timeout=10000)
             
             # Wait a moment for any popups
-            self.handler.page.wait_for_timeout(1000)
+            self.page.wait_for_timeout(1000)
             
             # Handle any alert popup
             try:
-                close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                close_button = self.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
                 if close_button.is_visible(timeout=3000):
                     close_button.click()
             except Exception as e:
-                self.handler.logger.log(f"Alert modal check: {str(e)}")
+                self.logger.log(f"Alert modal check: {str(e)}")
             
             # Get date of birth
-            dob_element = self.handler.page.locator('[data-test-id="patientHeaderDateOfBirth"]')
+            dob_element = self.page.locator('[data-test-id="patientHeaderDateOfBirth"]')
             dob_text = dob_element.inner_text()
             patient.dob = dob_text.split(' ')[0]  # Store in the dob field
             
             # Get gender
-            gender_element = self.handler.page.locator('[data-test-id="patientHeaderGender"]')
+            gender_element = self.page.locator('[data-test-id="patientHeaderGender"]')
             patient.demographics['gender'] = gender_element.inner_text()
             
             # Get address
             try:
-                address_element = self.handler.page.locator('[data-test-id="patientHeaderAddress"]')
+                address_element = self.page.locator('[data-test-id="patientHeaderAddress"]')
                 address_text = address_element.inner_text()
                 address_parts = address_text.split(',')
                 
@@ -334,7 +294,7 @@ class PatientPage(BasePage):
                 patient.demographics['zip'] = state_zip[last_space_index:].strip()
                 
             except Exception as e:
-                self.handler.logger.log(f"Error extracting address: {str(e)}")
+                self.logger.log(f"Error extracting address: {str(e)}")
                 # Set default values
                 patient.demographics.update({
                     'address': '1476 Biggs',
@@ -343,32 +303,29 @@ class PatientPage(BasePage):
                     'zip': '79110'
                 })
             
-            self.handler.logger.log("Successfully scraped patient demographics")
+            self.logger.log("Successfully scraped patient demographics")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to scrape patient demographics: {str(e)}")
-            self.handler.take_screenshot("Failed to scrape patient demographics")
+            self.logger.log_error(f"Failed to scrape patient demographics: {str(e)}")
             raise
 
     def expand_insurance(self):
         """Click the insurance summary expand button to show insurance details."""
         try:
-            self.handler.page.locator('[data-test-id="insuranceSummaryPodexpand"]').click()
-            self.handler.logger.log("Clicked insurance summary expand button")
+            self.page.locator('[data-test-id="insuranceSummaryPodexpand"]').click()
+            self.logger.log("Clicked insurance summary expand button")
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to click insurance summary expand button: {str(e)}")
-            self.handler.take_screenshot("Failed to click insurance summary expand button")
+            self.logger.log_error(f"Failed to click insurance summary expand button: {str(e)}")
             raise
 
     
     def click_patient_summary_menu(self):
         """Click the patient summary menu button."""
         try:
-            self.handler.page.locator('[data-test-id="patientSummaryMenu"]').click()
-            self.handler.logger.log("Clicked patient summary menu")
+            self.page.locator('[data-test-id="patientSummaryMenu"]').click()
+            self.logger.log("Clicked patient summary menu")
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to click patient summary menu: {str(e)}")
-            self.handler.take_screenshot("Failed to click patient summary menu")
+            self.logger.log_error(f"Failed to click patient summary menu: {str(e)}")
             raise
 
     def scrape_family_demographics(self, patient: Patient) -> None:
@@ -396,11 +353,11 @@ class PatientPage(BasePage):
 
             # Click on patient summary menu to access family members
             self.click_patient_summary_menu()
-            self.handler.page.wait_for_timeout(3000)  # Wait for contacts to load
+            self.page.wait_for_timeout(3000)  # Wait for contacts to load
 
             # Get all listed contacts
-            listed_contacts = self.handler.page.locator("//*[@col-id='formattedName']").all()
-            self.handler.logger.log(f"Found {len(listed_contacts)} contacts")
+            listed_contacts = self.page.locator("//*[@col-id='formattedName']").all()
+            self.logger.log(f"Found {len(listed_contacts)} contacts")
 
             # Use a counter to iterate through contacts to avoid stale elements
             for i in range(len(listed_contacts)):
@@ -408,21 +365,21 @@ class PatientPage(BasePage):
                 if i > 0:
                     try:
                         # Refresh contacts list to avoid stale elements
-                        listed_contacts = self.handler.page.locator("//*[@col-id='formattedName']").all()
+                        listed_contacts = self.page.locator("//*[@col-id='formattedName']").all()
                         contact = listed_contacts[i]
                         contact.click()
-                        self.handler.page.wait_for_timeout(1000)
+                        self.page.wait_for_timeout(1000)
 
                         # Check for and close alert popup
                         try:
-                            close_button = self.handler.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
+                            close_button = self.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
                             if close_button.is_visible(timeout=2000):
                                 close_button.click()
                         except:
                             pass
 
                         # Get name information
-                        name_field = self.handler.page.locator("//*[@class='media-heading display-inline-block vertical-align-middle margin-top-0 margin-bottom-0 margin-right-lg']")
+                        name_field = self.page.locator("//*[@class='media-heading display-inline-block vertical-align-middle margin-top-0 margin-bottom-0 margin-right-lg']")
                         name = name_field.inner_text()
                         name_parts = name.split(',')
                         last_name = name_parts[0].strip()
@@ -433,11 +390,11 @@ class PatientPage(BasePage):
 
                         # Get DOB
                         try:
-                            dob = self.handler.page.locator("//*[@class='fa fa-birthday-cake text-primary margin-right-xs']")
+                            dob = self.page.locator("//*[@class='fa fa-birthday-cake text-primary margin-right-xs']")
                             if dob.is_visible():
                                 dob = dob.locator("..").inner_text()
                             else:
-                                dob = self.handler.page.locator("//*[@class='fa fa-birthday-cake text-info margin-right-xs']").locator("..").inner_text()
+                                dob = self.page.locator("//*[@class='fa fa-birthday-cake text-info margin-right-xs']").locator("..").inner_text()
                             
                             # Strip the age in () from the text
                             dob = re.sub(r'\([^)]*\)', '', dob)
@@ -453,35 +410,33 @@ class PatientPage(BasePage):
 
                         # Add to search combinations
                         patient.insurance_data['search_combinations'].append(family_member)
-                        self.handler.logger.log(f"Added family member: {first_name} {last_name}")
+                        self.logger.log(f"Added family member: {first_name} {last_name}")
 
                         # Close the patient tab
                         closing_name = f"{last_name}, {first_name[0]}".lower().replace(" ", "")
-                        close_icon = self.handler.page.locator(f"//span[@data-test-id='{closing_name}.navigationTab']/ancestor::div[contains(@class, 'e-text-wrap')]/span[contains(@class, 'e-close-icon')]")
+                        close_icon = self.page.locator(f"//span[@data-test-id='{closing_name}.navigationTab']/ancestor::div[contains(@class, 'e-text-wrap')]/span[contains(@class, 'e-close-icon')]")
                         close_icon.click()
-                        self.handler.page.wait_for_timeout(1000)
+                        self.page.wait_for_timeout(1000)
 
                     except Exception as e:
-                        self.handler.logger.log(f"Error processing contact {i}: {str(e)}")
+                        self.logger.log(f"Error processing contact {i}: {str(e)}")
                         continue
 
-            self.handler.logger.log(f"Successfully scraped {len(patient.insurance_data['search_combinations'])} family member records")
+            self.logger.log(f"Successfully scraped {len(patient.insurance_data['search_combinations'])} family member records")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to scrape family demographics: {str(e)}")
-            self.handler.take_screenshot("Failed to scrape family demographics")
+            self.logger.log_error(f"Failed to scrape family demographics: {str(e)}")
             raise
 
     def expand_optical_orders(self):
-        """Click the optical orders expand button to show optical order details."""
+        """Expand the optical orders section for the current patient."""
         try:
-            self.handler.page.locator('[data-test-id="ordersOpticalPodexpand"]').click()
-            self.handler.logger.log("Clicked optical orders expand button")
-            # Add a small wait to allow the orders to load
-            self.handler.page.wait_for_timeout(1500)  # 1.5second wait
+            self.logger.log("Expanding optical orders section...")
+            self.page.locator('[data-test-id="ordersOpticalPodexpand"]').click()
+            self.page.wait_for_timeout(1500)  # Wait for animation
+            self.logger.log("Optical orders section expanded")
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to click optical orders expand button: {str(e)}")
-            self.handler.take_screenshot("Failed to click optical orders expand button")
+            self.logger.log(f"Failed to expand optical orders: {str(e)}")
             raise
 
     def open_optical_order(self, patient: Patient) -> bool:
@@ -496,17 +451,17 @@ class PatientPage(BasePage):
         try:
             # Get the date from the first claim in claims data
             if not patient.claims or len(patient.claims) == 0:
-                self.handler.logger.log("No claims data found for patient")
+                self.logger.log("No claims data found for patient")
                 return False
                 
             # Get the date from the first claim
             claim_date = patient.claims[0].date
             if not claim_date:
-                self.handler.logger.log("No date found in claims data")
+                self.logger.log("No date found in claims data")
                 return False
                 
             # Wait for the table to be visible
-            self.handler.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=5000)
+            self.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=5000)
             
             # Text options to match in the order
             text_options = [
@@ -522,7 +477,7 @@ class PatientPage(BasePage):
             for attempt in range(max_retries):
                 try:
                     # Get all rows
-                    rows = self.handler.page.locator("//table[@role='presentation']/tbody/tr").all()
+                    rows = self.page.locator("//table[@role='presentation']/tbody/tr").all()
                     
                     for row in rows:
                         try:
@@ -536,32 +491,31 @@ class PatientPage(BasePage):
                                     try:
                                         text_cell = row.locator(f".//td[contains(text(), '{text_option}')]")
                                         if text_cell.is_visible():
-                                            self.handler.logger.log(f"Found matching order with text: {text_option}")
+                                            self.logger.log(f"Found matching order with text: {text_option}")
                                             text_cell.click()
                                             # Wait for order to open
-                                            self.handler.page.wait_for_timeout(1500)
+                                            self.page.wait_for_timeout(1500)
                                             return True
                                     except Exception as e:
                                         continue
                                         
                         except Exception as e:
-                            self.handler.logger.log(f"Error processing row: {str(e)}")
+                            self.logger.log(f"Error processing row: {str(e)}")
                             continue
                             
                     # If we get here, no matching order was found in this attempt
                     if attempt < max_retries - 1:
-                        self.handler.logger.log(f"Retrying order search (Attempt {attempt + 1}/{max_retries})")
-                        self.handler.page.wait_for_timeout(100)
+                        self.logger.log(f"Retrying order search (Attempt {attempt + 1}/{max_retries})")
+                        self.page.wait_for_timeout(100)
                         
                 except Exception as e:
-                    self.handler.logger.log(f"Error during order search attempt {attempt + 1}: {str(e)}")
+                    self.logger.log(f"Error during order search attempt {attempt + 1}: {str(e)}")
                     if attempt < max_retries - 1:
-                        self.handler.page.wait_for_timeout(100)
+                        self.page.wait_for_timeout(100)
             
-            self.handler.logger.log("No matching optical order found")
+            self.logger.log("No matching optical order found")
             return False
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to open optical order: {str(e)}")
-            self.handler.take_screenshot("Failed to open optical order")
-            return False
+            self.logger.log_error(f"Failed to open optical order: {str(e)}")
+            raise

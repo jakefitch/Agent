@@ -9,7 +9,14 @@
 │   │   ├── claims_page.py
 │   │   ├── insurance_tab.py
 │   │   ├── invoice_page.py
-│   │   └── patient_page.py
+│   │   ├── optical_order.py
+│   │   ├── patient_page.py
+│   │   ├── products.py
+│   │   └── rev_session.py
+│   ├── vsp_map
+│   │   ├── auth_page.py
+│   │   ├── claim_page.py
+│   │   └── vsp_session.py
 │   └── workflows
 │       └── vsp_submission.yaml
 ├── core
@@ -20,6 +27,7 @@
 │   ├── playwright_handler.py
 │   ├── stats_analyzer.py
 │   ├── stats_tracker.py
+│   ├── utils.py
 │   └── workflow.py
 ├── defs_overview.txt
 ├── .gitignore
@@ -28,6 +36,7 @@
 │   ├── playwright_2025-05-22.log
 │   ├── playwright_2025-05-27.log
 │   ├── playwright_2025-05-28.log
+│   ├── playwright_2025-05-29.log
 │   ├── screenshots
 │   │   ├── error_20250522_102118.png
 │   │   ├── error_20250522_102727.png
@@ -67,15 +76,27 @@
 │   │   ├── error_20250528_104926.png
 │   │   ├── error_20250528_105029.png
 │   │   ├── error_20250528_105641.png
-│   │   └── error_20250528_105643.png
+│   │   ├── error_20250528_105643.png
+│   │   ├── error_20250529_105107.png
+│   │   ├── error_20250529_105523.png
+│   │   ├── error_20250529_110057.png
+│   │   ├── error_20250529_111130.png
+│   │   ├── error_20250529_111536.png
+│   │   ├── error_20250529_140112.png
+│   │   ├── error_20250529_140545.png
+│   │   ├── error_20250529_140546.png
+│   │   ├── error_20250529_140918.png
+│   │   ├── error_20250529_141228.png
+│   │   ├── error_20250529_141229.png
+│   │   └── error_20250529_141743.png
 │   └── stats
 │       ├── stats_2025-05-22.json
 │       ├── stats_2025-05-27.json
-│       └── stats_2025-05-28.json
+│       ├── stats_2025-05-28.json
+│       └── stats_2025-05-29.json
 ├── main.py
 ├── project_structure.txt
 ├── README.md
-└── tests
-    └── test_patient_workflow.py
+└── vsp_butcher.py
 
-11 directories, 68 files
+11 directories, 89 files

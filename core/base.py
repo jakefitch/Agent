@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from threading import Lock
+from playwright.sync_api import Page
+from core.logger import Logger
 
 @dataclass
 class ClaimItem:
@@ -192,19 +194,20 @@ class PatientContext:
         self.cookies = new_cookies
 
 class BasePage:
-    def __init__(self, handler, context: Optional[PatientContext] = None):
-        self.handler = handler
+    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+        self.page = page
+        self.logger = logger
         self.context = context
     
     def set_context(self, context: PatientContext):
         self.context = context
         if self.context and self.context.cookies:
-            self.handler.page.context.add_cookies(self.context.cookies)
+            self.page.context.add_cookies(self.context.cookies)
     
     def _validate_patient_required(self):
         """Warns if no patient context is available but allows execution to continue"""
         if not self.context or not getattr(self.context, 'patient', None):
-            self.handler.logger.log("WARNING: Running without patient context.")
+            self.logger.log("WARNING: Running without patient context.")
 
 class PatientManager:
     def __init__(self):

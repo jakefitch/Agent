@@ -1,177 +1,231 @@
-./core/stats_analyzer.py:class StatsAnalyzer:
-./core/stats_analyzer.py:    def __init__(self, days_to_analyze=30):
-./core/stats_analyzer.py:    def load_stats(self):
-./core/stats_analyzer.py:    def get_function_trends(self, function_name):
-./core/stats_analyzer.py:    def plot_function_trend(self, function_name):
-./core/stats_analyzer.py:    def get_most_improved_functions(self, min_calls=10):
-./core/stats_analyzer.py:    def get_most_reliable_functions(self, min_calls=10):
-./core/stats_analyzer.py:    def print_analysis(self):
-./core/stats_analyzer.py:def get_analyzer(days_to_analyze=30):
-./core/playwright_handler.py:def track_function(func):
-./core/playwright_handler.py:    def wrapper(self, *args, **kwargs):
-./core/playwright_handler.py:class PlaywrightHandler:
-./core/playwright_handler.py:    def __init__(self, headless=False):
-./core/playwright_handler.py:    def take_screenshot(self, error_message=None):
-./core/playwright_handler.py:    def start(self):
-./core/playwright_handler.py:    def goto(self, url):
-./core/playwright_handler.py:    def click(self, selector):
-./core/playwright_handler.py:    def fill(self, selector, value):
-./core/playwright_handler.py:    def get_text(self, selector):
-./core/playwright_handler.py:    def wait_for_selector(self, selector, timeout=5000):
-./core/playwright_handler.py:    def login(self, username_selector, password_selector, username, password, login_button_selector):
-./core/playwright_handler.py:    def close(self):
-./core/playwright_handler.py:    def __enter__(self):
-./core/playwright_handler.py:    def __exit__(self, exc_type, exc_val, exc_tb):
-./core/playwright_handler.py:    def print_stats(self):
-./core/playwright_handler.py:def get_handler(headless=False):
-./core/playwright_handler.py:def close_handler():
-./core/base.py:from dataclasses import dataclass, field
-./core/base.py:@dataclass
-./core/base.py:class ClaimItem:
-./core/base.py:@dataclass
-./core/base.py:class Patient:
-./core/base.py:    """A simple class to store patient data during scraping."""
-./core/base.py:    insurance_data: Dict[str, Any] = field(default_factory=dict)
-./core/base.py:    demographics: Dict[str, Any] = field(default_factory=dict)
-./core/base.py:    medical_data: Dict[str, Any] = field(default_factory=dict)
-./core/base.py:    claims: List[ClaimItem] = field(default_factory=list)
-./core/base.py:    frames: Dict[str, Any] = field(default_factory=dict)
-./core/base.py:    lenses: Dict[str, Any] = field(default_factory=dict)
-./core/base.py:    contacts: Dict[str, Any] = field(default_factory=dict)
-./core/base.py:    def add_insurance_data(self, key: str, value: Any) -> None:
-./core/base.py:    def add_demographic_data(self, key: str, value: Any) -> None:
-./core/base.py:    def add_medical_data(self, key: str, value: Any) -> None:
-./core/base.py:    def add_frame_data(self, key: str, value: Any) -> None:
-./core/base.py:    def add_lens_data(self, key: str, value: Any) -> None:
-./core/base.py:    def add_contact_data(self, key: str, value: Any) -> None:
-./core/base.py:    def add_claim_item(self, vcode: str, description: str, billed_amount: float, 
-./core/base.py:    def get_insurance_data(self, key: str) -> Optional[Any]:
-./core/base.py:    def get_demographic_data(self, key: str) -> Optional[Any]:
-./core/base.py:    def get_medical_data(self, key: str) -> Optional[Any]:
-./core/base.py:    def get_frame_data(self, key: str) -> Optional[Any]:
-./core/base.py:    def get_lens_data(self, key: str) -> Optional[Any]:
-./core/base.py:    def get_contact_data(self, key: str) -> Optional[Any]:
-./core/base.py:    def get_claims(self) -> List[ClaimItem]:
-./core/base.py:    def get_claims_by_vcode(self, vcode: str) -> List[ClaimItem]:
-./core/base.py:    def print_data(self) -> None:
-./core/base.py:@dataclass
-./core/base.py:class PatientContext:
-./core/base.py:    def update_page(self, page_name: str):
-./core/base.py:    def update_cookies(self, new_cookies: dict):
-./core/base.py:class BasePage:
-./core/base.py:    def __init__(self, handler, context: Optional[PatientContext] = None):
-./core/base.py:    def set_context(self, context: PatientContext):
-./core/base.py:    def _validate_patient_required(self):
-./core/base.py:        """Override this method in subclasses that require a patient"""
-./core/base.py:class PatientManager:
-./core/base.py:    def __init__(self):
-./core/base.py:    def add_patient(self, patient: Patient) -> None:
-./core/base.py:    def get_patient(self, first_name: str, last_name: str, patient_id: Optional[str] = None) -> Optional[Patient]:
-./core/base.py:    def remove_patient(self, patient: Patient) -> None:
-./core/base.py:    def _generate_patient_key(patient: Patient) -> str:
-./core/stats_tracker.py:class StatsTracker:
-./core/stats_tracker.py:    def __init__(self):
-./core/stats_tracker.py:    def _load_stats(self):
-./core/stats_tracker.py:    def _save_stats(self):
-./core/stats_tracker.py:    def track_function_call(self, function_name, success):
-./core/stats_tracker.py:    def get_function_stats(self, function_name):
-./core/stats_tracker.py:    def get_overall_stats(self):
-./core/stats_tracker.py:    def get_most_failed_functions(self, limit=5):
-./core/stats_tracker.py:def get_stats_tracker():
-./core/page_manager.py:class PageManager:
-./core/page_manager.py:    def __init__(self, handler):
-./core/page_manager.py:    def __getattr__(self, name):
-./core/page_manager.py:    def get_available_pages(self):
-./core/workflow.py:class PatientWorkflow:
-./core/workflow.py:    def __init__(self, handler, patient: Patient, manager: PatientManager):
-./core/workflow.py:    def run_insurance_workflow(self):
-./core/logger.py:class Logger:
-./core/logger.py:    def __init__(self):
-./core/logger.py:    def setup_log_file(self):
-./core/logger.py:    def log(self, message, level='info'):
-./core/logger.py:    def log_error(self, message, screenshot_path=None):
-./core/logger.py:    def get_screenshot_path(self):
-./core/logger.py:def get_logger():
-./config/rev_map/patient_page.py:def check_alert_modal(func):
-./config/rev_map/patient_page.py:    def wrapper(self, *args, **kwargs):
-./config/rev_map/patient_page.py:class PatientPage(BasePage):
-./config/rev_map/patient_page.py:    def __init__(self, handler, context: Optional[PatientContext] = None):
-./config/rev_map/patient_page.py:    def _validate_patient_required(self):
-./config/rev_map/patient_page.py:    def is_loaded(self):
-./config/rev_map/patient_page.py:    def navigate_to_patient_page(self):
-./config/rev_map/patient_page.py:    def click_patient_tab(self):
-./config/rev_map/patient_page.py:    def close_patient_tab(self):
-./config/rev_map/patient_page.py:    def click_advanced_search(self):
-./config/rev_map/patient_page.py:    def search_patient(self, last_name=None, first_name=None, dob=None, address=None, 
-./config/rev_map/patient_page.py:    def _check_alert_modal(self):
-./config/rev_map/patient_page.py:    def select_patient_from_results(self, last_name=None, first_name=None, dob=None, address=None, 
-./config/rev_map/invoice_page.py:class InvoicePage:
-./config/rev_map/invoice_page.py:    def __init__(self, handler):
-./config/rev_map/invoice_page.py:    def navigate_to_invoices_page(self):
-./config/rev_map/invoice_page.py:    def set_start_date(self, date_str):
-./config/rev_map/invoice_page.py:    def set_end_date(self, date_str):
-./config/rev_map/invoice_page.py:    def enter_invoice_number(self, number):
-./config/rev_map/invoice_page.py:    def enter_payor_name(self, name):
-./config/rev_map/invoice_page.py:    def select_location(self, office_location):
-./config/rev_map/invoice_page.py:    def select_payor_type(self, payor_type):
-./config/rev_map/invoice_page.py:    def click_search(self):
-./config/rev_map/invoice_page.py:    def get_results_table(self): ## may not be useful anymore. 
-./config/rev_map/invoice_page.py:    def is_loaded(self):
-./config/rev_map/invoice_page.py:    def search_invoice(self, invoice_number=None, start_date=None, end_date=None, payor=None, location=None):
-./config/rev_map/invoice_page.py:    def select_invoice_age(self, age_range):
-./config/rev_map/invoice_page.py:    def set_approval_status(self, status):
-./config/rev_map/invoice_page.py:    def click_invoice_details_tab(self):
-./config/rev_map/invoice_page.py:    def click_additional_claim_info_tab(self):
-./config/rev_map/invoice_page.py:    def click_claim_history_tab(self):
-./config/rev_map/invoice_page.py:    def click_payment_history_tab(self):
-./config/rev_map/invoice_page.py:    def click_statement_history_tab(self):
-./config/rev_map/invoice_page.py:    def click_docs_and_images_tab(self):
-./config/rev_map/invoice_page.py:    def click_notes_tab(self):
-./config/rev_map/invoice_page.py:    def click_pending_authorization(self):
-./config/rev_map/invoice_page.py:    def click_authorized(self):
-./config/rev_map/invoice_page.py:    def add_note(self, note_text):
-./config/rev_map/invoice_page.py:    def process_patient_name(self, row):
-./config/rev_map/invoice_page.py:    def process_table_rows(self, action_callback=None):
-./config/rev_map/invoice_page.py:                    # Use the provided callback if available, otherwise use default process_patient_name
-./config/rev_map/invoice_page.py:                    button_class = next_button.get_attribute('class', timeout=5000)
-./config/rev_map/invoice_page.py:                    if 'e-disable' in button_class:
-./config/rev_map/invoice_page.py:    def dummy_claim_review(self, row):
-./config/rev_map/invoice_page.py:    def check_for_document(self):
-./config/rev_map/invoice_page.py:    def process_document_check(self, row):
-./config/rev_map/invoice_page.py:    def click_patient_name_link(self):
-./config/rev_map/invoice_page.py:    def click_invoice_tab(self, invoice_id):
-./config/rev_map/insurance_tab.py:class InsuranceTab(BasePage):
-./config/rev_map/insurance_tab.py:    def _validate_patient_required(self):
-./config/rev_map/insurance_tab.py:    def close_insurance_tab(self):
-./config/rev_map/insurance_tab.py:    def select_insurance(self, insurance_name, select_mode='random'):
-./config/rev_map/insurance_tab.py:        Select an insurance entry by (partial) name. By default, selects a random match if multiple are found.
-./config/rev_map/insurance_tab.py:            select_mode (str): 'random' (default) to select one at random, 'all' to process all matches (calls process_insurance_row for each).
-./config/rev_map/insurance_tab.py:            else:  # default: random
-./config/rev_map/insurance_tab.py:    def click_back_to_all_insurances(self):
-./config/rev_map/insurance_tab.py:    def click_add_insurance(self):
-./config/rev_map/insurance_tab.py:    def select_insurance_company_in_dialog(self, company_name, dialog_name='ej2_dropdownlist_50'):
-./config/rev_map/insurance_tab.py:            dialog_name (str): The accessible name of the dialog (default: 'ej2_dropdownlist_50').
-./config/rev_map/insurance_tab.py:    def fill_insurance(self, company_name=None, priority=None, insurance_type=None, plan_name=None, policy_holder=None, dob=None, policy_number=None, group_number=None, authorization=None, dialog_name='ej2_dropdownlist_50'):
-./config/rev_map/insurance_tab.py:            dialog_name (str): Dialog accessible name (default: 'ej2_dropdownlist_50').
-./config/rev_map/insurance_tab.py:    def scrape_insurance(self):
-./config/rev_map/insurance_tab.py:    def upload_insurance_document(self, file_path):
-./config/rev_map/insurance_tab.py:    def list_insurance_documents(self):
-./config/rev_map/insurance_tab.py:    def delete_insurance_documents(self, cutoff_date):
-./config/rev_map/claims_page.py:class InvoicePage:
-./config/rev_map/claims_page.py:    def __init__(self, page):
-./config/rev_map/claims_page.py:    def is_loaded(self):
-./config/rev_map/claims_page.py:    def get_results_table(self):
-./main.py:def initialize_session():
-./main.py:def close_session():
-./tests/test_patient_workflow.py:class MockPatient(Patient):
-./tests/test_patient_workflow.py:    """Test-specific patient class with mock data"""
-./tests/test_patient_workflow.py:    def __init__(self):
-./tests/test_patient_workflow.py:def handler():
-./tests/test_patient_workflow.py:def patient_manager():
-./tests/test_patient_workflow.py:def mock_patient():
-./tests/test_patient_workflow.py:def patient_context(mock_patient):
-./tests/test_patient_workflow.py:def test_patient_creation():
-./tests/test_patient_workflow.py:def test_patient_manager(patient_manager, mock_patient):
-./tests/test_patient_workflow.py:def test_insurance_tab_requires_patient(handler):
-./tests/test_patient_workflow.py:def test_patient_workflow(handler, mock_patient, patient_manager):
-./tests/test_patient_workflow.py:def test_patient_context_cookie_handling(handler, patient_context):
+./vsp_butcher.py:21:def open_new_claim(automation):
+./vsp_butcher.py:30:def submit_claim(automation):
+./vsp_butcher.py:109:def submit_steps(automation):
+./vsp_butcher.py:190:def look_for_member(automation, member):
+./vsp_butcher.py:223:def look_for_existing_auth(automation,member):
+./vsp_butcher.py:289:def ai_search_vsp(automation, member):
+./vsp_butcher.py:379:def search_vsp_by_name(automation, member):
+./vsp_butcher.py:465:def search_vsp_by_id(automation, member):
+./vsp_butcher.py:526:def delete_authorizations(automation, member):
+./vsp_butcher.py:553:def click_member(automation, member):
+./vsp_butcher.py:600:def issue_new_auth_for_appropriate_services(automation,member):  #-------------------------------------------------------- I think this function should say member.active not memeber.authorization
+./vsp_butcher.py:689:def fill_rx(automation,member):
+./vsp_butcher.py:697:def calculate_order(automation,member,second_window):
+./vsp_butcher.py:704:def set_dos(automation,member):
+./vsp_butcher.py:738:def submitexam(automation,member):
+./vsp_butcher.py:779:def setDr(automation,member):
+./vsp_butcher.py:794:def submit_cl(automation,member):
+./vsp_butcher.py:923:def diseasereporting(automation,member):
+./vsp_butcher.py:954:def calculate(automation,member):
+./vsp_butcher.py:975:def fillpricing(automation,member):
+./vsp_butcher.py:988:    def calculate_units(description, qty):
+./vsp_butcher.py:1071:def set_gender(automation,member):
+./vsp_butcher.py:1081:def fill_address(automation,member):
+./vsp_butcher.py:1097:        def get_state_abbreviation(state_name):
+./vsp_butcher.py:1115:def click_submit_claim(automation,member):
+./vsp_butcher.py:1123:def download_report(automation): # not working. i'm using generate report instead
+./vsp_butcher.py:1143:def generate_report(automation,member):
+./vsp_butcher.py:1254:def mark_as_success(automation,member):
+./vsp_butcher.py:1270:def send_add_and_seg_to_vsp(automation,member): # not finished. Need to test selector for mono vs dual pd
+./vsp_butcher.py:1293:def sendrx(automation,member):
+./vsp_butcher.py:1371:def submit_frame(automation,member): #should be working. added sleeps to every step.
+./vsp_butcher.py:1486:def submit_lens(automation,member): #this will be the most complex. I will need to go into more detail when i'm fully caught up. For now i'm just looking for IOF
+./vsp_butcher.py:1826:def close_all_patient_tabs(automation):
+./core/utils.py:8:def format_currency(amount: float) -> str:
+./core/utils.py:19:def parse_currency(currency_str: str) -> float:
+./core/utils.py:30:def format_date(date_str: str, input_format: str = "%m/%d/%Y", output_format: str = "%Y-%m-%d") -> str:
+./core/utils.py:44:def clean_text(text: str) -> str:
+./core/utils.py:59:def set_copay(patient: Patient) -> None:
+./core/utils.py:94:def has_glasses_order(patient: Patient) -> bool:
+./core/utils.py:115:def has_frame_claim(patient: Patient) -> bool:
+./core/stats_tracker.py:5:class StatsTracker:
+./core/stats_tracker.py:6:    def __init__(self):
+./core/stats_tracker.py:13:    def _load_stats(self):
+./core/stats_tracker.py:26:    def _save_stats(self):
+./core/stats_tracker.py:32:    def track_function_call(self, function_name, success):
+./core/stats_tracker.py:58:    def get_function_stats(self, function_name):
+./core/stats_tracker.py:67:    def get_overall_stats(self):
+./core/stats_tracker.py:76:    def get_most_failed_functions(self, limit=5):
+./core/stats_tracker.py:89:def get_stats_tracker():
+./core/stats_analyzer.py:8:class StatsAnalyzer:
+./core/stats_analyzer.py:9:    def __init__(self, days_to_analyze=30):
+./core/stats_analyzer.py:14:    def load_stats(self):
+./core/stats_analyzer.py:37:    def get_function_trends(self, function_name):
+./core/stats_analyzer.py:51:    def plot_function_trend(self, function_name):
+./core/stats_analyzer.py:85:    def get_most_improved_functions(self, min_calls=10):
+./core/stats_analyzer.py:120:    def get_most_reliable_functions(self, min_calls=10):
+./core/stats_analyzer.py:148:    def print_analysis(self):
+./core/stats_analyzer.py:184:def get_analyzer(days_to_analyze=30):
+./core/workflow.py:7:class PatientWorkflow:
+./core/workflow.py:8:    def __init__(self, handler, manager: PatientManager):
+./core/workflow.py:18:    def set_patient(self, patient: Patient):
+./core/workflow.py:27:    def run_insurance_workflow(self):
+./core/logger.py:6:class Logger:
+./core/logger.py:7:    def __init__(self):
+./core/logger.py:20:    def setup_log_file(self):
+./core/logger.py:40:    def log(self, message, level='info'):
+./core/logger.py:45:    def log_error(self, message, screenshot_path=None):
+./core/logger.py:52:    def get_screenshot_path(self):
+./core/logger.py:60:def get_logger():
+./core/base.py:7:class ClaimItem:
+./core/base.py:17:class Patient:
+./core/base.py:40:    def __post_init__(self):
+./core/base.py:56:    def date_of_birth(self) -> datetime:
+./core/base.py:60:    def add_insurance_data(self, key: str, value: Any) -> None:
+./core/base.py:64:    def add_demographic_data(self, key: str, value: Any) -> None:
+./core/base.py:68:    def add_medical_data(self, key: str, value: Any) -> None:
+./core/base.py:72:    def add_frame_data(self, key: str, value: Any) -> None:
+./core/base.py:76:    def add_lens_data(self, key: str, value: Any) -> None:
+./core/base.py:80:    def add_contact_data(self, key: str, value: Any) -> None:
+./core/base.py:84:    def add_claim_item(self, vcode: str, description: str, billed_amount: float, 
+./core/base.py:97:    def get_insurance_data(self, key: str) -> Optional[Any]:
+./core/base.py:101:    def get_demographic_data(self, key: str) -> Optional[Any]:
+./core/base.py:105:    def get_medical_data(self, key: str) -> Optional[Any]:
+./core/base.py:109:    def get_frame_data(self, key: str) -> Optional[Any]:
+./core/base.py:113:    def get_lens_data(self, key: str) -> Optional[Any]:
+./core/base.py:117:    def get_contact_data(self, key: str) -> Optional[Any]:
+./core/base.py:121:    def get_claims(self) -> List[ClaimItem]:
+./core/base.py:125:    def get_claims_by_vcode(self, vcode: str) -> List[ClaimItem]:
+./core/base.py:129:    def print_data(self) -> None:
+./core/base.py:170:    def to_dict(self) -> dict:
+./core/base.py:182:class PatientContext:
+./core/base.py:188:    def update_page(self, page_name: str):
+./core/base.py:191:    def update_cookies(self, new_cookies: dict):
+./core/base.py:194:class BasePage:
+./core/base.py:195:    def __init__(self, handler, context: Optional[PatientContext] = None):
+./core/base.py:199:    def set_context(self, context: PatientContext):
+./core/base.py:204:    def _validate_patient_required(self):
+./core/base.py:209:class PatientManager:
+./core/base.py:210:    def __init__(self):
+./core/base.py:214:    def create_patient(self, first_name: str, last_name: str, dob: str) -> Patient:
+./core/base.py:224:    def add_patient(self, patient: Patient) -> None:
+./core/base.py:230:    def get_patient(self, first_name: str, last_name: str) -> Optional[Patient]:
+./core/base.py:240:    def remove_patient(self, first_name: str, last_name: str) -> None:
+./core/base.py:250:    def get_all_patients(self) -> List[Patient]:
+./core/base.py:256:    def _generate_patient_key(patient: Patient) -> str:
+./core/page_manager.py:1:class PageManager:
+./core/page_manager.py:2:    def __init__(self, handler):
+./core/page_manager.py:6:    def __getattr__(self, name):
+./core/page_manager.py:26:    def get_available_pages(self):
+./core/playwright_handler.py:11:def track_function(func):
+./core/playwright_handler.py:14:    def wrapper(self, *args, **kwargs):
+./core/playwright_handler.py:35:class PlaywrightHandler:
+./core/playwright_handler.py:36:    def __init__(self, headless=False):
+./core/playwright_handler.py:48:    def take_screenshot(self, error_message=None):
+./core/playwright_handler.py:64:    def start(self):
+./core/playwright_handler.py:96:    def _wait_for_page_ready_internal(self, timeout=30000):
+./core/playwright_handler.py:138:    def wait_for_page_ready(self, timeout=30000):
+./core/playwright_handler.py:143:    def goto(self, url):
+./core/playwright_handler.py:161:    def click(self, selector):
+./core/playwright_handler.py:177:    def fill(self, selector, value):
+./core/playwright_handler.py:193:    def get_text(self, selector):
+./core/playwright_handler.py:210:    def wait_for_selector(self, selector, timeout=5000):
+./core/playwright_handler.py:226:    def login(self, username_selector, password_selector, username, password, login_button_selector):
+./core/playwright_handler.py:275:    def close(self):
+./core/playwright_handler.py:294:    def __enter__(self):
+./core/playwright_handler.py:298:    def __exit__(self, exc_type, exc_val, exc_tb):
+./core/playwright_handler.py:301:    def print_stats(self):
+./core/playwright_handler.py:320:def get_handler(headless=False):
+./core/playwright_handler.py:328:def close_handler():
+./config/vsp_map/vsp_session.py:6:class VspSession:
+./config/vsp_map/vsp_session.py:9:    def __init__(self, page: Page, logger: Logger):
+./config/vsp_map/vsp_session.py:20:    class Pages:
+./config/vsp_map/vsp_session.py:23:        def __init__(self, page: Page, logger: Logger):
+./config/vsp_map/auth_page.py:6:class AuthPage:
+./config/vsp_map/auth_page.py:9:    def __init__(self, page: Page, logger: Logger):
+./config/vsp_map/auth_page.py:19:    def login(self, location: str = "ama") -> bool:
+./config/vsp_map/claim_page.py:5:class ClaimPage:
+./config/vsp_map/claim_page.py:8:    def __init__(self, page: Page, logger: Logger):
+./config/vsp_map/claim_page.py:18:    def submit_claim(self, patient: Patient) -> bool:
+./config/rev_map/products.py:7:class ProductsPage(BasePage):
+./config/rev_map/products.py:10:    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+./config/rev_map/products.py:23:    def is_loaded(self) -> bool:
+./config/rev_map/products.py:43:    def navigate_to_products(self):
+./config/rev_map/products.py:63:    def get_wholesale_price(self, frame_name: str) -> str:
+./config/rev_map/optical_order.py:9:class OpticalOrder(BasePage):
+./config/rev_map/optical_order.py:12:    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+./config/rev_map/optical_order.py:26:    def is_loaded(self) -> bool:
+./config/rev_map/optical_order.py:47:    def navigate_to_orders(self):
+./config/rev_map/optical_order.py:64:    def navigate_to_products(self):
+./config/rev_map/optical_order.py:84:    def scrape_frame_data(self, patient: Patient):
+./config/rev_map/optical_order.py:168:    def scrape_lens_data(self, patient: Patient):
+./config/rev_map/optical_order.py:189:            def get_table_values(selector):
+./config/rev_map/optical_order.py:304:    def scrape_copay(self, patient: Patient):
+./config/rev_map/optical_order.py:368:    def close_all_orders(self):
+./config/rev_map/invoice_page.py:10:class InvoicePage(BasePage):
+./config/rev_map/invoice_page.py:13:    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+./config/rev_map/invoice_page.py:19:    def is_loaded(self) -> bool:
+./config/rev_map/invoice_page.py:39:    def navigate_to_invoices(self):
+./config/rev_map/invoice_page.py:56:    def set_start_date(self, date_str):
+./config/rev_map/invoice_page.py:67:    def set_end_date(self, date_str):
+./config/rev_map/invoice_page.py:78:    def enter_invoice_number(self, number):
+./config/rev_map/invoice_page.py:93:    def enter_payor_name(self, name):
+./config/rev_map/invoice_page.py:107:    def select_location(self, office_location):
+./config/rev_map/invoice_page.py:151:    def select_payor_type(self, payor_type):
+./config/rev_map/invoice_page.py:176:    def click_search(self):
+./config/rev_map/invoice_page.py:187:    def get_results_table(self): ## may not be useful anymore. 
+./config/rev_map/invoice_page.py:200:    def search_invoice(self, invoice_number=None, start_date=None, end_date=None, payor=None, location=None):
+./config/rev_map/invoice_page.py:222:    def select_invoice_age(self, age_range):
+./config/rev_map/invoice_page.py:246:    def set_approval_status(self, status):
+./config/rev_map/invoice_page.py:271:    def click_invoice_details_tab(self):
+./config/rev_map/invoice_page.py:275:    def click_additional_claim_info_tab(self):
+./config/rev_map/invoice_page.py:279:    def click_claim_history_tab(self):
+./config/rev_map/invoice_page.py:283:    def click_payment_history_tab(self):
+./config/rev_map/invoice_page.py:287:    def click_statement_history_tab(self):
+./config/rev_map/invoice_page.py:291:    def click_docs_and_images_tab(self):
+./config/rev_map/invoice_page.py:295:    def click_notes_tab(self):
+./config/rev_map/invoice_page.py:299:    def click_pending_authorization(self):
+./config/rev_map/invoice_page.py:303:    def click_authorized(self):
+./config/rev_map/invoice_page.py:307:    def add_note(self, note_text):
+./config/rev_map/invoice_page.py:327:    def process_patient_name(self, row):
+./config/rev_map/invoice_page.py:379:    def process_table_rows(self, action_callback=None):
+./config/rev_map/invoice_page.py:450:    def dummy_claim_review(self, row):
+./config/rev_map/invoice_page.py:495:    def check_for_document(self):
+./config/rev_map/invoice_page.py:519:    def process_document_check(self, row):
+./config/rev_map/invoice_page.py:574:    def click_patient_name_link(self):
+./config/rev_map/invoice_page.py:598:    def click_invoice_tab(self, invoice_id):
+./config/rev_map/invoice_page.py:612:    def scrape_invoice_details(self, patient, default_diagnosis='H52.223'):
+./config/rev_map/insurance_tab.py:9:class InsuranceTab(BasePage):
+./config/rev_map/insurance_tab.py:10:    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+./config/rev_map/insurance_tab.py:15:    def _validate_patient_required(self):
+./config/rev_map/insurance_tab.py:19:    def close_insurance_tab(self):
+./config/rev_map/insurance_tab.py:29:    def select_insurance(self, insurance_name, select_mode='random'):
+./config/rev_map/insurance_tab.py:90:    def click_back_to_all_insurances(self):
+./config/rev_map/insurance_tab.py:100:    def click_add_insurance(self):
+./config/rev_map/insurance_tab.py:110:    def select_insurance_company_in_dialog(self, company_name, dialog_name='ej2_dropdownlist_50'):
+./config/rev_map/insurance_tab.py:129:    def fill_insurance(self, company_name=None, priority=None, insurance_type=None, plan_name=None, policy_holder=None, dob=None, policy_number=None, group_number=None, authorization=None, dialog_name='ej2_dropdownlist_50'):
+./config/rev_map/insurance_tab.py:293:    def scrape_insurance(self):
+./config/rev_map/insurance_tab.py:387:    def upload_insurance_document(self, file_path):
+./config/rev_map/insurance_tab.py:440:    def list_insurance_documents(self):
+./config/rev_map/insurance_tab.py:481:    def delete_insurance_documents(self, cutoff_date):
+./config/rev_map/insurance_tab.py:578:    def delete_auth(self):
+./config/rev_map/patient_page.py:15:def check_alert_modal(func):
+./config/rev_map/patient_page.py:17:    def wrapper(self, *args, **kwargs):
+./config/rev_map/patient_page.py:32:class PatientPage(BasePage):
+./config/rev_map/patient_page.py:33:    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+./config/rev_map/patient_page.py:40:    def _validate_patient_required(self):
+./config/rev_map/patient_page.py:44:    def is_loaded(self):
+./config/rev_map/patient_page.py:68:    def navigate_to_patient_page(self):
+./config/rev_map/patient_page.py:87:    def click_patient_tab(self):
+./config/rev_map/patient_page.py:98:    def close_patient_tab(self):
+./config/rev_map/patient_page.py:109:    def click_advanced_search(self):
+./config/rev_map/patient_page.py:119:    def search_patient(self, patient: Patient) -> Optional[Patient]:
+./config/rev_map/patient_page.py:152:    def _check_alert_modal(self):
+./config/rev_map/patient_page.py:166:    def select_patient_from_results(self, patient: Patient) -> bool:
+./config/rev_map/patient_page.py:264:    def scrape_demographics(self, patient: Patient) -> None:
+./config/rev_map/patient_page.py:333:    def expand_insurance(self):
+./config/rev_map/patient_page.py:344:    def click_patient_summary_menu(self):
+./config/rev_map/patient_page.py:354:    def scrape_family_demographics(self, patient: Patient) -> None:
+./config/rev_map/patient_page.py:455:    def expand_optical_orders(self):
+./config/rev_map/patient_page.py:466:    def open_optical_order(self, patient: Patient) -> bool:
+./config/rev_map/rev_session.py:6:class RevSession:
+./config/rev_map/rev_session.py:9:    def __init__(self, page: Page, logger: Logger):
+./config/rev_map/rev_session.py:20:    class Pages:
+./config/rev_map/rev_session.py:23:        def __init__(self, page: Page, logger: Logger):
+./config/rev_map/claims_page.py:7:class ClaimsPage(BasePage):
+./config/rev_map/claims_page.py:10:    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+./config/rev_map/claims_page.py:16:    def is_loaded(self) -> bool:
+./config/rev_map/claims_page.py:36:    def navigate_to_claims(self):
+./config/rev_map/claims_page.py:53:    def get_results_table(self):
+./main.py:10:def launch_browser():
+./main.py:19:def create_test_patient():

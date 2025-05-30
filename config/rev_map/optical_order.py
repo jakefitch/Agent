@@ -1,23 +1,33 @@
+from playwright.sync_api import Page
 from core.playwright_handler import get_handler
 from core.base import BasePage, PatientContext, Patient
+from core.logger import Logger
 from typing import Optional
 import random
 import re
+import time
 
 class OpticalOrder(BasePage):
     """Class for handling optical order operations in Revolution EHR."""
     
-    def __init__(self, handler, context: Optional[PatientContext] = None):
+    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         """Initialize the OpticalOrder class.
         
         Args:
-            handler: Playwright handler instance
+            page: Playwright page instance
+            logger: Logger instance for logging operations
             context: Optional PatientContext for patient-specific operations
         """
-        super().__init__(handler, context)
+        super().__init__(page, logger, context)
+        self.page = page
+        self.logger = logger
         self.base_url = "https://revolutionehr.com/static/#/orders/ordersEnhanced/dashboard"
         self.products_url = "https://revolutionehr.com/static/#/legacy/inventory/products"
     
+    def _validate_patient_required(self):
+        if not self.context or not self.context.patient:
+            self.logger.log("WARNING: Running without patient context.")
+
     def is_loaded(self) -> bool:
         """Check if the orders page is loaded.
         
@@ -26,56 +36,54 @@ class OpticalOrder(BasePage):
         """
         try:
             # Check for the orders dashboard element
-            self.handler.logger.log("Checking if orders page is loaded...")
-            orders_dashboard = self.handler.page.locator('[data-test-id="ordersEnhancedDashboard"]').is_visible(timeout=5000)
+            self.logger.log("Checking if orders page is loaded...")
+            orders_dashboard = self.page.locator('[data-test-id="ordersEnhancedDashboard"]').is_visible(timeout=5000)
             if orders_dashboard:
-                self.handler.logger.log("Orders page is loaded")
+                self.logger.log("Orders page is loaded")
                 return True
                 
-            self.handler.logger.log("Orders page is not loaded")
+            self.logger.log("Orders page is not loaded")
             return False
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to check if orders page is loaded: {str(e)}")
+            self.logger.log(f"Failed to check if orders page is loaded: {str(e)}")
             return False
     
     def navigate_to_orders(self):
         """Navigate to the orders dashboard page."""
         try:
-            self.handler.page.goto(self.base_url)
-            self.handler.logger.log("Navigated to orders dashboard")
+            self.page.goto(self.base_url)
+            self.logger.log("Navigated to orders dashboard")
             
             # Add a small delay to ensure the page has time to load
-            self.handler.page.wait_for_timeout(2000)  # 2 second delay
+            self.page.wait_for_timeout(2000)  # 2 second delay
             
             # Wait for the page to be loaded
             if not self.is_loaded():
                 raise Exception("Orders page failed to load after navigation")
                 
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to navigate to orders page: {str(e)}")
-            self.handler.take_screenshot("Failed to navigate to orders page")
+            self.logger.log(f"Failed to navigate to orders page: {str(e)}")
             raise
 
     def navigate_to_products(self):
         """Navigate to the products inventory page."""
         try:
-            self.handler.logger.log("Navigating to products page...")
-            self.handler.page.goto(self.products_url)
+            self.logger.log("Navigating to products page...")
+            self.page.goto(self.products_url)
             
             # Add a small delay to ensure the page has time to load
-            self.handler.page.wait_for_timeout(2000)  # 2 second delay
+            self.page.wait_for_timeout(2000)  # 2 second delay
             
             # Wait for the products table to be visible
-            products_table = self.handler.page.locator('[data-test-id="productsTable"]').is_visible(timeout=5000)
+            products_table = self.page.locator('[data-test-id="productsTable"]').is_visible(timeout=5000)
             if not products_table:
                 raise Exception("Products page failed to load")
                 
-            self.handler.logger.log("Successfully navigated to products page")
+            self.logger.log("Successfully navigated to products page")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to navigate to products page: {str(e)}")
-            self.handler.take_screenshot("Failed to navigate to products page")
+            self.logger.log(f"Failed to navigate to products page: {str(e)}")
             raise
 
     def scrape_frame_data(self, patient: Patient):
@@ -85,19 +93,19 @@ class OpticalOrder(BasePage):
             patient: Patient object to store the frame data in
         """
         try:
-            self.handler.logger.log("Scraping frame data...")
+            self.logger.log("Scraping frame data...")
             
             # Click on the frame tab
-            frame_tab = self.handler.page.locator('[data-test-id="frameInformationTab"]')
+            frame_tab = self.page.locator('[data-test-id="frameInformationTab"]')
             for _ in range(5):  # Try up to 5 times
                 try:
                     frame_tab.click()
                     break
                 except:
-                    self.handler.page.wait_for_timeout(1000)
+                    self.page.wait_for_timeout(1000)
                     continue
             
-            self.handler.page.wait_for_timeout(1000)
+            self.page.wait_for_timeout(1000)
 
             # Initialize frames dictionary if it doesn't exist
             if not hasattr(patient, 'frames'):
@@ -105,35 +113,35 @@ class OpticalOrder(BasePage):
 
             # Scrape model
             try:
-                frame = self.handler.page.locator("//div[@data-test-id='frameProductSelectionStyleSection']//p[@class='form-control-static']")
+                frame = self.page.locator("//div[@data-test-id='frameProductSelectionStyleSection']//p[@class='form-control-static']")
                 patient.frames['model'] = frame.text_content() or 'unknown'
             except:
                 patient.frames['model'] = 'unknown'
 
             # Scrape manufacturer
             try:
-                manufacturer = self.handler.page.locator("//div[@data-test-id='frameProductSelectionManufacturerSection']//p[@class='form-control-static']")
+                manufacturer = self.page.locator("//div[@data-test-id='frameProductSelectionManufacturerSection']//p[@class='form-control-static']")
                 patient.frames['manufacturer'] = manufacturer.text_content() or 'unknown'
             except:
                 patient.frames['manufacturer'] = 'unknown'
 
             # Scrape collection
             try:
-                collection = self.handler.page.locator("//div[@data-test-id='frameProductSelectionCollectionSection']//p[@class='form-control-static']")
+                collection = self.page.locator("//div[@data-test-id='frameProductSelectionCollectionSection']//p[@class='form-control-static']")
                 patient.frames['collection'] = collection.text_content() or patient.frames['manufacturer']
             except:
                 patient.frames['collection'] = patient.frames['manufacturer']
 
             # Scrape color
             try:
-                frame_color = self.handler.page.locator("//div[@data-test-id='frameColorSection']//p[@class='form-control-static']")
+                frame_color = self.page.locator("//div[@data-test-id='frameColorSection']//p[@class='form-control-static']")
                 patient.frames['color'] = frame_color.text_content() or 'unknown'
             except:
                 patient.frames['color'] = 'unknown'
 
             # Scrape temple
             try:
-                temple = self.handler.page.locator("//label[text()='Temple']/following-sibling::div/p[@class='form-control-static']")
+                temple = self.page.locator("//label[text()='Temple']/following-sibling::div/p[@class='form-control-static']")
                 temple_text = temple.text_content()[:3] if temple.text_content() else '135'
                 patient.frames['temple'] = '135' if int(temple_text) < 100 else temple_text
             except:
@@ -144,23 +152,22 @@ class OpticalOrder(BasePage):
 
             # Scrape eyesize
             try:
-                eyesize = self.handler.page.locator("//label[text()='Eye']/following-sibling::div/p[@class='form-control-static']")
+                eyesize = self.page.locator("//label[text()='Eye']/following-sibling::div/p[@class='form-control-static']")
                 patient.frames['eyesize'] = eyesize.text_content()[:2] if eyesize.text_content() else '54'
             except:
                 patient.frames['eyesize'] = '54'
 
             # Scrape dbl
             try:
-                dbl = self.handler.page.locator("//label[text()='Bridge']/following-sibling::div/p[@class='form-control-static']")
+                dbl = self.page.locator("//label[text()='Bridge']/following-sibling::div/p[@class='form-control-static']")
                 patient.frames['dbl'] = dbl.text_content()[:2] if dbl.text_content() else '17'
             except:
                 patient.frames['dbl'] = '17'
 
-            self.handler.logger.log("Successfully scraped frame data")
+            self.logger.log("Successfully scraped frame data")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to scrape frame data: {str(e)}")
-            self.handler.take_screenshot("Failed to scrape frame data")
+            self.logger.log(f"Failed to scrape frame data: {str(e)}")
             raise 
 
     def scrape_lens_data(self, patient: Patient):
@@ -170,12 +177,12 @@ class OpticalOrder(BasePage):
             patient: Patient object to store the lens data in
         """
         try:
-            self.handler.logger.log("Scraping lens data...")
+            self.logger.log("Scraping lens data...")
             
             # Click on the lens tab
-            lens_tab = self.handler.page.locator('[data-test-id="rxLensInformationTab"]')
+            lens_tab = self.page.locator('[data-test-id="rxLensInformationTab"]')
             lens_tab.click()
-            self.handler.page.wait_for_timeout(1000)
+            self.page.wait_for_timeout(1000)
             
             # Initialize dictionaries if they don't exist
             if not hasattr(patient, 'lenses'):
@@ -185,7 +192,7 @@ class OpticalOrder(BasePage):
             
             # Helper function to get values from table cells
             def get_table_values(selector):
-                element = self.handler.page.locator(selector)
+                element = self.page.locator(selector)
                 inner_html = element.inner_html()
                 parts = inner_html.split("<br>")
                 return {
@@ -224,10 +231,10 @@ class OpticalOrder(BasePage):
             })
             
             # Get PD measurements
-            od_pd = self.handler.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOdSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
-            os_pd = self.handler.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOsSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
-            dpd = self.handler.page.locator("//*[@data-test-id='eyeglassLensMeasurementsBinocularSection']//input[@type='text' and @placeholder='']").input_value()
-            seg_height = self.handler.page.locator("//*[@formcontrolname='segHeight']//input[@type='text' and @placeholder='']").input_value()
+            od_pd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOdSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
+            os_pd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOsSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
+            dpd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsBinocularSection']//input[@type='text' and @placeholder='']").input_value()
+            seg_height = self.page.locator("//*[@formcontrolname='segHeight']//input[@type='text' and @placeholder='']").input_value()
             
             # Store measurements in medical_data
             patient.medical_data.update({
@@ -239,19 +246,19 @@ class OpticalOrder(BasePage):
             
             # Try to get lens details from estimator first
             try:
-                lens_element = self.handler.page.locator('//*[@placeholder="Select Lens Style"]')
+                lens_element = self.page.locator('//*[@placeholder="Select Lens Style"]')
                 lens_value = lens_element.inner_html()
                 match = re.search(r'<option[^>]*>([^<]+)</option>', lens_value)
                 lens_description = match.group(1) if match else ''
                 
-                material = self.handler.page.locator('//*[@placeholder="Select Material"]').input_value()
-                ar = self.handler.page.locator('//*[@placeholder="Select AR"]').input_value()
-                lens_type = self.handler.page.locator('//*[@placeholder="Select Type"]').input_value()
+                material = self.page.locator('//*[@placeholder="Select Material"]').input_value()
+                ar = self.page.locator('//*[@placeholder="Select AR"]').input_value()
+                lens_type = self.page.locator('//*[@placeholder="Select Type"]').input_value()
                 
             except:
                 # Fall back to manual lens data
-                material = self.handler.page.locator('//*[@data-test-id="eyeglassLensOptionsMaterial"]').text_content()
-                ar = self.handler.page.locator('//*[@data-test-id="eyeglassLensCoatingsArCoatingsSection"]').text_content()
+                material = self.page.locator('//*[@data-test-id="eyeglassLensOptionsMaterial"]').text_content()
+                ar = self.page.locator('//*[@data-test-id="eyeglassLensCoatingsArCoatingsSection"]').text_content()
                 
                 # Process AR value
                 if '(A)' in ar:
@@ -262,7 +269,7 @@ class OpticalOrder(BasePage):
                     ar = ''
                 
                 # Determine lens type
-                lens_type_element = self.handler.page.locator('//*[@data-test-id="lensDetailsManufacturerModelSection"]')
+                lens_type_element = self.page.locator('//*[@data-test-id="lensDetailsManufacturerModelSection"]')
                 lens_type_data = lens_type_element.text_content()
                 lens_type = 'Single Vision' if 'sv' in lens_type_data.lower() else 'PAL'
                 lens_description = "SV Poly W/ AR"
@@ -293,11 +300,10 @@ class OpticalOrder(BasePage):
             else:
                 patient.lenses['material'] = 'CR-39'
             
-            self.handler.logger.log("Successfully scraped lens data")
+            self.logger.log("Successfully scraped lens data")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to scrape lens data: {str(e)}")
-            self.handler.take_screenshot("Failed to scrape lens data")
+            self.logger.log(f"Failed to scrape lens data: {str(e)}")
             raise 
 
     def scrape_copay(self, patient: Patient):
@@ -307,43 +313,43 @@ class OpticalOrder(BasePage):
             patient: Patient object to store the copay data in
         """
         try:
-            self.handler.logger.log("Scraping copay data...")
+            self.logger.log("Scraping copay data...")
             
             # Click on the billing tab
-            billing_tab = self.handler.page.locator('[data-test-id="billingTab"]')
+            billing_tab = self.page.locator('[data-test-id="billingTab"]')
             billing_tab.click()
-            self.handler.page.wait_for_timeout(1000)
+            self.page.wait_for_timeout(1000)
             
             # Try estimator method first
             try:
-                copay_field = self.handler.page.locator("(//*[@col-id='patientTotal'])[last()]")
+                copay_field = self.page.locator("(//*[@col-id='patientTotal'])[last()]")
                 copay_value = copay_field.inner_html()
                 copay_value = copay_value.replace("$", "")
                 
             except:
                 # Fall back to manual method
-                self.handler.logger.log("Estimator method failed, trying manual method...")
+                self.logger.log("Estimator method failed, trying manual method...")
                 
                 # Click on billable items tab
-                billable_items = self.handler.page.locator('[data-test-id="assignedItemsTab"]')
+                billable_items = self.page.locator('[data-test-id="assignedItemsTab"]')
                 billable_items.click()
-                self.handler.page.wait_for_timeout(1000)
+                self.page.wait_for_timeout(1000)
                 
                 # Get invoice ID
-                invoice_id = self.handler.page.locator("(//*[@col-id='invoiceId'])[2]").text_content()
+                invoice_id = self.page.locator("(//*[@col-id='invoiceId'])[2]").text_content()
                 
                 # Find and click invoice link
-                invoice_link = self.handler.page.locator(f"//*[@data-test-id='payersInvoicesTable']//a[contains(text(), '{invoice_id}')]")
+                invoice_link = self.page.locator(f"//*[@data-test-id='payersInvoicesTable']//a[contains(text(), '{invoice_id}')]")
                 invoice_link.click()
-                self.handler.page.wait_for_timeout(2000)
+                self.page.wait_for_timeout(2000)
                 
                 # Get copay value
-                copay_field = self.handler.page.locator('[data-test-id="invoiceDetailAggregateTableAdjustableTotalAmount"]')
+                copay_field = self.page.locator('[data-test-id="invoiceDetailAggregateTableAdjustableTotalAmount"]')
                 copay_value = copay_field.inner_html()
                 copay_value = copay_value.replace("$", "").replace("-", "")
                 
                 # Close invoice modal
-                close_button = self.handler.page.locator('[data-test-id="invoiceDetailsModalCloseButton"]')
+                close_button = self.page.locator('[data-test-id="invoiceDetailsModalCloseButton"]')
                 close_button.click()
             
             # Update patient's claims dictionary with copay
@@ -358,42 +364,147 @@ class OpticalOrder(BasePage):
             else:
                 patient.claims.append({'copay': copay_value})
             
-            self.handler.logger.log(f"Successfully updated copay in claims to: {patient.claims[0]['copay']}")
+            self.logger.log(f"Successfully updated copay in claims to: {patient.claims[0]['copay']}")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Failed to scrape copay data: {str(e)}")
-            self.handler.take_screenshot("Failed to scrape copay data")
+            self.logger.log(f"Failed to scrape copay data: {str(e)}")
             raise 
 
     def close_all_orders(self):
         """Closes all open optical order tabs by finding and clicking all close icons."""
         try:
-            self.handler.logger.log("Attempting to close all optical order tabs...")
+            self.logger.log("Attempting to close all optical order tabs...")
             
             # Switch to the first tab
-            self.handler.page.bring_to_front()
+            self.page.bring_to_front()
             
             # Find all close icons for optical order tabs
-            close_icons = self.handler.page.locator("span.e-close-icon").all()
+            close_icons = self.page.locator("span.e-close-icon").all()
             
             if not close_icons:
-                self.handler.logger.log("No optical order tabs found to close")
+                self.logger.log("No optical order tabs found to close")
                 return
                 
-            self.handler.logger.log(f"Found {len(close_icons)} optical order tabs to close")
+            self.logger.log(f"Found {len(close_icons)} optical order tabs to close")
             
             # Click each close icon
             for icon in close_icons:
                 try:
                     icon.click()
-                    self.handler.page.wait_for_timeout(500)  # Small delay between clicks
+                    self.page.wait_for_timeout(500)  # Small delay between clicks
                 except Exception as e:
-                    self.handler.logger.log_error(f"Failed to close a tab: {str(e)}")
+                    self.logger.log(f"Failed to close a tab: {str(e)}")
                     continue
                     
-            self.handler.logger.log("Finished attempting to close all optical order tabs")
+            self.logger.log("Finished attempting to close all optical order tabs")
             
         except Exception as e:
-            self.handler.logger.log_error(f"Error while closing optical order tabs: {str(e)}")
-            self.handler.take_screenshot("Failed to close optical order tabs")
+            self.logger.log(f"Error while closing optical order tabs: {str(e)}")
+            raise 
+
+    def fill_order_details(self, order_data):
+        """Fill out the optical order form with the provided data."""
+        try:
+            # Fill in the order details
+            self.page.locator('[data-test-id="orderDate"]').fill(order_data.get('date', ''))
+            self.page.locator('[data-test-id="orderNotes"]').fill(order_data.get('notes', ''))
+            self.logger.log("Filled order details")
+        except Exception as e:
+            self.logger.log_error(f"Failed to fill order details: {str(e)}")
+            raise
+
+    def select_lens_type(self, lens_type):
+        """Select a lens type from the dropdown."""
+        try:
+            self.page.locator('[data-test-id="lensType"]').click()
+            self.page.get_by_role('option', name=lens_type).click()
+            self.logger.log(f"Selected lens type: {lens_type}")
+        except Exception as e:
+            self.logger.log_error(f"Failed to select lens type: {str(e)}")
+            raise
+
+    def select_frame_type(self, frame_type):
+        """Select a frame type from the dropdown."""
+        try:
+            self.page.locator('[data-test-id="frameType"]').click()
+            self.page.get_by_role('option', name=frame_type).click()
+            self.logger.log(f"Selected frame type: {frame_type}")
+        except Exception as e:
+            self.logger.log_error(f"Failed to select frame type: {str(e)}")
+            raise
+
+    def add_lens_options(self, lens_options):
+        """Add lens options to the order."""
+        try:
+            for option in lens_options:
+                self.page.locator('[data-test-id="addLensOption"]').click()
+                self.page.locator('[data-test-id="lensOptionName"]').fill(option['name'])
+                self.page.locator('[data-test-id="lensOptionValue"]').fill(option['value'])
+                self.logger.log(f"Added lens option: {option['name']}")
+        except Exception as e:
+            self.logger.log_error(f"Failed to add lens options: {str(e)}")
+            raise
+
+    def add_frame_options(self, frame_options):
+        """Add frame options to the order."""
+        try:
+            for option in frame_options:
+                self.page.locator('[data-test-id="addFrameOption"]').click()
+                self.page.locator('[data-test-id="frameOptionName"]').fill(option['name'])
+                self.page.locator('[data-test-id="frameOptionValue"]').fill(option['value'])
+                self.logger.log(f"Added frame option: {option['name']}")
+        except Exception as e:
+            self.logger.log_error(f"Failed to add frame options: {str(e)}")
+            raise
+
+    def save_order(self):
+        """Save the optical order."""
+        try:
+            self.page.locator('[data-test-id="saveOrder"]').click()
+            self.logger.log("Saved optical order")
+            
+            # Wait for save confirmation
+            self.page.wait_for_selector('[data-test-id="saveConfirmation"]', timeout=5000)
+        except Exception as e:
+            self.logger.log_error(f"Failed to save order: {str(e)}")
+            raise
+
+    def cancel_order(self):
+        """Cancel the optical order."""
+        try:
+            self.page.locator('[data-test-id="cancelOrder"]').click()
+            self.logger.log("Cancelled optical order")
+        except Exception as e:
+            self.logger.log_error(f"Failed to cancel order: {str(e)}")
+            raise
+
+    def get_order_summary(self):
+        """Get the current order summary."""
+        try:
+            summary = {
+                'lens_type': self.page.locator('[data-test-id="lensType"]').input_value(),
+                'frame_type': self.page.locator('[data-test-id="frameType"]').input_value(),
+                'lens_options': [],
+                'frame_options': []
+            }
+            
+            # Get lens options
+            lens_option_rows = self.page.locator('[data-test-id="lensOptionsTable"] tr').all()
+            for row in lens_option_rows:
+                name = row.locator('[data-test-id="lensOptionName"]').input_value()
+                value = row.locator('[data-test-id="lensOptionValue"]').input_value()
+                summary['lens_options'].append({'name': name, 'value': value})
+            
+            # Get frame options
+            frame_option_rows = self.page.locator('[data-test-id="frameOptionsTable"] tr').all()
+            for row in frame_option_rows:
+                name = row.locator('[data-test-id="frameOptionName"]').input_value()
+                value = row.locator('[data-test-id="frameOptionValue"]').input_value()
+                summary['frame_options'].append({'name': name, 'value': value})
+            
+            self.logger.log("Retrieved order summary")
+            return summary
+            
+        except Exception as e:
+            self.logger.log_error(f"Failed to get order summary: {str(e)}")
             raise 
