@@ -4,6 +4,8 @@ from datetime import datetime
 from threading import Lock
 from playwright.sync_api import Page
 from core.logger import Logger
+import os
+import time
 
 @dataclass
 class ClaimItem:
@@ -208,6 +210,20 @@ class BasePage:
         """Warns if no patient context is available but allows execution to continue"""
         if not self.context or not getattr(self.context, 'patient', None):
             self.logger.log("WARNING: Running without patient context.")
+
+    def take_screenshot(self, error_message: str) -> None:
+        """Take a screenshot and save it to a file.
+        
+        Args:
+            error_message: A message describing the error.
+        """
+        try:
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            filename = f"screenshot_{timestamp}.png"
+            self.page.screenshot(path=filename)
+            self.logger.log(f"Screenshot saved as {filename} for error: {error_message}")
+        except Exception as e:
+            self.logger.log(f"Failed to take screenshot: {str(e)}")
 
 class PatientManager:
     def __init__(self):

@@ -1,5 +1,4 @@
 from playwright.sync_api import Page
-from core.playwright_handler import get_handler
 from core.base import BasePage, PatientContext, Patient
 from core.logger import Logger
 from typing import Optional
@@ -64,6 +63,7 @@ class OpticalOrder(BasePage):
                 
         except Exception as e:
             self.logger.log(f"Failed to navigate to orders page: {str(e)}")
+            self.take_screenshot("Failed to navigate to orders page")
             raise
 
     def navigate_to_products(self):
@@ -168,6 +168,7 @@ class OpticalOrder(BasePage):
             
         except Exception as e:
             self.logger.log(f"Failed to scrape frame data: {str(e)}")
+            self.take_screenshot("Failed to scrape frame data")
             raise 
 
     def scrape_lens_data(self, patient: Patient):
