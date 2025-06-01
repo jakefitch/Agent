@@ -80,26 +80,26 @@ class PatientPage(BasePage):
     
     @check_alert_modal
     def click_patient_tab(self):
-        """Click the open patient tab."""
+        """Click the most recently opened patient tab."""
         try:
-            self.page.locator('[data-test-id$=".navigationTab"]').click()
-            self.logger.log("Clicked patient tab")
+            self.page.locator('[data-test-id$=".navigationTab"]').last.click()
+            self.logger.log("Clicked most recent patient tab")
         except Exception as e:
             self.logger.log_error(f"Failed to click patient tab: {str(e)}")
             raise
 
     @check_alert_modal
     def close_patient_tab(self):
-        """Click the close button (x) on the patient tab."""
+        """Click the close button (x) on the most recently opened patient tab."""
         try:
             # Find the last navigation tab and get its close button
-            self.page.locator('[data-test-id$=".navigationTab"]').get_by_title('Close').click()
-            self.logger.log("Closed patient tab")
+            self.page.locator('[data-test-id$=".navigationTab"]').last.get_by_title('Close').click()
+            self.logger.log("Closed most recent patient tab")
         except Exception as e:
             self.logger.log_error(f"Failed to close patient tab: {str(e)}")
             raise
 
-    def click_advanced_search(self):
+    def click_advanced_search(self): #WORKS
         """Click the advanced search link on the patient search page."""
         try:
             self.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').click()
@@ -108,7 +108,7 @@ class PatientPage(BasePage):
             self.logger.log_error(f"Failed to click advanced search link: {str(e)}")
             raise
 
-    def search_patient(self, patient: Patient) -> Optional[Patient]:
+    def search_patient(self, patient: Patient) -> Optional[Patient]: #WORKS
         """Perform an advanced patient search using the provided Patient object.
         
         Args:
@@ -177,7 +177,7 @@ class PatientPage(BasePage):
         except Exception as e:
             self.logger.log(f"Alert modal check completed: {str(e)}")
 
-    def select_patient_from_results(self, patient: Patient) -> bool:
+    def select_patient_from_results(self, patient: Patient) -> bool: #WORKS
         """Select a patient from the search results based on the provided Patient object.
         
         Args:
@@ -275,7 +275,7 @@ class PatientPage(BasePage):
             self.take_screenshot("Failed to select patient from results")
             return False
 
-    def scrape_demographics(self, patient: Patient) -> None:
+    def scrape_demographics(self, patient: Patient) -> None: #WORKS
         """Scrape patient demographic information from the patient page.
         
         This function extracts:
@@ -343,7 +343,7 @@ class PatientPage(BasePage):
             self.logger.log_error(f"Failed to scrape patient demographics: {str(e)}")
             raise
 
-    def expand_insurance(self):
+    def expand_insurance(self): #WORKS1
         """Click the insurance summary expand button to show insurance details."""
         try:
             self.page.locator('[data-test-id="insuranceSummaryPodexpand"]').click()
@@ -353,7 +353,7 @@ class PatientPage(BasePage):
             raise
 
     
-    def click_patient_summary_menu(self):
+    def click_patient_summary_menu(self): #WORKS
         """Click the patient summary menu button."""
         try:
             self.page.locator('[data-test-id="patientSummaryMenu"]').click()
@@ -362,7 +362,7 @@ class PatientPage(BasePage):
             self.logger.log_error(f"Failed to click patient summary menu: {str(e)}")
             raise
 
-    def scrape_family_demographics(self, patient: Patient) -> None:
+    def scrape_family_demographics(self, patient: Patient) -> None: #WORKS
         """Scrape family member demographic information for VSP search combinations.
         
         This function extracts family member information and stores it in the patient's
