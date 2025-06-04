@@ -735,4 +735,124 @@ class InvoicePage(BasePage):
             self.take_screenshot("Failed to scrape invoice details")
             raise
 
+    # ------------------------------------------------------------------
+    # Result table utilities
+    # ------------------------------------------------------------------
+
+    def _get_rows_on_current_page(self):
+        """Return all row locators for the current results page."""
+        self.page.wait_for_selector('.ag-center-cols-container', timeout=10000)
+        return self.page.locator('.ag-center-cols-container .ag-row')
+
+    def _parse_row_data(self, row) -> Dict[str, Any]:
+        """Extract invoice data from a single AG Grid row."""
+        try:
+            return {
+                "approval": row.locator('[col-id="invoice.approval"]').inner_text().strip(),
+                "status": row.locator('[col-id="status"]').inner_text().strip(),
+                "age": row.locator('[col-id="invoice.invoiceAge"]').inner_text().strip(),
+                "invoice_id": row.locator('[col-id="id"]').inner_text().strip(),
+                "payer": row.locator('[col-id="invoice.payerName"]').inner_text().strip(),
+                "patient_name": row.locator('[col-id="patientName"]').inner_text().strip(),
+                "invoice_date": row.locator('[col-id="invoice.invoiceDate"]').inner_text().strip(),
+                "service_date": row.locator('[col-id="invoice.serviceDate"]').inner_text().strip(),
+                "statement_date": row.locator('[col-id="invoice.statementDate"]').inner_text().strip(),
+                "total": row.locator('[col-id="invoice.total"]').inner_text().strip(),
+                "balance": row.locator('[col-id="invoice.balance"]').inner_text().strip(),
+            }
+        except Exception as e:
+            self.logger.log_error(f"Failed to parse row data: {str(e)}")
+            self.take_screenshot("Failed to parse row data")
+            return {}
+
+    def _go_to_next_page(self) -> bool:
+        """Click the next page button if available.
+
+        Returns:
+            bool: True if navigation occurred, False if already on last page
+        """
+        try:
+            next_button = self.page.get_by_role('navigation').get_by_title('Go to next page', exact=True)
+            if not next_button.is_visible(timeout=5000):
+                return False
+            btn_class = next_button.get_attribute('class')
+            if btn_class and 'e-disable' in btn_class:
+                return False
+            next_button.click()
+            self.page.wait_for_selector('.ag-center-cols-container', timeout=10000)
+            return True
+        except Exception:
+            return False
+
+    def scrape_current_page_results(self) -> List[Dict[str, Any]]:
+        """Scrape all results from the currently visible table page."""
+        rows = self._get_rows_on_current_page()
+        results = []
+        for i in range(rows.count()):
+            row = rows.nth(i)
+            data = self._parse_row_data(row)
+            if data:
+                results.append(data)
+        return results
+
+    def scrape_all_search_results(self) -> List[Dict[str, Any]]:
+        """Scrape results across all pages of the search table."""
+        page_num = 1
+        all_results: List[Dict[str, Any]] = []
+        while True:
+            self.logger.log(f"Scraping results page {page_num}")
+            all_results.extend(self.scrape_current_page_results())
+            if not self._go_to_next_page():
+                break
+            page_num += 1
+        return all_results
+
+    def open_invoice(
+        self,
+        invoice_number: Optional[str] = None,
+        patient_name: Optional[str] = None,
+    ) -> bool:
+        """Open an invoice from the results table by invoice number or patient name.
+
+        At least one of ``invoice_number`` or ``patient_name`` must be provided.
+
+        Args:
+            invoice_number: The invoice ID to match.
+            patient_name: The patient name to match (case-insensitive).
+
+        Returns:
+            bool: ``True`` if the invoice was found and opened, ``False`` otherwise.
+        """
+
+        if not invoice_number and not patient_name:
+            raise ValueError("invoice_number or patient_name must be specified")
+
+        page_num = 1
+        while True:
+            rows = self._get_rows_on_current_page()
+            for i in range(rows.count()):
+                row = rows.nth(i)
+                match = False
+
+                if invoice_number:
+                    inv_id = row.locator('[col-id="id"]').inner_text().strip()
+                    if inv_id == str(invoice_number):
+                        match = True
+
+                if patient_name and not match:
+                    name = row.locator('[col-id="patientName"]').inner_text().strip()
+                    if name.lower() == patient_name.lower():
+                        match = True
+
+                if match:
+                    row.locator('[col-id="id"]').click()
+                    self.page.wait_for_selector('[data-test-id="invoiceHeaderPreviewClaimButton"]', timeout=10000)
+                    return True
+
+            if not self._go_to_next_page():
+                break
+            page_num += 1
+
+        return False
+
 
