@@ -1,32 +1,18 @@
 from playwright.sync_api import Page
-from core.base import BasePage, PatientContext, Patient
 from core.logger import Logger
+from core.base import BasePage, PatientContext, Patient
 from typing import Optional
 import random
 import re
-import time
 
 class OpticalOrder(BasePage):
     """Class for handling optical order operations in Revolution EHR."""
     
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
-        """Initialize the OpticalOrder class.
-        
-        Args:
-            page: Playwright page instance
-            logger: Logger instance for logging operations
-            context: Optional PatientContext for patient-specific operations
-        """
         super().__init__(page, logger, context)
-        self.page = page
-        self.logger = logger
         self.base_url = "https://revolutionehr.com/static/#/orders/ordersEnhanced/dashboard"
         self.products_url = "https://revolutionehr.com/static/#/legacy/inventory/products"
     
-    def _validate_patient_required(self):
-        if not self.context or not self.context.patient:
-            self.logger.log("WARNING: Running without patient context.")
-
     def is_loaded(self) -> bool:
         """Check if the orders page is loaded.
         
@@ -45,7 +31,7 @@ class OpticalOrder(BasePage):
             return False
             
         except Exception as e:
-            self.logger.log(f"Failed to check if orders page is loaded: {str(e)}")
+            self.logger.log_error(f"Failed to check if orders page is loaded: {str(e)}")
             return False
     
     def navigate_to_orders(self):
@@ -62,7 +48,7 @@ class OpticalOrder(BasePage):
                 raise Exception("Orders page failed to load after navigation")
                 
         except Exception as e:
-            self.logger.log(f"Failed to navigate to orders page: {str(e)}")
+            self.logger.log_error(f"Failed to navigate to orders page: {str(e)}")
             self.take_screenshot("Failed to navigate to orders page")
             raise
 
@@ -83,7 +69,8 @@ class OpticalOrder(BasePage):
             self.logger.log("Successfully navigated to products page")
             
         except Exception as e:
-            self.logger.log(f"Failed to navigate to products page: {str(e)}")
+            self.logger.log_error(f"Failed to navigate to products page: {str(e)}")
+            self.take_screenshot("Failed to navigate to products page")
             raise
 
     def scrape_frame_data(self, patient: Patient):
@@ -167,7 +154,7 @@ class OpticalOrder(BasePage):
             self.logger.log("Successfully scraped frame data")
             
         except Exception as e:
-            self.logger.log(f"Failed to scrape frame data: {str(e)}")
+            self.logger.log_error(f"Failed to scrape frame data: {str(e)}")
             self.take_screenshot("Failed to scrape frame data")
             raise 
 
@@ -304,7 +291,8 @@ class OpticalOrder(BasePage):
             self.logger.log("Successfully scraped lens data")
             
         except Exception as e:
-            self.logger.log(f"Failed to scrape lens data: {str(e)}")
+            self.logger.log_error(f"Failed to scrape lens data: {str(e)}")
+            self.take_screenshot("Failed to scrape lens data")
             raise 
 
     def scrape_copay(self, patient: Patient):
@@ -368,7 +356,8 @@ class OpticalOrder(BasePage):
             self.logger.log(f"Successfully updated copay in claims to: {patient.claims[0]['copay']}")
             
         except Exception as e:
-            self.logger.log(f"Failed to scrape copay data: {str(e)}")
+            self.logger.log_error(f"Failed to scrape copay data: {str(e)}")
+            self.take_screenshot("Failed to scrape copay data")
             raise 
 
     def close_all_orders(self):
@@ -394,118 +383,12 @@ class OpticalOrder(BasePage):
                     icon.click()
                     self.page.wait_for_timeout(500)  # Small delay between clicks
                 except Exception as e:
-                    self.logger.log(f"Failed to close a tab: {str(e)}")
+                    self.logger.log_error(f"Failed to close a tab: {str(e)}")
                     continue
                     
             self.logger.log("Finished attempting to close all optical order tabs")
             
         except Exception as e:
-            self.logger.log(f"Error while closing optical order tabs: {str(e)}")
-            raise 
-
-    def fill_order_details(self, order_data):
-        """Fill out the optical order form with the provided data."""
-        try:
-            # Fill in the order details
-            self.page.locator('[data-test-id="orderDate"]').fill(order_data.get('date', ''))
-            self.page.locator('[data-test-id="orderNotes"]').fill(order_data.get('notes', ''))
-            self.logger.log("Filled order details")
-        except Exception as e:
-            self.logger.log_error(f"Failed to fill order details: {str(e)}")
-            raise
-
-    def select_lens_type(self, lens_type):
-        """Select a lens type from the dropdown."""
-        try:
-            self.page.locator('[data-test-id="lensType"]').click()
-            self.page.get_by_role('option', name=lens_type).click()
-            self.logger.log(f"Selected lens type: {lens_type}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to select lens type: {str(e)}")
-            raise
-
-    def select_frame_type(self, frame_type):
-        """Select a frame type from the dropdown."""
-        try:
-            self.page.locator('[data-test-id="frameType"]').click()
-            self.page.get_by_role('option', name=frame_type).click()
-            self.logger.log(f"Selected frame type: {frame_type}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to select frame type: {str(e)}")
-            raise
-
-    def add_lens_options(self, lens_options):
-        """Add lens options to the order."""
-        try:
-            for option in lens_options:
-                self.page.locator('[data-test-id="addLensOption"]').click()
-                self.page.locator('[data-test-id="lensOptionName"]').fill(option['name'])
-                self.page.locator('[data-test-id="lensOptionValue"]').fill(option['value'])
-                self.logger.log(f"Added lens option: {option['name']}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to add lens options: {str(e)}")
-            raise
-
-    def add_frame_options(self, frame_options):
-        """Add frame options to the order."""
-        try:
-            for option in frame_options:
-                self.page.locator('[data-test-id="addFrameOption"]').click()
-                self.page.locator('[data-test-id="frameOptionName"]').fill(option['name'])
-                self.page.locator('[data-test-id="frameOptionValue"]').fill(option['value'])
-                self.logger.log(f"Added frame option: {option['name']}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to add frame options: {str(e)}")
-            raise
-
-    def save_order(self):
-        """Save the optical order."""
-        try:
-            self.page.locator('[data-test-id="saveOrder"]').click()
-            self.logger.log("Saved optical order")
-            
-            # Wait for save confirmation
-            self.page.wait_for_selector('[data-test-id="saveConfirmation"]', timeout=5000)
-        except Exception as e:
-            self.logger.log_error(f"Failed to save order: {str(e)}")
-            raise
-
-    def cancel_order(self):
-        """Cancel the optical order."""
-        try:
-            self.page.locator('[data-test-id="cancelOrder"]').click()
-            self.logger.log("Cancelled optical order")
-        except Exception as e:
-            self.logger.log_error(f"Failed to cancel order: {str(e)}")
-            raise
-
-    def get_order_summary(self):
-        """Get the current order summary."""
-        try:
-            summary = {
-                'lens_type': self.page.locator('[data-test-id="lensType"]').input_value(),
-                'frame_type': self.page.locator('[data-test-id="frameType"]').input_value(),
-                'lens_options': [],
-                'frame_options': []
-            }
-            
-            # Get lens options
-            lens_option_rows = self.page.locator('[data-test-id="lensOptionsTable"] tr').all()
-            for row in lens_option_rows:
-                name = row.locator('[data-test-id="lensOptionName"]').input_value()
-                value = row.locator('[data-test-id="lensOptionValue"]').input_value()
-                summary['lens_options'].append({'name': name, 'value': value})
-            
-            # Get frame options
-            frame_option_rows = self.page.locator('[data-test-id="frameOptionsTable"] tr').all()
-            for row in frame_option_rows:
-                name = row.locator('[data-test-id="frameOptionName"]').input_value()
-                value = row.locator('[data-test-id="frameOptionValue"]').input_value()
-                summary['frame_options'].append({'name': name, 'value': value})
-            
-            self.logger.log("Retrieved order summary")
-            return summary
-            
-        except Exception as e:
-            self.logger.log_error(f"Failed to get order summary: {str(e)}")
+            self.logger.log_error(f"Error while closing optical order tabs: {str(e)}")
+            self.take_screenshot("Failed to close optical order tabs")
             raise 

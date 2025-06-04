@@ -1,5 +1,8 @@
 #/patient_page.py
 
+from playwright.sync_api import Page
+from core.logger import Logger
+import random
 from core.base import BasePage, PatientContext, Patient
 from .insurance_tab import InsuranceTab
 from datetime import datetime
@@ -7,8 +10,6 @@ from typing import Optional
 import time
 from core.utils import format_date
 import re
-from playwright.sync_api import Page
-from core.logger import Logger
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -76,39 +77,43 @@ class PatientPage(BasePage):
                 
         except Exception as e:
             self.logger.log_error(f"Failed to navigate to patient page: {str(e)}")
+            self.take_screenshot("Failed to navigate to patient page")
             raise
     
     @check_alert_modal
     def click_patient_tab(self):
-        """Click the most recently opened patient tab."""
+        """Click the open patient tab."""
         try:
-            self.page.locator('[data-test-id$=".navigationTab"]').last.click()
-            self.logger.log("Clicked most recent patient tab")
+            self.page.locator('[data-test-id$=".navigationTab"]').click()
+            self.logger.log("Clicked patient tab")
         except Exception as e:
             self.logger.log_error(f"Failed to click patient tab: {str(e)}")
+            self.take_screenshot("Failed to click patient tab")
             raise
 
     @check_alert_modal
     def close_patient_tab(self):
-        """Click the close button (x) on the most recently opened patient tab."""
+        """Click the close button (x) on the patient tab."""
         try:
             # Find the last navigation tab and get its close button
-            self.page.locator('[data-test-id$=".navigationTab"]').last.get_by_title('Close').click()
-            self.logger.log("Closed most recent patient tab")
+            self.page.locator('[data-test-id$=".navigationTab"]').get_by_title('Close').click()
+            self.logger.log("Closed patient tab")
         except Exception as e:
             self.logger.log_error(f"Failed to close patient tab: {str(e)}")
+            self.take_screenshot("Failed to close patient tab")
             raise
 
-    def click_advanced_search(self): #WORKS
+    def click_advanced_search(self):
         """Click the advanced search link on the patient search page."""
         try:
             self.page.locator('[data-test-id="simpleSearchAdvancedSearch"]').click()
             self.logger.log("Clicked advanced search link")
         except Exception as e:
             self.logger.log_error(f"Failed to click advanced search link: {str(e)}")
+            self.take_screenshot("Failed to click advanced search link")
             raise
 
-    def search_patient(self, patient: Patient) -> Optional[Patient]: #WORKS
+    def search_patient(self, patient: Patient) -> Optional[Patient]:
         """Perform an advanced patient search using the provided Patient object.
         
         Args:
@@ -162,6 +167,7 @@ class PatientPage(BasePage):
             
         except Exception as e:
             self.logger.log_error(f"Failed to perform advanced patient search: {str(e)}")
+            self.take_screenshot("Failed to perform advanced patient search")
             raise
 
     def _check_alert_modal(self):
@@ -177,7 +183,8 @@ class PatientPage(BasePage):
         except Exception as e:
             self.logger.log(f"Alert modal check completed: {str(e)}")
 
-    def select_patient_from_results(self, patient: Patient) -> bool: #WORKS
+   
+    def select_patient_from_results(self, patient: Patient) -> bool:
         """Select a patient from the search results based on the provided Patient object.
         
         Args:
@@ -273,9 +280,9 @@ class PatientPage(BasePage):
         except Exception as e:
             self.logger.log_error(f"Failed to select patient from results: {str(e)}")
             self.take_screenshot("Failed to select patient from results")
-            return False
+            raise
 
-    def scrape_demographics(self, patient: Patient) -> None: #WORKS
+    def scrape_demographics(self, patient: Patient) -> None:
         """Scrape patient demographic information from the patient page.
         
         This function extracts:
@@ -341,28 +348,31 @@ class PatientPage(BasePage):
             
         except Exception as e:
             self.logger.log_error(f"Failed to scrape patient demographics: {str(e)}")
+            self.take_screenshot("Failed to scrape patient demographics")
             raise
 
-    def expand_insurance(self): #WORKS1
+    def expand_insurance(self):
         """Click the insurance summary expand button to show insurance details."""
         try:
             self.page.locator('[data-test-id="insuranceSummaryPodexpand"]').click()
             self.logger.log("Clicked insurance summary expand button")
         except Exception as e:
             self.logger.log_error(f"Failed to click insurance summary expand button: {str(e)}")
+            self.take_screenshot("Failed to click insurance summary expand button")
             raise
 
     
-    def click_patient_summary_menu(self): #WORKS
+    def click_patient_summary_menu(self):
         """Click the patient summary menu button."""
         try:
             self.page.locator('[data-test-id="patientSummaryMenu"]').click()
             self.logger.log("Clicked patient summary menu")
         except Exception as e:
             self.logger.log_error(f"Failed to click patient summary menu: {str(e)}")
+            self.take_screenshot("Failed to click patient summary menu")
             raise
 
-    def scrape_family_demographics(self, patient: Patient) -> None: #WORKS
+    def scrape_family_demographics(self, patient: Patient) -> None:
         """Scrape family member demographic information for VSP search combinations.
         
         This function extracts family member information and stores it in the patient's
@@ -460,17 +470,19 @@ class PatientPage(BasePage):
             
         except Exception as e:
             self.logger.log_error(f"Failed to scrape family demographics: {str(e)}")
+            self.take_screenshot("Failed to scrape family demographics")
             raise
 
     def expand_optical_orders(self):
-        """Expand the optical orders section for the current patient."""
+        """Click the optical orders expand button to show optical order details."""
         try:
-            self.logger.log("Expanding optical orders section...")
             self.page.locator('[data-test-id="ordersOpticalPodexpand"]').click()
-            self.page.wait_for_timeout(1500)  # Wait for animation
-            self.logger.log("Optical orders section expanded")
+            self.logger.log("Clicked optical orders expand button")
+            # Add a small wait to allow the orders to load
+            self.page.wait_for_timeout(1500)  # 1.5second wait
         except Exception as e:
-            self.logger.log(f"Failed to expand optical orders: {str(e)}")
+            self.logger.log_error(f"Failed to click optical orders expand button: {str(e)}")
+            self.take_screenshot("Failed to click optical orders expand button")
             raise
 
     def open_optical_order(self, patient: Patient) -> bool:
@@ -552,4 +564,5 @@ class PatientPage(BasePage):
             
         except Exception as e:
             self.logger.log_error(f"Failed to open optical order: {str(e)}")
-            raise
+            self.take_screenshot("Failed to open optical order")
+            return False
