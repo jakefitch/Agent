@@ -855,4 +855,53 @@ class InvoicePage(BasePage):
 
         return False
 
+    def close_invoice_tab(
+        self,
+        invoice_number: Optional[str] = None,
+        close_all: bool = False,
+    ) -> None:
+        """Close invoice detail tabs.
+
+        If ``invoice_number`` is provided, the tab matching that invoice will be
+        closed.  If ``close_all`` is ``True`` all invoice tabs except the main
+        dashboard will be closed.  When neither argument is supplied the most
+        recently opened invoice tab is closed.
+        """
+        try:
+            # Tabs that can be closed contain a close icon with title "Close".
+            closable_tabs = self.page.get_by_role("tab").filter(
+                has=self.page.locator('[title="Close"]')
+            )
+
+            if close_all:
+                # Close every invoice tab sequentially
+                while closable_tabs.count() > 0:
+                    closable_tabs.nth(0).get_by_title("Close").click()
+                    self.page.wait_for_timeout(200)
+                self.logger.log("All invoice tabs closed")
+                return
+
+            if invoice_number:
+                tab = self.page.get_by_role("tab", name=f"#{invoice_number}")
+                if tab.count() > 0 and tab.is_visible():
+                    tab.get_by_title("Close").click()
+                    self.logger.log(f"Closed invoice tab #{invoice_number}")
+                else:
+                    self.logger.log(
+                        f"Invoice tab #{invoice_number} not found for closing"
+                    )
+                return
+
+            # Default behaviour: close the last opened invoice tab
+            count = closable_tabs.count()
+            if count > 0:
+                closable_tabs.nth(count - 1).get_by_title("Close").click()
+                self.logger.log("Closed last opened invoice tab")
+            else:
+                self.logger.log("No invoice tabs to close")
+        except Exception as e:
+            self.logger.log_error(f"Failed to close invoice tab(s): {str(e)}")
+            self.take_screenshot("Failed to close invoice tab")
+            raise
+
 
