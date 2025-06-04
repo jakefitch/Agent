@@ -187,9 +187,6 @@ class InvoicePage(BasePage):
             self.page.locator('[formcontrolname="invoiceDateEnd"] input').fill('')
             self.page.locator('[formcontrolname="invoiceId"]').fill('')
             self.page.locator('[formcontrolname="payerName"]').fill('')
-            self.page.locator('[formcontrolname="locationId"] input').fill('')
-            self.page.locator('[formcontrolname="payerType"] input').fill('')
-            self.page.locator('[formcontrolname="invoiceAge"] input').fill('')
             self.set_approval_status("All")
             self.logger.log("Search fields cleared")
         except Exception as e:
