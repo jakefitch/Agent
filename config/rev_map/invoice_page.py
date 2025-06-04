@@ -855,4 +855,69 @@ class InvoicePage(BasePage):
 
         return False
 
+    def close_invoice_tabs(
+        self,
+        invoice_number: Optional[str] = None,
+        close_all: bool = False,
+    ) -> int:
+        """Close invoice tabs based on the provided criteria.
+
+        Args:
+            invoice_number: Specific invoice number to close. Ignored if
+                ``close_all`` is ``True``.
+            close_all: If ``True`` close all open invoice tabs.
+
+        Returns:
+            int: Number of tabs closed.
+        """
+
+        try:
+            self.logger.log(
+                f"Closing invoice tabs - number={invoice_number}, all={close_all}"
+            )
+
+            # Locator matching all invoice tabs (tabs starting with '#')
+            tab_spans = self.page.locator(
+                "[data-test-id^='#'][data-test-id$='.navigationTab']"
+            )
+
+            if close_all:
+                count = tab_spans.count()
+                for i in range(count - 1, -1, -1):
+                    span = tab_spans.nth(i)
+                    span.locator(".e-close-icon").click()
+                    span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed {count} invoice tab(s)")
+                return count
+
+            if invoice_number:
+                span = self.page.locator(
+                    f"[data-test-id='#{invoice_number}.navigationTab']"
+                )
+                if span.count() == 0:
+                    self.logger.log(f"Invoice tab #{invoice_number} not found")
+                    return 0
+                span.locator(".e-close-icon").click()
+                span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed invoice tab #{invoice_number}")
+                return 1
+
+            # Default: close the last opened tab if any exist
+            count = tab_spans.count()
+            if count == 0:
+                self.logger.log("No invoice tabs found to close")
+                return 0
+
+            span = tab_spans.nth(count - 1)
+            tab_name = span.inner_text().strip()
+            span.locator(".e-close-icon").click()
+            span.wait_for(state="detached", timeout=5000)
+            self.logger.log(f"Closed last invoice tab {tab_name}")
+            return 1
+
+        except Exception as e:
+            self.logger.log_error(f"Failed to close invoice tab(s): {str(e)}")
+            self.take_screenshot("Failed to close invoice tab")
+            raise
+
 
