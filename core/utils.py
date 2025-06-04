@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 import re
 from datetime import datetime
 from core.base import Patient, ClaimItem
+from bs4 import BeautifulSoup
 
 def format_currency(amount: float) -> str:
     """Format a float amount as a currency string.
@@ -129,5 +130,9 @@ def has_frame_claim(patient: Patient) -> bool:
             return True
             
     return False
+
+def get_page_soup(page) -> BeautifulSoup:
+    """Get the current page's DOM as a BeautifulSoup object."""
+    return BeautifulSoup(page.content(), 'html.parser')
 
 

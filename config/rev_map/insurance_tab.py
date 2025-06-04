@@ -1,13 +1,16 @@
 from playwright.sync_api import Page
 from core.logger import Logger
-from random import choice
 from datetime import datetime
 from core.base import BasePage, PatientContext
+from typing import Optional
+import random
+
 
 class InsuranceTab(BasePage):
-    def _validate_patient_required(self):
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         super().__init__(page, logger, context)
+
+    def _validate_patient_required(self):
         if not self.context or not self.context.patient:
             raise ValueError("InsuranceTab requires a patient context to be set")
 

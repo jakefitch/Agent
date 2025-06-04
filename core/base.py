@@ -6,6 +6,7 @@ from playwright.sync_api import Page
 from core.logger import Logger
 import os
 import time
+from bs4 import BeautifulSoup
 
 @dataclass
 class ClaimItem:
@@ -211,20 +212,55 @@ class BasePage:
         if not self.context or not getattr(self.context, 'patient', None):
             self.logger.log("WARNING: Running without patient context.")
 
-    def take_screenshot(self, error_message: str) -> None:
+    def get_page_soup(self) -> BeautifulSoup:
+        """Get the current page's DOM as a BeautifulSoup object."""
+        return BeautifulSoup(self.page.content(), 'html.parser')
+
+    def take_screenshot(self, error_message: Optional[str] = None) -> None:
         """Take a screenshot and save it to a file.
         
         Args:
-            error_message: A message describing the error.
+            error_message: Optional message describing the error. If not provided,
+                          the screenshot will be saved with just a timestamp.
         """
         try:
             # Get screenshot path from logger
             screenshot_path = self.logger.get_screenshot_path()
             # Take screenshot
             self.page.screenshot(path=str(screenshot_path))
-            self.logger.log(f"Screenshot saved as {screenshot_path} for error: {error_message}")
+            if error_message:
+                self.logger.log(f"Screenshot saved as {screenshot_path} for error: {error_message}")
+            else:
+                self.logger.log(f"Screenshot saved as {screenshot_path}")
         except Exception as e:
             self.logger.log(f"Failed to take screenshot: {str(e)}")
+
+    def save_page_state(self, name: str) -> None:
+        """Save both a screenshot and HTML soup of the current page state.
+        
+        Args:
+            name: Base name for the saved files (without extension)
+        """
+        try:
+            # Create rev_map/debug folder if it doesn't exist
+            debug_dir = os.path.join('config', 'rev_map', 'debug')
+            os.makedirs(debug_dir, exist_ok=True)
+            
+            # Save screenshot
+            screenshot_path = os.path.join(debug_dir, f"{name}.png")
+            self.page.screenshot(path=screenshot_path)
+            
+            # Save HTML soup
+            soup = self.get_page_soup()
+            html_path = os.path.join(debug_dir, f"{name}.html")
+            with open(html_path, 'w', encoding='utf-8') as f:
+                f.write(str(soup.prettify()))
+            
+            self.logger.log(f"Saved page state to {debug_dir}/{name}.*")
+            
+        except Exception as e:
+            self.logger.log_error(f"Failed to save page state: {str(e)}")
+            raise
 
 class PatientManager:
     def __init__(self):

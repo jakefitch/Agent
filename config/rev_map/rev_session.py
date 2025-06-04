@@ -1,11 +1,11 @@
 from playwright.sync_api import Page
 from core.logger import Logger
-from core.base import PatientContext
+from core.base import BasePage, PatientContext
 from typing import Optional
 from .patient_page import PatientPage
 from .invoice_page import InvoicePage
 from .optical_order import OpticalOrder
-from .products import ProductsPage
+from .products import Products
 from .insurance_tab import InsuranceTab
 from .claims_page import ClaimsPage
 import os
@@ -23,7 +23,7 @@ class RevSession:
             self.patient_page = PatientPage(page, logger, context)
             self.invoice_page = InvoicePage(page, logger, context)
             self.optical_order = OpticalOrder(page, logger, context)
-            self.products = ProductsPage(page, logger, context)
+            self.products = Products(page, logger, context)
             self.insurance_tab = InsuranceTab(page, logger, context)
             self.claims_page = ClaimsPage(page, logger, context)
     
