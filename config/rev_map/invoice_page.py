@@ -179,10 +179,33 @@ class InvoicePage(BasePage):
             self.logger.log_error(f"Failed to check if page is loaded: {str(e)}")
             return False
 
-    def search_invoice(self, invoice_number=None, start_date=None, end_date=None, payor=None, location=None):
-        """Perform a complete invoice search with all parameters"""
+    def clear_search_fields(self):
+        """Clear all invoice search inputs back to their default state."""
+        self.logger.log("Clearing search fields")
+        try:
+            self.page.locator('[formcontrolname="invoiceDateStart"] input').fill('')
+            self.page.locator('[formcontrolname="invoiceDateEnd"] input').fill('')
+            self.page.locator('[formcontrolname="invoiceId"]').fill('')
+            self.page.locator('[formcontrolname="payerName"]').fill('')
+            self.page.locator('[formcontrolname="locationId"] input').fill('')
+            self.page.locator('[formcontrolname="payerType"] input').fill('')
+            self.page.locator('[formcontrolname="invoiceAge"] input').fill('')
+            self.set_approval_status("All")
+            self.logger.log("Search fields cleared")
+        except Exception as e:
+            self.logger.log_error(f"Failed to clear search fields: {str(e)}")
+            self.take_screenshot("Failed to clear search fields")
+            raise
+
+    def search_invoice(self, invoice_number=None, start_date=None, end_date=None,
+                        payor=None, location=None, payor_type=None,
+                        age_range=None, approval_status=None):
+        """Perform a complete invoice search with optional parameters."""
         self.logger.log("Starting invoice search")
         try:
+            # Always reset fields first to avoid stale filters
+            self.clear_search_fields()
+
             if start_date:
                 self.set_start_date(start_date)
             if end_date:
@@ -193,6 +216,12 @@ class InvoicePage(BasePage):
                 self.enter_payor_name(payor)
             if location:
                 self.select_location(location)
+            if payor_type:
+                self.select_payor_type(payor_type)
+            if age_range:
+                self.select_invoice_age(age_range)
+            if approval_status:
+                self.set_approval_status(approval_status)
 
             self.click_search()
             self.logger.log("Invoice search completed successfully")
