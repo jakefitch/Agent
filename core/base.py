@@ -262,6 +262,15 @@ class BasePage:
             self.logger.log_error(f"Failed to save page state: {str(e)}")
             raise
 
+    def wait_for_network_idle(self, timeout: int = 30000) -> bool:
+        """Wait until the page's network activity has settled."""
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=timeout)
+            return True
+        except Exception as e:
+            self.logger.log_error(f"Network idle wait failed: {str(e)}")
+            return False
+
 class PatientManager:
     def __init__(self):
         self._patients: Dict[str, Patient] = {}

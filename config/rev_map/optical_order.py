@@ -14,22 +14,19 @@ class OpticalOrder(BasePage):
         self.products_url = "https://revolutionehr.com/static/#/legacy/inventory/products"
     
     def is_loaded(self) -> bool:
-        """Check if the orders page is loaded.
-        
+        """Check if the orders page is fully loaded.
+
         Returns:
             bool: True if the page is loaded, False otherwise
         """
         try:
-            # Check for the orders dashboard element
             self.logger.log("Checking if orders page is loaded...")
-            orders_dashboard = self.page.locator('[data-test-id="ordersEnhancedDashboard"]').is_visible(timeout=5000)
-            if orders_dashboard:
-                self.logger.log("Orders page is loaded")
-                return True
-                
-            self.logger.log("Orders page is not loaded")
-            return False
-            
+            # Wait for the main dashboard container
+            self.page.wait_for_selector('[data-test-id="ordersEnhancedDashboard"]', timeout=15000)
+            # Ensure at least one row of the orders table is visible
+            self.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=15000)
+            self.logger.log("Orders page is loaded")
+            return True
         except Exception as e:
             self.logger.log_error(f"Failed to check if orders page is loaded: {str(e)}")
             return False
@@ -39,11 +36,10 @@ class OpticalOrder(BasePage):
         try:
             self.page.goto(self.base_url)
             self.logger.log("Navigated to orders dashboard")
-            
-            # Add a small delay to ensure the page has time to load
-            self.page.wait_for_timeout(2000)  # 2 second delay
-            
-            # Wait for the page to be loaded
+
+            # Wait for network to settle and for the dashboard to appear
+            self.wait_for_network_idle(timeout=20000)
+
             if not self.is_loaded():
                 raise Exception("Orders page failed to load after navigation")
                 
