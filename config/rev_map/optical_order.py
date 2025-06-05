@@ -367,35 +367,78 @@ class OpticalOrder(BasePage):
             self.take_screenshot("Failed to scrape copay data")
             raise 
 
-    def close_all_orders(self):
-        """Closes all open optical order tabs by finding and clicking all close icons."""
+    def close_order(
+        self,
+        order_number: Optional[str] = None,
+        close_all: bool = False,
+    ) -> int:
+        """Close optical order tabs.
+
+        In RevolutionEHR multiple order detail tabs may be open at the same
+        time.  This helper will close a specific order, close all, or by
+        default close the most recently opened tab.
+
+        Args:
+            order_number: Order number to close. Ignored if ``close_all`` is
+                ``True``.
+            close_all: If ``True`` close all open order tabs.
+
+        Returns:
+            int: Number of tabs closed.
+        """
+
         try:
-            self.logger.log("Attempting to close all optical order tabs...")
-            
-            # Switch to the first tab
-            self.page.bring_to_front()
-            
-            # Find all close icons for optical order tabs
-            close_icons = self.page.locator("span.e-close-icon").all()
-            
-            if not close_icons:
-                self.logger.log("No optical order tabs found to close")
-                return
-                
-            self.logger.log(f"Found {len(close_icons)} optical order tabs to close")
-            
-            # Click each close icon
-            for icon in close_icons:
-                try:
-                    icon.click()
-                    self.page.wait_for_timeout(500)  # Small delay between clicks
-                except Exception as e:
-                    self.logger.log_error(f"Failed to close a tab: {str(e)}")
-                    continue
-                    
-            self.logger.log("Finished attempting to close all optical order tabs")
-            
+            self.logger.log(
+                f"Closing order tabs - number={order_number}, all={close_all}"
+            )
+
+            tab_spans = self.page.locator(
+                "[data-test-id^='#'][data-test-id$='.navigationTab']"
+            )
+
+            if close_all:
+                count = tab_spans.count()
+                for i in range(count - 1, -1, -1):
+                    span = tab_spans.nth(i)
+                    close_icon = span.locator(
+                        "xpath=../../span[contains(@class,'e-close-icon')]"
+                    )
+                    close_icon.click()
+                    span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed {count} order tab(s)")
+                return count
+
+            if order_number:
+                span = self.page.locator(
+                    f"[data-test-id='#{order_number}.navigationTab']"
+                )
+                if span.count() == 0:
+                    self.logger.log(f"Order tab #{order_number} not found")
+                    return 0
+                close_icon = span.locator(
+                    "xpath=../../span[contains(@class,'e-close-icon')]"
+                )
+                close_icon.click()
+                span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed order tab #{order_number}")
+                return 1
+
+            count = tab_spans.count()
+            if count == 0:
+                self.logger.log("No order tabs found to close")
+                return 0
+
+            span = tab_spans.nth(count - 1)
+            tab_name = span.inner_text().strip()
+            close_icon = span.locator(
+                "xpath=../../span[contains(@class,'e-close-icon')]"
+            )
+            close_icon.click()
+            span.wait_for(state="detached", timeout=5000)
+            self.logger.log(f"Closed last order tab {tab_name}")
+            return 1
+
         except Exception as e:
-            self.logger.log_error(f"Error while closing optical order tabs: {str(e)}")
-            self.take_screenshot("Failed to close optical order tabs")
-            raise 
+            self.logger.log_error(f"Failed to close order tab(s): {str(e)}")
+            self.take_screenshot("Failed to close order tab")
+            raise
