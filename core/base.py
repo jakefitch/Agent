@@ -271,31 +271,6 @@ class BasePage:
             self.logger.log_error(f"Network idle wait failed: {str(e)}")
             return False
 
-    def wait_for_page_ready(self, selectors: Optional[List[str]] = None, timeout: int = 15000) -> bool:
-        """Wait for the page to be fully loaded and dynamic content to settle.
-
-        Args:
-            selectors: Optional list of CSS selectors that should be visible once
-                the page is ready.
-            timeout: Maximum wait time in milliseconds.
-
-        Returns:
-            bool: True if the page is ready within the timeout, False otherwise.
-        """
-        selectors = selectors or []
-        try:
-            self.page.wait_for_load_state("load", timeout=timeout)
-            self.page.wait_for_function(
-                "() => document.readyState === 'complete' && (!window.jQuery || jQuery.active === 0)",
-                timeout=timeout,
-            )
-            for selector in selectors:
-                self.page.locator(selector).wait_for(state="visible", timeout=timeout)
-            return True
-        except Exception as e:
-            self.logger.log_error(f"Page ready wait failed: {str(e)}")
-            return False
-
 class PatientManager:
     def __init__(self):
         self._patients: Dict[str, Patient] = {}

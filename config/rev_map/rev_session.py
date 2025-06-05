@@ -11,7 +11,7 @@ from .claims_page import ClaimsPage
 import os
 import time
 
-class RevSession(BasePage):
+class RevSession:
     """Class for managing Revolution EHR session and page interactions."""
     
     class _Pages:
@@ -29,13 +29,15 @@ class RevSession(BasePage):
     
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         """Initialize the Revolution EHR session.
-
+        
         Args:
             page: Playwright page instance
             logger: Logger instance for logging operations
             context: Optional PatientContext for patient-specific operations
         """
-        super().__init__(page, logger, context)
+        self.page = page
+        self.logger = logger
+        self.context = context
         self.pages = self._Pages(page, logger, context)
     
     def login(self) -> None:
@@ -61,8 +63,9 @@ class RevSession(BasePage):
         # Click the login button
         self.page.locator('[data-test-id="loginBtn"]').click()
         
-        # Wait for the login page to fully load
-        self.wait_for_page_ready()
+        # Wait for navigation to complete
+        self.page.wait_for_load_state("networkidle")
+        time.sleep(2)  # Additional small delay to ensure page is fully loaded
         
         self.logger.log("✅ Logged into RevolutionEHR")
     
