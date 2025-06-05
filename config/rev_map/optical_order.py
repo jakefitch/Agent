@@ -130,45 +130,82 @@ class OpticalOrder(BasePage):
             if not hasattr(patient, 'medical_data'):
                 patient.medical_data = {}
             
-            # Helper function to get values from table cells
-            def get_table_values(selector):
-                element = self.page.locator(selector)
-                inner_html = element.inner_html()
-                parts = inner_html.split("<br>")
+            # Parse prescription table using BeautifulSoup for faster access
+            soup = self.get_page_soup()
+
+            def parse_rx_table(table_soup):
+                row = table_soup.find('tbody').find('tr')
+                cells = row.find_all('td')
+
+                def split_cell(idx):
+                    if idx >= len(cells):
+                        return '', ''
+                    parts = cells[idx].decode_contents().split('<br/>')
+                    right = parts[0].strip() if parts else ''
+                    left = parts[1].strip() if len(parts) > 1 else ''
+                    return right, left
+
                 return {
-                    'right': parts[0].strip() if parts[0].strip() else '',
-                    'left': parts[1].strip() if len(parts) > 1 and parts[1].strip() else ''
+                    'od_sph': split_cell(2)[0],
+                    'os_sph': split_cell(2)[1],
+                    'od_cyl': split_cell(3)[0],
+                    'os_cyl': split_cell(3)[1],
+                    'od_axis': split_cell(4)[0],
+                    'os_axis': split_cell(4)[1],
+                    'od_add': split_cell(5)[0],
+                    'os_add': split_cell(5)[1],
+                    'od_h_prism': split_cell(7)[0],
+                    'os_h_prism': split_cell(7)[1],
+                    'od_h_base': split_cell(8)[0],
+                    'os_h_base': split_cell(8)[1],
+                    'od_v_prism': split_cell(9)[0],
+                    'os_v_prism': split_cell(9)[1],
+                    'od_v_base': split_cell(10)[0],
+                    'os_v_base': split_cell(10)[1],
                 }
-            
-            # Get prescription data
-            sph = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(3)")
-            cyl = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(4)")
-            axis = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(5)")
-            add = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(6)")
-            h_prism = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(8)")
-            h_base = get_table_values("td.nostretch:nth-child(9)")
-            v_prism = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(10)")
-            v_base = get_table_values("td.nostretch:nth-child(11)")
-            
-            # Store prescription data in medical_data
-            patient.medical_data.update({
-                'od_sph': sph['right'],
-                'os_sph': sph['left'],
-                'od_cyl': cyl['right'],
-                'os_cyl': cyl['left'],
-                'od_axis': axis['right'],
-                'os_axis': axis['left'],
-                'od_add': add['right'],
-                'os_add': add['left'],
-                'od_h_prism': h_prism['right'],
-                'os_h_prism': h_prism['left'],
-                'od_h_base': h_base['right'],
-                'os_h_base': h_base['left'],
-                'od_v_prism': v_prism['right'],
-                'os_v_prism': v_prism['left'],
-                'od_v_base': v_base['right'],
-                'os_v_base': v_base['left']
-            })
+
+            table = soup.select_one("table[data-test-id='eyeglassPrescriptionTable']")
+            if table:
+                patient.medical_data.update(parse_rx_table(table))
+            else:
+                self.logger.log("Prescription table not found, falling back to locators")
+                # Helper function to get values from table cells using locators
+                def get_table_values(selector):
+                    element = self.page.locator(selector)
+                    inner_html = element.inner_html()
+                    parts = inner_html.split("<br>")
+                    return {
+                        'right': parts[0].strip() if parts[0].strip() else '',
+                        'left': parts[1].strip() if len(parts) > 1 and parts[1].strip() else ''
+                    }
+
+                sph = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(3)")
+                cyl = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(4)")
+                axis = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(5)")
+                add = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(6)")
+                h_prism = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(8)")
+                h_base = get_table_values("td.nostretch:nth-child(9)")
+                v_prism = get_table_values("table.text-right > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(10)")
+                v_base = get_table_values("td.nostretch:nth-child(11)")
+
+                patient.medical_data.update({
+                    'od_sph': sph['right'],
+                    'os_sph': sph['left'],
+                    'od_cyl': cyl['right'],
+                    'os_cyl': cyl['left'],
+                    'od_axis': axis['right'],
+                    'os_axis': axis['left'],
+                    'od_add': add['right'],
+                    'os_add': add['left'],
+                    'od_h_prism': h_prism['right'],
+                    'os_h_prism': h_prism['left'],
+                    'od_h_base': h_base['right'],
+                    'os_h_base': h_base['left'],
+                    'od_v_prism': v_prism['right'],
+                    'os_v_prism': v_prism['left'],
+                    'od_v_base': v_base['right'],
+                    'os_v_base': v_base['left']
+                })
             
             # Get PD measurements
             od_pd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOdSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
@@ -185,7 +222,7 @@ class OpticalOrder(BasePage):
             })
             
             # Try to get lens details from estimator first ---THIS IS WHAT"S SLOWING US DOWN
-            vsp_estimator_present = self.page.locator('[data-test-id="EyefinityEyeglassListItemOptionFormGroup"]').count() > 0
+            vsp_estimator_present = bool(soup.select_one('[data-test-id="EyefinityEyeglassListItemOptionFormGroup"]'))
             
             if vsp_estimator_present:
                 # This is a VSP estimator order
@@ -208,9 +245,21 @@ class OpticalOrder(BasePage):
                 lens_description = "SV Poly W/ AR"
                 
             else:
-                # Fall back to manual lens data
-                material = self.page.locator('//*[@data-test-id="eyeglassLensOptionsMaterial"]').text_content()
-                ar = self.page.locator('//*[@data-test-id="eyeglassLensCoatingsArCoatingsSection"]').text_content()
+                # Fall back to manual lens data parsed from the page
+                def get_selected_value(selector: str) -> str:
+                    section = soup.select_one(selector)
+                    if not section:
+                        return ''
+                    option = section.select_one('option[selected]')
+                    if option:
+                        return option.get_text(strip=True)
+                    input_el = section.select_one('input[value]')
+                    if input_el and input_el.get('value'):
+                        return input_el['value'].strip()
+                    return section.get_text(strip=True)
+
+                material = get_selected_value('[data-test-id="eyeglassLensOptionsMaterial"]')
+                ar = get_selected_value('[data-test-id="eyeglassLensCoatingsArCoatingsSection"]')
                 
                 # Process AR value
                 if '(A)' in ar:
