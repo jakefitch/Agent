@@ -75,82 +75,40 @@ class OpticalOrder(BasePage):
         """
         try:
             self.logger.log("Scraping frame data...")
-            
+
             # Click on the frame tab
-            frame_tab = self.page.locator('[data-test-id="frameInformationTab"]')
-            for _ in range(5):  # Try up to 5 times
-                try:
-                    frame_tab.click()
-                    break
-                except:
-                    self.page.wait_for_timeout(1000)
-                    continue
-            
-            self.page.wait_for_timeout(1000)
+            self.page.locator('[data-test-id="frameInformationTab"]').click()
 
             # Initialize frames dictionary if it doesn't exist
             if not hasattr(patient, 'frames'):
                 patient.frames = {}
 
-            # Scrape model
-            try:
-                frame = self.page.locator("//div[@data-test-id='frameProductSelectionStyleSection']//p[@class='form-control-static']")
-                patient.frames['model'] = frame.text_content() or 'unknown'
-            except:
-                patient.frames['model'] = 'unknown'
+            def get_text(selector: str, default: str) -> str:
+                loc = self.page.locator(selector)
+                return (loc.text_content() or default).strip() if loc.count() > 0 else default
 
-            # Scrape manufacturer
-            try:
-                manufacturer = self.page.locator("//div[@data-test-id='frameProductSelectionManufacturerSection']//p[@class='form-control-static']")
-                patient.frames['manufacturer'] = manufacturer.text_content() or 'unknown'
-            except:
-                patient.frames['manufacturer'] = 'unknown'
+            patient.frames['model'] = get_text("//div[@data-test-id='frameProductSelectionStyleSection']//p[@class='form-control-static']", 'unknown')
+            patient.frames['manufacturer'] = get_text("//div[@data-test-id='frameProductSelectionManufacturerSection']//p[@class='form-control-static']", 'unknown')
+            patient.frames['collection'] = get_text("//div[@data-test-id='frameProductSelectionCollectionSection']//p[@class='form-control-static']", patient.frames['manufacturer'])
+            patient.frames['color'] = get_text("//label[text()='Color']/following-sibling::div/p[@class='form-control-static']", 'unknown')
 
-            # Scrape collection
+            temple_text = get_text("//label[text()='Temple']/following-sibling::div/p[@class='form-control-static']", '135')[:3]
             try:
-                collection = self.page.locator("//div[@data-test-id='frameProductSelectionCollectionSection']//p[@class='form-control-static']")
-                patient.frames['collection'] = collection.text_content() or patient.frames['manufacturer']
-            except:
-                patient.frames['collection'] = patient.frames['manufacturer']
-
-            # Scrape color - select the element associated with the "Color" label
-            try:
-                frame_color = self.page.locator("//label[text()='Color']/following-sibling::div/p[@class='form-control-static']")
-                patient.frames['color'] = frame_color.text_content().strip() if frame_color.count() > 0 else 'unknown'
-            except:
-                patient.frames['color'] = 'unknown'
-
-            # Scrape temple
-            try:
-                temple = self.page.locator("//label[text()='Temple']/following-sibling::div/p[@class='form-control-static']")
-                temple_text = temple.text_content()[:3] if temple.text_content() else '135'
-                patient.frames['temple'] = '135' if int(temple_text) < 100 else temple_text
-            except:
+                patient.frames['temple'] = temple_text if int(temple_text) >= 100 else '135'
+            except ValueError:
                 patient.frames['temple'] = '135'
 
             # Set material randomly
             patient.frames['material'] = random.choice(['zyl', 'metal'])
 
-            # Scrape eyesize
-            try:
-                eyesize = self.page.locator("//label[text()='Eye']/following-sibling::div/p[@class='form-control-static']")
-                patient.frames['eyesize'] = eyesize.text_content()[:2] if eyesize.text_content() else '54'
-            except:
-                patient.frames['eyesize'] = '54'
-
-            # Scrape dbl
-            try:
-                dbl = self.page.locator("//label[text()='Bridge']/following-sibling::div/p[@class='form-control-static']")
-                patient.frames['dbl'] = dbl.text_content()[:2] if dbl.text_content() else '17'
-            except:
-                patient.frames['dbl'] = '17'
+            patient.frames['eyesize'] = get_text("//label[text()='Eye']/following-sibling::div/p[@class='form-control-static']", '54')[:2]
+            patient.frames['dbl'] = get_text("//label[text()='Bridge']/following-sibling::div/p[@class='form-control-static']", '17')[:2]
 
             self.logger.log("Successfully scraped frame data")
-            
         except Exception as e:
             self.logger.log_error(f"Failed to scrape frame data: {str(e)}")
             self.take_screenshot("Failed to scrape frame data")
-            raise 
+            raise
 
     def scrape_lens_data(self, patient: Patient):
         """Scrape lens data from the lens tab and store it in the patient's dictionaries.
