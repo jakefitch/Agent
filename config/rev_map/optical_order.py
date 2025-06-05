@@ -55,10 +55,10 @@ class OpticalOrder(BasePage):
             # Add a small delay to ensure the page has time to load
             self.page.wait_for_timeout(2000)  # 2 second delay
             
-            # Wait for the products table to be visible
-            products_table = self.page.locator('[data-test-id="productsTable"]').is_visible(timeout=5000)
-            if not products_table:
-                raise Exception("Products page failed to load")
+            # Wait for at least one danger button to be visible
+            danger_buttons = self.page.locator('.btn.btn-xs.btn-danger.ng-scope').all()
+            if not danger_buttons:
+                raise Exception("Products page failed to load - no danger buttons found")
                 
             self.logger.log("Successfully navigated to products page")
             
