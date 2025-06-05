@@ -67,12 +67,11 @@ class PatientPage(BasePage):
         try:
             self.page.goto(self.base_url)
             self.logger.log("Navigated to patient search page")
-
-            # Wait for the page and dynamic content to load
-            if not self.wait_for_page_ready():
-                raise Exception("Patient page failed to load after navigation")
-
-            # Verify required elements
+            
+            # Add a small delay to ensure the page has time to load
+            self.page.wait_for_timeout(2000)  # 2 second delay
+            
+            # Wait for the page to be loaded
             if not self.is_loaded():
                 raise Exception("Patient page failed to load after navigation")
                 
