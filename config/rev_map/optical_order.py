@@ -215,8 +215,8 @@ class OpticalOrder(BasePage):
             # Get PD measurements
             od_pd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOdSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
             os_pd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsOsSection']//input[@type='text' and @placeholder='MPD-D']").input_value()
-            dpd = self.page.locator("//*[@data-test-id='eyeglassLensMeasurementsBinocularSection']//input[@type='text' and @placeholder='']").input_value()
-            seg_height = self.page.locator("//*[@formcontrolname='segHeight']//input[@type='text' and @placeholder='']").input_value()
+            dpd = self.page.locator('[data-test-id="lensMeasurementsDistancePdStepper"] input[type="text"]').input_value()
+            seg_height = self.page.locator("//*[@formcontrolname='segHeight']//input[@type='text' and @placeholder='']").first.input_value()
             
             # Store measurements in medical_data
             patient.medical_data.update({
@@ -226,18 +226,30 @@ class OpticalOrder(BasePage):
                 'seg_height': seg_height
             })
             
-            # Try to get lens details from estimator first
-            try:
-                lens_element = self.page.locator('//*[@placeholder="Select Lens Style"]')
-                lens_value = lens_element.inner_html()
-                match = re.search(r'<option[^>]*>([^<]+)</option>', lens_value)
-                lens_description = match.group(1) if match else ''
+            # Try to get lens details from estimator first ---THIS IS WHAT"S SLOWING US DOWN
+            vsp_estimator_present = self.page.locator('[data-test-id="EyefinityEyeglassListItemOptionFormGroup"]').count() > 0
+            
+            if vsp_estimator_present:
+                # This is a VSP estimator order
+                self.logger.log("Processing VSP estimator order...")
+                material = self.page.locator('//*[@data-test-id="eyeglassLensOptionsMaterial"]').text_content()
+                ar = self.page.locator('//*[@data-test-id="eyeglassLensCoatingsArCoatingsSection"]').text_content()
                 
-                material = self.page.locator('//*[@placeholder="Select Material"]').input_value()
-                ar = self.page.locator('//*[@placeholder="Select AR"]').input_value()
-                lens_type = self.page.locator('//*[@placeholder="Select Type"]').input_value()
+                # Process AR value
+                if '(A)' in ar:
+                    ar = "Other (AR Coating A)"
+                elif '(C)' in ar or '(C, Teir 2)' in ar:
+                    ar = "Lab Choice (AR Coating C) (AR Coating C)"
+                elif ar == 'AR Coating':
+                    ar = ''
                 
-            except:
+                # Determine lens type
+                lens_type_element = self.page.locator('//*[@data-test-id="lensDetailsManufacturerModelSection"]').first
+                lens_type_data = lens_type_element.text_content()
+                lens_type = 'Single Vision' if 'sv' in lens_type_data.lower() else 'PAL'
+                lens_description = "SV Poly W/ AR"
+                
+            else:
                 # Fall back to manual lens data
                 material = self.page.locator('//*[@data-test-id="eyeglassLensOptionsMaterial"]').text_content()
                 ar = self.page.locator('//*[@data-test-id="eyeglassLensCoatingsArCoatingsSection"]').text_content()
@@ -251,10 +263,20 @@ class OpticalOrder(BasePage):
                     ar = ''
                 
                 # Determine lens type
-                lens_type_element = self.page.locator('//*[@data-test-id="lensDetailsManufacturerModelSection"]')
+                lens_type_element = self.page.locator('//*[@data-test-id="lensDetailsManufacturerModelSection"]').first
                 lens_type_data = lens_type_element.text_content()
                 lens_type = 'Single Vision' if 'sv' in lens_type_data.lower() else 'PAL'
                 lens_description = "SV Poly W/ AR"
+            
+            # Process material string - remove "Material" prefix if present
+            if material.startswith('Material'):
+                material = material[8:].strip()  # Remove "Material" and any extra spaces
+            
+            # Process lens description for AR information
+            if lens_description:
+                ar_match = re.search(r'w/?\s*/\s*ar\s*[:=]?\s*([^,]+)', lens_description.lower())
+                if ar_match:
+                    ar = ar_match.group(1).strip()
             
             # Store lens details in lenses dictionary
             patient.lenses.update({
@@ -264,23 +286,25 @@ class OpticalOrder(BasePage):
                 'description': lens_description
             })
             
-            # Check for photochromatic in billed items
-            patient.lenses['photochromatic'] = any(
-                item['code'].upper().startswith('V2744') 
-                for item in patient.billed_items
-            )
+            # Check for photochromatic in billed items if they exist
+            if hasattr(patient, 'billed_items') and patient.billed_items:
+                patient.lenses['photochromatic'] = any(
+                    item['code'].upper().startswith('V2744') 
+                    for item in patient.billed_items
+                )
             
-            # Check for lens material in billed items
-            for item in patient.billed_items:
-                code = item['code'].upper()
-                if code.startswith('V2784'):
-                    patient.lenses['material'] = 'Polycarbonate'
-                    break
-                elif code.startswith('V2783'):
-                    patient.lenses['material'] = 'High Index'
-                    break
-            else:
-                patient.lenses['material'] = 'CR-39'
+            # Check for lens material in billed items if they exist
+            if hasattr(patient, 'billed_items') and patient.billed_items:
+                for item in patient.billed_items:
+                    code = item['code'].upper()
+                    if code.startswith('V2784'):
+                        patient.lenses['material'] = 'Polycarbonate'
+                        break
+                    elif code.startswith('V2783'):
+                        patient.lenses['material'] = 'High Index'
+                        break
+                else:
+                    patient.lenses['material'] = 'CR-39'
             
             self.logger.log("Successfully scraped lens data")
             

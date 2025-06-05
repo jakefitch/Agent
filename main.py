@@ -46,6 +46,9 @@ if __name__ == "__main__":
     rev.patient_page.select_patient_from_results(patient)
    
     rev.patient_page.expand_optical_orders()
+    rev.patient_page.open_optical_order(patient)
+    rev.optical_order.scrape_frame_data(patient)
+    rev.optical_order.scrape_lens_data(patient)
 
 
 
