@@ -877,7 +877,16 @@ class InvoicePage(BasePage):
                 f"Closing invoice tabs - number={invoice_number}, all={close_all}"
             )
 
-            # Locator matching all invoice tabs (tabs starting with '#')
+            # Locator matching the <span> element that contains the tab name
+            # Example HTML structure:
+            # <div class="e-text-wrap">
+            #     <div class="e-tab-text">
+            #         <span data-test-id="#123.navigationTab">#123</span>
+            #     </div>
+            #     <span class="e-icons e-close-icon"></span>
+            # </div>
+            # We grab the <span> with the data-test-id and then locate the
+            # sibling close icon from it.
             tab_spans = self.page.locator(
                 "[data-test-id^='#'][data-test-id$='.navigationTab']"
             )
@@ -886,7 +895,10 @@ class InvoicePage(BasePage):
                 count = tab_spans.count()
                 for i in range(count - 1, -1, -1):
                     span = tab_spans.nth(i)
-                    span.locator(".e-close-icon").click()
+                    close_icon = span.locator(
+                        "xpath=../../span[contains(@class,'e-close-icon')]"
+                    )
+                    close_icon.click()
                     span.wait_for(state="detached", timeout=5000)
                 self.logger.log(f"Closed {count} invoice tab(s)")
                 return count
@@ -898,7 +910,10 @@ class InvoicePage(BasePage):
                 if span.count() == 0:
                     self.logger.log(f"Invoice tab #{invoice_number} not found")
                     return 0
-                span.locator(".e-close-icon").click()
+                close_icon = span.locator(
+                    "xpath=../../span[contains(@class,'e-close-icon')]"
+                )
+                close_icon.click()
                 span.wait_for(state="detached", timeout=5000)
                 self.logger.log(f"Closed invoice tab #{invoice_number}")
                 return 1
@@ -911,7 +926,10 @@ class InvoicePage(BasePage):
 
             span = tab_spans.nth(count - 1)
             tab_name = span.inner_text().strip()
-            span.locator(".e-close-icon").click()
+            close_icon = span.locator(
+                "xpath=../../span[contains(@class,'e-close-icon')]"
+            )
+            close_icon.click()
             span.wait_for(state="detached", timeout=5000)
             self.logger.log(f"Closed last invoice tab {tab_name}")
             return 1
