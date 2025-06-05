@@ -226,40 +226,22 @@ class OpticalOrder(BasePage):
             
             if vsp_estimator_present:
                 # This is a VSP estimator order
-                self.logger.log("Processing VSP estimator order...")
+                lens_element = self.page.locator('//*[@placeholder="Select Lens Style"]').first
+                lens_value = lens_element.inner_html()
+                match = re.search(r'<option[^>]*>([^<]+)</option>', lens_value)
+                lens_description = match.group(1) if match else ''
+                
+                material_element = self.page.locator('//*[@placeholder="Select Material"]').first
+                material = material_element.input_value()
+                ar_element = self.page.locator('//*[@placeholder="Select AR"]').first
+                ar = ar_element.input_value()
+                lens_type_element = self.page.locator('//*[@placeholder="Select Type"]').first
+                lens_type = lens_type_element.input_value()
+
+            else:
+                # Fall back to manual lens data
                 material = self.page.locator('//*[@data-test-id="eyeglassLensOptionsMaterial"]').text_content()
                 ar = self.page.locator('//*[@data-test-id="eyeglassLensCoatingsArCoatingsSection"]').text_content()
-                
-                # Process AR value
-                if '(A)' in ar:
-                    ar = "Other (AR Coating A)"
-                elif '(C)' in ar or '(C, Teir 2)' in ar:
-                    ar = "Lab Choice (AR Coating C) (AR Coating C)"
-                elif ar == 'AR Coating':
-                    ar = ''
-                
-                # Determine lens type
-                lens_type_element = self.page.locator('//*[@data-test-id="lensDetailsManufacturerModelSection"]').first
-                lens_type_data = lens_type_element.text_content()
-                lens_type = 'Single Vision' if 'sv' in lens_type_data.lower() else 'PAL'
-                lens_description = "SV Poly W/ AR"
-                
-            else:
-                # Fall back to manual lens data parsed from the page
-                def get_selected_value(selector: str) -> str:
-                    section = soup.select_one(selector)
-                    if not section:
-                        return ''
-                    option = section.select_one('option[selected]')
-                    if option:
-                        return option.get_text(strip=True)
-                    input_el = section.select_one('input[value]')
-                    if input_el and input_el.get('value'):
-                        return input_el['value'].strip()
-                    return section.get_text(strip=True)
-
-                material = get_selected_value('[data-test-id="eyeglassLensOptionsMaterial"]')
-                ar = get_selected_value('[data-test-id="eyeglassLensCoatingsArCoatingsSection"]')
                 
                 # Process AR value
                 if '(A)' in ar:
