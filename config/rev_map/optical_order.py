@@ -14,17 +14,15 @@ class OpticalOrder(BasePage):
         self.products_url = "https://revolutionehr.com/static/#/legacy/inventory/products"
     
     def is_loaded(self) -> bool:
-        """Check if the orders page is fully loaded.
+        """Check if the orders page is fully loaded by waiting for the badge-danger class.
 
         Returns:
             bool: True if the page is loaded, False otherwise
         """
         try:
             self.logger.log("Checking if orders page is loaded...")
-            # Wait for the main dashboard container
-            self.page.wait_for_selector('[data-test-id="ordersEnhancedDashboard"]', timeout=15000)
-            # Ensure at least one row of the orders table is visible
-            self.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=15000)
+            # Wait for the badge-danger class to be present
+            self.page.wait_for_selector('.badge.badge-danger', timeout=15000)
             self.logger.log("Orders page is loaded")
             return True
         except Exception as e:
