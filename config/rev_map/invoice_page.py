@@ -350,7 +350,7 @@ class InvoicePage(BasePage):
             patient_cell.click()
             
             # Wait for new tab to be ready
-            self.page.wait_for_selector('[data-test-id="invoiceHeaderPreviewClaimButton"]')
+            self.page.wait_for_selector('[data-test-id="invoiceDetailsDetailTab"]', timeout=10000)
             
             # Click through all tabs in sequence
             print("Clicking through all tabs...")
@@ -380,8 +380,8 @@ class InvoicePage(BasePage):
             self.page.wait_for_selector('.ag-center-cols-container')
             
         except Exception as e:
-            self.logger.log_error(f"Failed to process patient: {str(e)}")
-            self.take_screenshot("Failed to process patient")
+            self.logger.log_error(f"Failed to process patient name: {str(e)}")
+            self.take_screenshot("Failed to process patient name")
             raise
 
     def process_table_rows(self, action_callback=None):
@@ -472,7 +472,7 @@ class InvoicePage(BasePage):
             row.locator('[col-id="patientName"]').click()
             
             # Wait for new tab to be ready
-            self.page.wait_for_selector('[data-test-id="invoiceHeaderPreviewClaimButton"]')
+            self.page.wait_for_selector('[data-test-id="invoiceDetailsDetailTab"]', timeout=10000)
             
             # Go directly to notes tab
             self.click_notes_tab()
@@ -542,7 +542,7 @@ class InvoicePage(BasePage):
             row.locator('[col-id="patientName"]').click()
             
             # Wait for new tab to be ready
-            self.page.wait_for_selector('[data-test-id="invoiceHeaderPreviewClaimButton"]')
+            self.page.wait_for_selector('[data-test-id="invoiceDetailsDetailTab"]', timeout=10000)
             
             # Go to Documents and Images tab
             self.click_docs_and_images_tab()
@@ -846,7 +846,8 @@ class InvoicePage(BasePage):
 
                 if match:
                     row.locator('[col-id="id"]').click()
-                    self.page.wait_for_selector('[data-test-id="invoiceHeaderPreviewClaimButton"]', timeout=10000)
+                    # Wait for the invoice details tab to be visible, indicating the invoice is loaded
+                    self.page.wait_for_selector('[data-test-id="invoiceDetailsDetailTab"]', timeout=10000)
                     return True
 
             if not self._go_to_next_page():
@@ -854,12 +855,12 @@ class InvoicePage(BasePage):
             page_num += 1
 
         return False
-
+                                    
     def close_invoice_tabs(
         self,
         invoice_number: Optional[str] = None,
         close_all: bool = False,
-    ) -> int:
+    ) -> int: #WIP DOES NOT WORK
         """Close invoice tabs based on the provided criteria.
 
         Args:
