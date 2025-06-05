@@ -14,36 +14,35 @@ class OpticalOrder(BasePage):
         self.products_url = "https://revolutionehr.com/static/#/legacy/inventory/products"
     
     def is_loaded(self) -> bool:
-        """Check if the orders page is loaded.
-        
-        Returns:
-            bool: True if the page is loaded, False otherwise
-        """
+        """Check if the orders page is fully loaded."""
         try:
-            # Check for the orders dashboard element
             self.logger.log("Checking if orders page is loaded...")
-            orders_dashboard = self.page.locator('[data-test-id="ordersEnhancedDashboard"]').is_visible(timeout=5000)
-            if orders_dashboard:
-                self.logger.log("Orders page is loaded")
-                return True
-                
-            self.logger.log("Orders page is not loaded")
-            return False
-            
-        except Exception as e:
-            self.logger.log_error(f"Failed to check if orders page is loaded: {str(e)}")
+            if not self.wait_until_visible('[data-test-id="ordersEnhancedDashboard"]', timeout=30000):
+                return False
+
+            # Try waiting for at least one table row, but allow empty tables
+            self.page.locator("//table[@role='presentation']/tbody/tr").wait_for(timeout=10000)
+            self.logger.log("Orders page is loaded")
+            return True
+        except Exception:
+            # Table rows may not exist if there are no orders
+            try:
+                if self.page.locator('[data-test-id="ordersEnhancedDashboard"] table').is_visible(timeout=5000):
+                    self.logger.log("Orders page is loaded (no rows)")
+                    return True
+            except Exception as e:
+                self.logger.log_error(f"Failed to check if orders page is loaded: {str(e)}")
             return False
     
     def navigate_to_orders(self):
         """Navigate to the orders dashboard page."""
         try:
-            self.page.goto(self.base_url)
+            self.page.goto(self.base_url, wait_until="domcontentloaded")
             self.logger.log("Navigated to orders dashboard")
-            
-            # Add a small delay to ensure the page has time to load
-            self.page.wait_for_timeout(2000)  # 2 second delay
-            
-            # Wait for the page to be loaded
+
+            # Best effort wait for network idle, fall back handled in BasePage
+            self.wait_for_network_idle(timeout=20000)
+
             if not self.is_loaded():
                 raise Exception("Orders page failed to load after navigation")
                 

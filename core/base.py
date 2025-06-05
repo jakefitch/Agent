@@ -262,6 +262,36 @@ class BasePage:
             self.logger.log_error(f"Failed to save page state: {str(e)}")
             raise
 
+    def wait_for_network_idle(self, timeout: int = 30000) -> bool:
+        """Wait until network activity has settled or the page load event fires."""
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=timeout)
+            return True
+        except Exception as e:
+            # Some pages continuously poll which prevents a true networkidle state
+            self.logger.log(
+                f"Network idle timed out: {str(e)} - falling back to load state"
+            )
+            try:
+                self.page.wait_for_load_state("load", timeout=5000)
+                return True
+            except Exception as e2:
+                self.logger.log_error(f"Page load state wait failed: {str(e2)}")
+                return False
+
+    def wait_until_visible(self, selector: str, timeout: int = 10000, poll_interval: int = 500) -> bool:
+        """Repeatedly check for a selector to become visible within the timeout."""
+        end_time = time.time() + timeout / 1000
+        while time.time() < end_time:
+            try:
+                if self.page.locator(selector).is_visible(timeout=poll_interval):
+                    return True
+            except Exception:
+                pass
+            self.page.wait_for_timeout(poll_interval)
+        self.logger.log_error(f"Timeout waiting for selector visible: {selector}")
+        return False
+
 class PatientManager:
     def __init__(self):
         self._patients: Dict[str, Patient] = {}
