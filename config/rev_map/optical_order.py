@@ -113,10 +113,10 @@ class OpticalOrder(BasePage):
             except:
                 patient.frames['collection'] = patient.frames['manufacturer']
 
-            # Scrape color
+            # Scrape color - select the element associated with the "Color" label
             try:
-                frame_color = self.page.locator("//div[@data-test-id='frameColorSection']//p[@class='form-control-static']")
-                patient.frames['color'] = frame_color.text_content() or 'unknown'
+                frame_color = self.page.locator("//label[text()='Color']/following-sibling::div/p[@class='form-control-static']")
+                patient.frames['color'] = frame_color.text_content().strip() if frame_color.count() > 0 else 'unknown'
             except:
                 patient.frames['color'] = 'unknown'
 
