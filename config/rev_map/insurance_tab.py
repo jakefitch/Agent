@@ -277,13 +277,12 @@ class InsuranceTab(BasePage):
             raise 
 
     def scrape_insurance(self, patient: Optional[Patient] = None):
-        """Scrape insurance information for a patient.
+        """Scrape insurance information for a patient and store it.
 
         Args:
             patient: Optional patient object. If not provided, the method will
             attempt to use ``self.context.patient``. If neither is available,
-            scraping will still proceed but no patient specific log message will
-            be produced.
+            scraping will still proceed but the results will only be returned.
         """
 
         # Resolve the patient from arguments or context if available
@@ -377,6 +376,12 @@ class InsuranceTab(BasePage):
                 self.logger.log_error(f"Failed to scrape authorization field: {str(e)}")
                 self.take_screenshot("Failed to scrape authorization field")
                 raise
+            # Store scraped data in patient object if available
+            if patient_obj:
+                try:
+                    patient_obj.insurance_data.update(scraped)
+                except Exception as e:
+                    self.logger.log_error(f"Failed to update patient insurance data: {str(e)}")
 
             return scraped
         except Exception as e:
