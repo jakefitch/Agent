@@ -18,7 +18,7 @@ class Products(BasePage):
         """
         try:
             self.logger.log("Checking if products page is loaded...")
-            products_table = self.page.locator('[data-test-id="productsTable"]').is_visible(timeout=5000)
+            products_table = self.page.locator('[class="btn btn-xs btn-danger ng-scope"]').first.is_visible(timeout=5000)
             if products_table:
                 self.logger.log("Products page is loaded")
                 return True
