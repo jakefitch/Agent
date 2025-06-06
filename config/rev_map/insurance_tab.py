@@ -24,50 +24,87 @@ class InsuranceTab(BasePage):
             self.take_screenshot("Failed to close Insurance tab")
             raise
 
-    def select_insurance(self, insurance_name, select_mode='random'):
-        """
-        Select an insurance entry by (partial) name. By default, selects a random match if multiple are found.
-        Args:
-            insurance_name (str): The (partial) name of the insurance to match.
-            select_mode (str): 'random' (default) to select one at random, 'all' to process all matches (calls process_insurance_row for each).
-        Returns:
-            bool: True if at least one match was found and clicked/processed, False otherwise.
+    def select_insurance(self, insurance_name: str, select_mode: str = 'first', filters: Optional[dict] = None, wait_timeout: int = 10000) -> bool:
+        """Select an insurance row in the grid.
+
+        This method searches the insurance grid for rows whose company name
+        contains ``insurance_name``.  Additional column values can be filtered
+        by supplying a ``filters`` dictionary where the key is the ``col-id``
+        attribute from the table and the value is the text that should be
+        contained in that column.  When more than one row matches, the row is
+        chosen based on ``select_mode`` which accepts ``'first'`` (default),
+        ``'random'`` or ``'all'``.
+
+        Parameters
+        ----------
+        insurance_name: str
+            Partial name of the insurance company to look for.
+        select_mode: str, optional
+            How to choose between multiple matches: ``'first'`` (default),
+            ``'random'`` or ``'all'``.
+        filters: dict, optional
+            Mapping of additional column ``col-id`` values to text that must be
+            present in those columns.  For example ``{'priority.value': 'Primary'}``.
+        wait_timeout: int, optional
+            Time in milliseconds to wait for the grid to appear.
+
+        Returns
+        -------
+        bool
+            ``True`` if a matching row was clicked, ``False`` otherwise.
         """
         try:
-            self.logger.log(f"Selecting insurance: {insurance_name}")
-            # Find all insurance name cells in the first column of the insurance table
-            rows = self.page.locator('.ag-center-cols-container .ag-row')
+            self.logger.log(f"Selecting insurance: {insurance_name} with filters {filters}")
+
+            container = self.page.locator('.ag-center-cols-container')
+            container.wait_for(state="visible", timeout=wait_timeout)
+
+            rows = container.locator('.ag-row')
             matches = []
-            for i in range(rows.count()):
+
+            row_count = rows.count()
+            for i in range(row_count):
                 row = rows.nth(i)
-                # The company name is in the first gridcell (col-id="0")
                 name_cell = row.locator('[col-id="0"] span')
                 cell_text = name_cell.inner_text().strip()
-                if insurance_name.lower() in cell_text.lower():
-                    matches.append(row)
-            
+                if insurance_name.lower() not in cell_text.lower():
+                    continue
+
+                # Apply additional column filters if provided
+                if filters:
+                    matched = True
+                    for col_id, expected in filters.items():
+                        col = row.locator(f'[col-id="{col_id}"]')
+                        if col.count() == 0:
+                            matched = False
+                            break
+                        value = col.inner_text().strip()
+                        if expected.lower() not in value.lower():
+                            matched = False
+                            break
+                    if not matched:
+                        continue
+
+                matches.append(row)
+
             if not matches:
-                self.logger.log(f"No insurance found matching: {insurance_name}")
+                self.logger.log(f"No insurance found matching: {insurance_name} with filters {filters}")
                 return False
-            
+
             self.logger.log(f"Found {len(matches)} insurance(s) matching: {insurance_name}")
-            
-            if select_mode == 'all':
-                for row in matches:
-                    row.click()
-                    locator_str = "[col-id='0'] span"
-                    value = row.locator(locator_str).inner_text().strip()
-                    self.logger.log(f"Clicked insurance: {value}")
 
-                return True
-            else:  # default: random
-                chosen_row = random.choice(matches)
-                chosen_row.click()
-                locator = "[col-id='0'] span"
-                text = chosen_row.locator(locator).inner_text().strip()
-                self.logger.log(f"Clicked insurance: {text}")
+            selected_rows = matches
+            if select_mode == 'random':
+                selected_rows = [random.choice(matches)]
+            elif select_mode == 'first':
+                selected_rows = [matches[0]]
 
-                return True
+            for row in selected_rows:
+                row.click()
+                value = row.locator('[col-id="0"] span').inner_text().strip()
+                self.logger.log(f"Clicked insurance: {value}")
+
+            return True
         except Exception as e:
             self.logger.log_error(f"Failed to select insurance by name: {str(e)}")
             self.take_screenshot("Failed to select insurance by name")
