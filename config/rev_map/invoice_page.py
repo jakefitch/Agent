@@ -594,17 +594,18 @@ class InvoicePage(BasePage):
             # wait for the patient page to load
             self.page.wait_for_selector('[data-test-id="patientHeaderDemographicList"]', timeout=10000)
             self.logger.log("Patient page loaded successfully")
-            #wait for a moment to allow a popup to have a chance to appear
+            # Wait briefly so any alert modal has time to appear
             self.page.wait_for_timeout(1000)
-            
-            #look for popup modal and close it
+
+            # Look for a possible alert popup and close it
             try:
                 close_button = self.page.locator('[data-test-id="alertHistoryModalCloseButton"]')
-                if close_button.is_visible(timeout=3000):  # 3 second timeout
+                if close_button.is_visible(timeout=3000):
                     close_button.click()
-                    self.logger.log("Closed alert history modal after patient selection")
+                    self.logger.log("Closed alert history modal")
             except Exception as e:
-                self.logger.log(f"Alert modal check after patient selection: {str(e)}")
+                # Log but don't raise an exception if the modal isn't found
+                self.logger.log(f"Alert modal check completed: {str(e)}")
         except Exception as e:
             self.logger.log_error(f"Failed to click patient name link: {str(e)}")
             self.take_screenshot("Failed to click patient name link")
