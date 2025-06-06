@@ -762,13 +762,15 @@ class InvoicePage(BasePage):
                 building_li = building_icon.find_parent('li')
                 if building_li:
                     location = building_li.get_text(strip=True)
+                    if 'LOC' in location:
+                        location = location.split('LOC')[0]
                     if location == "Borger":
                         patient.demographics['location'] = "Borger"
                     elif location == "Amarillo":
                         patient.demographics['location'] = "Amarillo"
                     else:
                         patient.demographics['location'] = location
-
+                
             # Handle diagnoses
             if data_rows and data_rows[0]['diagnoses']:
                 patient.medical_data['dx'] = data_rows[0]['diagnoses']
