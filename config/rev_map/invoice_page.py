@@ -3,7 +3,7 @@
 from playwright.sync_api import Page
 from typing import Optional, List, Dict, Any
 from core.logger import Logger
-from core.base import BasePage, PatientContext
+from core.base import BasePage, PatientContext, PatientManager, Patient
 import re
 from bs4 import BeautifulSoup
 from core.base import ClaimItem
@@ -601,6 +601,54 @@ class InvoicePage(BasePage):
         except Exception as e:
             self.logger.log_error(f"Failed to click patient name link: {str(e)}")
             self.take_screenshot("Failed to click patient name link")
+            raise
+
+    def create_patient_from_header(
+        self, manager: PatientManager, default_dob: str = "01/01/1900"
+    ) -> Patient:
+        """Create or retrieve a :class:`Patient` based on the invoice header.
+
+        The patient name displayed in the invoice header is parsed and a
+        corresponding ``Patient`` instance is returned from the provided
+        ``PatientManager``. If the patient does not yet exist in the manager a
+        new one is created using ``default_dob`` as a placeholder date of birth.
+
+        Args:
+            manager: Instance of :class:`PatientManager` used to manage patients.
+            default_dob: DOB to assign when creating a new patient if no real
+                value is yet available.
+
+        Returns:
+            The existing or newly created ``Patient`` object.
+        """
+        try:
+            name_text = (
+                self.page.locator('[data-test-id="invoiceHeaderPatientNameLink"]')
+                .inner_text()
+                .strip()
+            )
+            self.logger.log(f"Found patient name text: {name_text}")
+
+            if "," in name_text:
+                last_name, first_name = [p.strip() for p in name_text.split(",", 1)]
+            else:
+                parts = name_text.split()
+                first_name = parts[0] if parts else ""
+                last_name = parts[-1] if len(parts) > 1 else ""
+
+            patient = manager.get_patient(first_name, last_name)
+            if not patient:
+                patient = manager.create_patient(first_name, last_name, default_dob)
+                self.logger.log(f"Created patient record for {first_name} {last_name}")
+            else:
+                self.logger.log(
+                    f"Loaded existing patient record for {first_name} {last_name}"
+                )
+
+            return patient
+        except Exception as e:
+            self.logger.log_error(f"Failed to create patient from header: {str(e)}")
+            self.take_screenshot("create_patient_from_header_failed")
             raise
 
     def click_invoice_tab(self, invoice_id):

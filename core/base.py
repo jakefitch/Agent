@@ -23,7 +23,7 @@ class Patient:
     """A simple class to store patient data during scraping."""
     first_name: str
     last_name: str
-    dob: str  # Changed from date_of_birth: datetime to dob: str
+    dob: Optional[str] = None  # Date of birth may be unavailable initially
     
     # Insurance information
     insurance_data: Dict[str, Any] = field(default_factory=dict)
@@ -44,6 +44,11 @@ class Patient:
     
     def __post_init__(self):
         """Convert dob string to datetime if needed"""
+        if not self.dob:
+            # DOB may be unknown when the patient record is first created
+            self._dob_datetime = None
+            return
+
         if isinstance(self.dob, str):
             try:
                 # Try MM/DD/YYYY format first
@@ -58,8 +63,8 @@ class Patient:
             self._dob_datetime = self.dob
     
     @property
-    def date_of_birth(self) -> datetime:
-        """Get the date of birth as a datetime object"""
+    def date_of_birth(self) -> Optional[datetime]:
+        """Get the date of birth as a datetime object if available"""
         return self._dob_datetime
     
     def add_insurance_data(self, key: str, value: Any) -> None:
@@ -276,8 +281,10 @@ class PatientManager:
         self._patients: Dict[str, Patient] = {}
         self._lock = Lock()
     
-    def create_patient(self, first_name: str, last_name: str, dob: str) -> Patient:
-        """Create a new patient and add it to the manager"""
+    def create_patient(
+        self, first_name: str, last_name: str, dob: Optional[str] = None
+    ) -> Patient:
+        """Create a new patient and add it to the manager."""
         patient = Patient(
             first_name=first_name,
             last_name=last_name,
