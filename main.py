@@ -2,7 +2,7 @@ from core.base import PatientManager
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 from core.logger import Logger
-
+from time import sleep
 from config.vsp_map.vsp_session import VspSession
 from config.rev_map.rev_session import RevSession
 
@@ -36,19 +36,21 @@ if __name__ == "__main__":
     patient = create_test_patient()
     rev.login()
 
-    vsp.login("ama")
+    #vsp.login("ama")
     #vsp.claim_page.submit_claim(patient)
 
     #navigate to patient page
-    rev.patient_page.navigate_to_patient_page()
+    rev.invoice_page.navigate_to_invoices_page()
+    rev.invoice_page.search_invoice(payor="vision")
+    sleep(2)
+    rev.invoice_page.open_invoice("277404029")
+    rev.invoice_page.click_patient_name_link()
+    rev.patient_page.expand_insurance()
+    rev.insurance_tab.select_insurance("VSP")
     
-    rev.patient_page.search_patient(patient)
-    rev.patient_page.select_patient_from_results(patient)
-   
-    rev.patient_page.expand_optical_orders()
-    rev.patient_page.open_optical_order(patient)
-    rev.optical_order.scrape_frame_data(patient)
-    rev.optical_order.scrape_lens_data(patient)
+
+
+    
 
 
 

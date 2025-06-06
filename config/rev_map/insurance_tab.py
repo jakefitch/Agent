@@ -24,7 +24,7 @@ class InsuranceTab(BasePage):
             self.take_screenshot("Failed to close Insurance tab")
             raise
 
-    def select_insurance(self, insurance_name: str, select_mode: str = 'first', filters: Optional[dict] = None, wait_timeout: int = 10000) -> bool:
+    def select_insurance(self, insurance_name: str, select_mode: str = 'random', filters: Optional[dict] = None, wait_timeout: int = 10000) -> bool:
         """Select an insurance row in the grid.
 
         This method searches the insurance grid for rows whose company name
@@ -102,6 +102,8 @@ class InsuranceTab(BasePage):
             for row in selected_rows:
                 row.click()
                 value = row.locator('[col-id="0"] span').first.inner_text().strip()
+                self.logger.log(f"Clicking insurance: {value}")
+                row.click()
                 self.logger.log(f"Clicked insurance: {value}")
 
             return True
