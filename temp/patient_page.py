@@ -93,14 +93,75 @@ class PatientPage(BasePage):
             raise
 
     @check_alert_modal
-    def close_patient_tab(self):
-        """Click the close button (x) on the patient tab."""
+    def close_patient_tab(
+        self,
+        patient_name: Optional[str] = None,
+        close_all: bool = False,
+    ) -> int:
+        """Close patient tabs using a robust locator similar to invoice tabs.
+
+        Args:
+            patient_name: Specific patient tab name to close. Ignored if
+                ``close_all`` is ``True``.
+            close_all: If ``True`` close all open patient tabs.
+
+        Returns:
+            int: Number of tabs closed.
+        """
         try:
-            # Find the last navigation tab and get its close button
-            self.page.locator('[data-test-id$=".navigationTab"]').get_by_title('Close').click()
-            self.logger.log("Closed patient tab")
+            self.logger.log(
+                f"Closing patient tabs - name={patient_name}, all={close_all}"
+            )
+
+            tab_spans = self.page.locator(
+                "[data-test-id$='.navigationTab']:not([data-test-id^='#'])"
+            )
+
+            if close_all:
+                count = tab_spans.count()
+                for i in range(count - 1, -1, -1):
+                    span = tab_spans.nth(i)
+                    close_icon = span.locator(
+                        "xpath=../../span[contains(@class,'e-close-icon')]"
+                    )
+                    close_icon.click()
+                    span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed {count} patient tab(s)")
+                return count
+
+            if patient_name:
+                closing_name = patient_name.lower().replace(" ", "")
+                span = self.page.locator(
+                    f"[data-test-id='{closing_name}.navigationTab']"
+                )
+                if span.count() == 0:
+                    self.logger.log(f"Patient tab {patient_name} not found")
+                    return 0
+                close_icon = span.locator(
+                    "xpath=../../span[contains(@class,'e-close-icon')]"
+                )
+                close_icon.click()
+                span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed patient tab {patient_name}")
+                return 1
+
+            count = tab_spans.count()
+            if count == 0:
+                self.logger.log("No patient tabs found to close")
+                return 0
+
+            span = tab_spans.nth(count - 1)
+            tab_name = span.inner_text().strip()
+            close_icon = span.locator(
+                "xpath=../../span[contains(@class,'e-close-icon')]"
+            )
+            close_icon.click()
+            span.wait_for(state="detached", timeout=5000)
+            self.logger.log(f"Closed last patient tab {tab_name}")
+            return 1
+
         except Exception as e:
-            self.logger.log_error(f"Failed to close patient tab: {str(e)}")
+            self.logger.log_error(f"Failed to close patient tab(s): {str(e)}")
             self.take_screenshot("Failed to close patient tab")
             raise
 
