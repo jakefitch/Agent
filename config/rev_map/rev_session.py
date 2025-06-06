@@ -17,11 +17,22 @@ class RevSession:
     class _Pages:
         """Internal class for managing page objects."""
         
-        def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+        def __init__(
+            self,
+            page: Page,
+            logger: Logger,
+            patient_manager: PatientManager,
+            context: Optional[PatientContext] = None,
+        ):
             self.page = page
             self.logger = logger
             self.patient_page = PatientPage(page, logger, context)
-            self.invoice_page = InvoicePage(page, logger, context)
+            self.invoice_page = InvoicePage(
+                page,
+                logger,
+                context,
+                patient_manager,
+            )
             self.optical_order = OpticalOrder(page, logger, context)
             self.products = Products(page, logger, context)
             self.insurance_tab = InsuranceTab(page, logger, context)
@@ -38,8 +49,8 @@ class RevSession:
         self.page = page
         self.logger = logger
         self.context = context
-        self.pages = self._Pages(page, logger, context)
         self.patient_manager = PatientManager()
+        self.pages = self._Pages(page, logger, self.patient_manager, context)
     
     def login(self) -> None:
         """Log in to Revolution EHR using credentials from environment variables.

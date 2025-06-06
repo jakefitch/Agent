@@ -9,9 +9,16 @@ from bs4 import BeautifulSoup
 from core.base import ClaimItem
 
 class InvoicePage(BasePage):
-    def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
+    def __init__(
+        self,
+        page: Page,
+        logger: Logger,
+        context: Optional[PatientContext] = None,
+        patient_manager: Optional[PatientManager] = None,
+    ):
         super().__init__(page, logger, context)
         self.base_url = "https://revolutionehr.com/static/#/accounting/invoices/dashboard"
+        self.patient_manager = patient_manager
     
     def navigate_to_invoices_page(self):
         """Navigate to the invoices dashboard page"""
@@ -604,23 +611,30 @@ class InvoicePage(BasePage):
             raise
 
     def create_patient_from_invoice(
-        self, manager: PatientManager = None, default_dob: str = "01/01/1900"
+        self,
+        default_dob: str = "01/01/1900",
+        manager: Optional[PatientManager] = None,
     ) -> Patient:
         """Create a patient object from the invoice header information.
         
         Args:
-            manager: PatientManager instance (defaults to rev.patient_manager)
             default_dob: Default date of birth to use if not found
+            manager: PatientManager instance. If not provided, the manager
+                attached to this page will be used.
             
         Returns:
             Patient: Newly created patient object
         """
         try:
-            # If no manager provided, use the one from the context
+            # Determine which patient manager to use
             if manager is None:
-                manager = self.context.patient_manager if self.context else None
-                if manager is None:
-                    raise ValueError("No PatientManager provided and none found in context")
+                manager = getattr(self, "patient_manager", None)
+            if manager is None and self.context:
+                manager = getattr(self.context, "patient_manager", None)
+            if manager is None:
+                raise ValueError(
+                    "No PatientManager provided and none available on InvoicePage"
+                )
             
             # Get patient name from header
             name_element = self.page.locator('[data-test-id="invoiceDetailsPatientName"]')
