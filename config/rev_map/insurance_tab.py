@@ -1,7 +1,7 @@
 from playwright.sync_api import Page
 from core.logger import Logger
 from datetime import datetime
-from core.base import BasePage, PatientContext
+from core.base import BasePage, PatientContext, Patient
 from typing import Optional
 import random
 
@@ -276,12 +276,26 @@ class InsuranceTab(BasePage):
             self.take_screenshot("Failed to fill/scrape insurance dialog")
             raise 
 
-    def scrape_insurance(self):
-        """Scrape insurance information for the current patient."""
-        if not self.context or not self.context.patient:
-            raise ValueError("No patient context set for insurance scraping")
-            
-        self.logger.log(f"Scraping insurance for {self.context.patient.first_name} {self.context.patient.last_name}")
+    def scrape_insurance(self, patient: Optional[Patient] = None):
+        """Scrape insurance information for a patient.
+
+        Args:
+            patient: Optional patient object. If not provided, the method will
+            attempt to use ``self.context.patient``. If neither is available,
+            scraping will still proceed but no patient specific log message will
+            be produced.
+        """
+
+        # Resolve the patient from arguments or context if available
+        patient_obj = patient or getattr(self.context, "patient", None)
+        if patient_obj:
+            self.logger.log(
+                f"Scraping insurance for {patient_obj.first_name} {patient_obj.last_name}"
+            )
+        else:
+            self.logger.log(
+                "Scraping insurance with no patient information provided"
+            )
         scraped = {}
         try:
             # Priority (dropdown)
