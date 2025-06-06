@@ -603,52 +603,55 @@ class InvoicePage(BasePage):
             self.take_screenshot("Failed to click patient name link")
             raise
 
-    def create_patient_from_header(
-        self, manager: PatientManager, default_dob: str = "01/01/1900"
+    def create_patient_from_invoice(
+        self, manager: PatientManager = None, default_dob: str = "01/01/1900"
     ) -> Patient:
-        """Create or retrieve a :class:`Patient` based on the invoice header.
-
-        The patient name displayed in the invoice header is parsed and a
-        corresponding ``Patient`` instance is returned from the provided
-        ``PatientManager``. If the patient does not yet exist in the manager a
-        new one is created using ``default_dob`` as a placeholder date of birth.
-
+        """Create a patient object from the invoice header information.
+        
         Args:
-            manager: Instance of :class:`PatientManager` used to manage patients.
-            default_dob: DOB to assign when creating a new patient if no real
-                value is yet available.
-
+            manager: PatientManager instance (defaults to rev.patient_manager)
+            default_dob: Default date of birth to use if not found
+            
         Returns:
-            The existing or newly created ``Patient`` object.
+            Patient: Newly created patient object
         """
         try:
-            name_text = (
-                self.page.locator('[data-test-id="invoiceHeaderPatientNameLink"]')
-                .inner_text()
-                .strip()
+            # If no manager provided, use the one from the context
+            if manager is None:
+                manager = self.context.patient_manager if self.context else None
+                if manager is None:
+                    raise ValueError("No PatientManager provided and none found in context")
+            
+            # Get patient name from header
+            name_element = self.page.locator('[data-test-id="invoiceDetailsPatientName"]')
+            if not name_element.is_visible():
+                raise Exception("Patient name element not found")
+                
+            full_name = name_element.text_content().strip()
+            if not full_name:
+                raise Exception("Patient name is empty")
+                
+            # Split name into first and last
+            name_parts = full_name.split()
+            if len(name_parts) < 2:
+                raise Exception(f"Invalid patient name format: {full_name}")
+                
+            first_name = name_parts[0]
+            last_name = name_parts[-1]
+            
+            # Create new patient
+            patient = manager.create_patient(
+                first_name=first_name,
+                last_name=last_name,
+                dob=default_dob
             )
-            self.logger.log(f"Found patient name text: {name_text}")
-
-            if "," in name_text:
-                last_name, first_name = [p.strip() for p in name_text.split(",", 1)]
-            else:
-                parts = name_text.split()
-                first_name = parts[0] if parts else ""
-                last_name = parts[-1] if len(parts) > 1 else ""
-
-            patient = manager.get_patient(first_name, last_name)
-            if not patient:
-                patient = manager.create_patient(first_name, last_name, default_dob)
-                self.logger.log(f"Created patient record for {first_name} {last_name}")
-            else:
-                self.logger.log(
-                    f"Loaded existing patient record for {first_name} {last_name}"
-                )
-
+            
+            self.logger.log(f"Created patient: {first_name} {last_name}")
             return patient
+            
         except Exception as e:
-            self.logger.log_error(f"Failed to create patient from header: {str(e)}")
-            self.take_screenshot("create_patient_from_header_failed")
+            self.logger.log_error(f"Failed to create patient from invoice: {str(e)}")
+            self.take_screenshot("Failed to create patient from invoice")
             raise
 
     def click_invoice_tab(self, invoice_id):

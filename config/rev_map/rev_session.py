@@ -1,6 +1,6 @@
 from playwright.sync_api import Page
 from core.logger import Logger
-from core.base import BasePage, PatientContext
+from core.base import BasePage, PatientContext, PatientManager
 from typing import Optional
 from .patient_page import PatientPage
 from .invoice_page import InvoicePage
@@ -39,6 +39,7 @@ class RevSession:
         self.logger = logger
         self.context = context
         self.pages = self._Pages(page, logger, context)
+        self.patient_manager = PatientManager()
     
     def login(self) -> None:
         """Log in to Revolution EHR using credentials from environment variables.
