@@ -92,4 +92,73 @@ class Products(BasePage):
         except Exception as e:
             self.logger.log_error(f"Failed to get wholesale price: {str(e)}")
             self.take_screenshot("Failed to get wholesale price")
-            return '64.95'  # Return default price if anything fails 
+            return '64.95'  # Return default price if anything fails
+
+    def close_product_tabs(
+        self,
+        tab_name: Optional[str] = None,
+        close_all: bool = True,
+    ) -> int:
+        """Close product detail tabs.
+
+        Multiple product tabs may be open simultaneously.  This helper can
+        close a specific tab by name, close all tabs, or by default close the
+        most recently opened tab when ``close_all`` is ``False``.
+
+        Args:
+            tab_name: The label of the tab to close. Ignored if ``close_all``
+                is ``True``.
+            close_all: If ``True`` close all open product tabs.
+
+        Returns:
+            int: Number of tabs closed.
+        """
+
+        try:
+            self.logger.log(
+                f"Closing product tabs - name={tab_name}, all={close_all}"
+            )
+
+            tab_spans = self.page.locator(
+                "ul.nav-tabs li.uib-tab span.ng-binding"
+            )
+
+            if close_all:
+                count = tab_spans.count()
+                for i in range(count - 1, -1, -1):
+                    span = tab_spans.nth(i)
+                    close_icon = span.locator("i.fa-close.close")
+                    if close_icon.count() > 0:
+                        close_icon.click()
+                        span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed {count} product tab(s)")
+                return count
+
+            if tab_name:
+                span = tab_spans.filter(has_text=tab_name)
+                if span.count() == 0:
+                    self.logger.log(f"Product tab {tab_name} not found")
+                    return 0
+                close_icon = span.locator("i.fa-close.close")
+                close_icon.click()
+                span.wait_for(state="detached", timeout=5000)
+                self.logger.log(f"Closed product tab {tab_name}")
+                return 1
+
+            count = tab_spans.count()
+            if count == 0:
+                self.logger.log("No product tabs found to close")
+                return 0
+
+            span = tab_spans.nth(count - 1)
+            tab_label = span.inner_text().strip()
+            close_icon = span.locator("i.fa-close.close")
+            close_icon.click()
+            span.wait_for(state="detached", timeout=5000)
+            self.logger.log(f"Closed last product tab {tab_label}")
+            return 1
+
+        except Exception as e:
+            self.logger.log_error(f"Failed to close product tab(s): {str(e)}")
+            self.take_screenshot("Failed to close product tab")
+            raise
