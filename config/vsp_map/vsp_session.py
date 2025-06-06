@@ -16,7 +16,7 @@ class VspSession(BasePage):
         def __init__(self, page: Page, logger: Logger):
             self.page = page
             self.logger = logger
-            self.member_search = MemberSearch(page, logger)
+            self.member_search_page = MemberSearch(page, logger)
             self.claim_page = ClaimPage(page, logger)
     
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):

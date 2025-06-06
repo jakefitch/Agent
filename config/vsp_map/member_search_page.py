@@ -25,10 +25,38 @@ class MemberSearch(BasePage):
             bool: True if the page is loaded, False otherwise
         """
         try:
-            return self.page.locator("#member-search-dos").is_visible()
+            # Check for the valid search combinations link with a 5-second timeout
+            valid_search_link = self.page.locator('#member-search-valid-search-combinations-link')
+            return valid_search_link.wait_for(state='visible', timeout=5000)
         except Exception as e:
-            self.logger.log(f"Error checking if member search page is loaded: {str(e)}")
+            self.logger.log_error(f"Error checking if member search page is loaded: {str(e)}")
             return False
+        
+    def navigate_to_member_search(self) -> None:
+        """Navigate to the member search page.
+        
+        This function will:
+        1. Navigate to the member search page using the base URL
+        2. Wait for the page to load
+        3. Verify we're on the correct page using is_loaded
+        """
+        try:
+            
+            
+            # Navigate to the member search page
+            self.logger.log("Navigating to member search...")
+            self.page.goto("https://eclaim.eyefinity.com/secure/eInsurance/member-search")
+            
+            # Wait for the page to load and verify
+            if not self.is_loaded():
+                raise Exception("Member search page failed to load properly")
+            
+            self.logger.log("Successfully navigated to member search page")
+            
+        except Exception as e:
+            self.logger.log_error(f"Failed to navigate to member search page: {str(e)}")
+            self.take_screenshot("Failed to navigate to member search page")
+            raise
     
     def _enter_dos(self, dos: str) -> bool:
         """Enter the date of service.
@@ -187,4 +215,6 @@ class MemberSearch(BasePage):
         except Exception as e:
             self.logger.log(f"Error during member search list: {str(e)}")
             self.take_screenshot("member_search_list_error")
-            return False 
+            return False
+    
+    
