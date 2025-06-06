@@ -637,7 +637,7 @@ class InvoicePage(BasePage):
                 )
             
             # Get patient name from header
-            name_element = self.page.locator('[data-test-id="invoiceDetailsPatientName"]')
+            name_element = self.page.locator('[data-test-id="invoiceHeaderPatientNameLink"]')
             if not name_element.is_visible():
                 raise Exception("Patient name element not found")
                 

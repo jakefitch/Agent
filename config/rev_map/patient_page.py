@@ -457,9 +457,10 @@ class PatientPage(BasePage):
                         self.logger.log(f"Added family member: {first_name} {last_name}")
 
                         # Close the patient tab
-                        closing_name = f"{last_name}, {first_name[0]}".lower().replace(" ", "")
-                        close_icon = self.page.locator(f"//span[@data-test-id='{closing_name}.navigationTab']/ancestor::div[contains(@class, 'e-text-wrap')]/span[contains(@class, 'e-close-icon')]")
-                        close_icon.click()
+                        self.patient_page.close_patient_tab()   
+                        #closing_name = f"{last_name}, {first_name[0]}".lower().replace(" ", "")
+                        #close_icon = self.page.locator(f"//span[@data-test-id='{closing_name}.navigationTab']/ancestor::div[contains(@class, 'e-text-wrap')]/span[contains(@class, 'e-close-icon')]")
+                        #close_icon.click()
                         self.page.wait_for_timeout(1000)
 
                     except Exception as e:
