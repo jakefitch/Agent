@@ -65,7 +65,7 @@ class InsuranceTab(BasePage):
             row_count = rows.count()
             for i in range(row_count):
                 row = rows.nth(i)
-                name_cell = row.locator('[col-id="0"] span')
+                name_cell = row.locator('[col-id="0"] span').first
                 cell_text = name_cell.inner_text().strip()
                 if insurance_name.lower() not in cell_text.lower():
                     continue
@@ -74,7 +74,7 @@ class InsuranceTab(BasePage):
                 if filters:
                     matched = True
                     for col_id, expected in filters.items():
-                        col = row.locator(f'[col-id="{col_id}"]')
+                        col = row.locator(f'[col-id="{col_id}"]').first
                         if col.count() == 0:
                             matched = False
                             break
@@ -101,7 +101,7 @@ class InsuranceTab(BasePage):
 
             for row in selected_rows:
                 row.click()
-                value = row.locator('[col-id="0"] span').inner_text().strip()
+                value = row.locator('[col-id="0"] span').first.inner_text().strip()
                 self.logger.log(f"Clicked insurance: {value}")
 
             return True
