@@ -29,8 +29,8 @@ if __name__ == "__main__":
     
     rev.login()
 
-    #vsp.login("ama")
-    #vsp.claim_page.submit_claim(patient)
+    vsp.login("ama")
+    vsp.claim_page.submit_claim(patient)
 
     #navigate to patient page
     rev.invoice_page.navigate_to_invoices_page()
@@ -46,11 +46,12 @@ if __name__ == "__main__":
     rev.insurance_tab.select_insurance("VSP")
     rev.insurance_tab.scrape_insurance(patient)
     rev.patient_page.click_patient_summary_menu()
-    rev.patient_page.expand_optical_orders()
-    rev.patient_page.open_optical_order(patient)
-    rev.optical_order.scrape_frame_data(patient)
-    rev.optical_order.scrape_lens_data(patient)
-    rev.optical_order.scrape_medical_data(patient)
+    if patient.has_optical_order:
+        rev.patient_page.expand_optical_orders()
+        rev.patient_page.open_optical_order(patient)
+        rev.optical_order.scrape_frame_data(patient)
+        rev.optical_order.scrape_lens_data(patient)
+        rev.optical_order.scrape_medical_data(patient)
     patient.print_data()
     print('returning  to  patient  page')
     
