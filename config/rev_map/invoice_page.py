@@ -7,6 +7,7 @@ from core.base import BasePage, PatientContext, PatientManager, Patient
 import re
 from bs4 import BeautifulSoup
 from core.base import ClaimItem
+from core.utils import has_glasses_order, has_frame_claim
 
 class InvoicePage(BasePage):
     def __init__(
@@ -744,6 +745,10 @@ class InvoicePage(BasePage):
                     modifier=row['modifiers'] if row['modifiers'] else None
                 )
                 patient.claims.append(claim_item)
+
+            # Determine if this invoice contains optical orders
+            patient.has_optical_order = has_glasses_order(patient)
+            patient.has_frame = has_frame_claim(patient)
 
             # Store DOS in insurance_data
             if data_rows:
