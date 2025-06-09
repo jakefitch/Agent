@@ -19,13 +19,6 @@ def launch_browser():
     return p, browser, rev, vsp
 
 
-def create_test_patient():
-    patient_manager = PatientManager()
-    return patient_manager.create_patient(
-        first_name="Jacob",
-        last_name="Fitch",
-        dob="11/24/1982"
-    )
 
 
 if __name__ == "__main__":
@@ -33,7 +26,7 @@ if __name__ == "__main__":
 
     p, browser, rev, vsp = launch_browser()
     #p, browser, rev = launch_browser()
-    patient = create_test_patient()
+    
     rev.login()
 
     #vsp.login("ama")
@@ -44,7 +37,7 @@ if __name__ == "__main__":
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
     rev.invoice_page.open_invoice("277404029")
-    rev.invoice_page.create_patient_from_invoice()
+    patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
     rev.patient_page.scrape_demographics(patient)
