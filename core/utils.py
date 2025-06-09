@@ -94,41 +94,42 @@ def set_copay(patient: Patient) -> None:
 
 def has_glasses_order(patient: Patient) -> bool:
     """Check if a patient has any claims indicating a glasses order.
-    
-    This function checks for V21 or V22 codes in the patient's claims,
-    which indicate a glasses order in the system.
-    
+
+    The check is case-insensitive and looks for base lens codes such as
+    ``V21xx``, ``V22xx``, ``V23xx`` or the specific ``V2781`` code.
+
     Args:
         patient: Patient object containing claims to check
-        
+
     Returns:
         bool: True if a glasses order is found, False otherwise
     """
     if not hasattr(patient, 'claims') or not patient.claims:
         return False
-        
+
+    pattern = re.compile(r"^v(?:21\d\d|22\d\d|23\d\d|2781)$", re.IGNORECASE)
     for claim in patient.claims:
-        if claim.code.startswith('V21') or claim.code.startswith('V22'):
+        if claim.code and pattern.match(claim.code.strip()):
             return True
-            
+
     return False
 
 def has_frame_claim(patient: Patient) -> bool:
-    """Check if the patient has a frame claim by looking for V202 codes.
-    
+    """Check if the patient has a frame claim by looking for the V2020 code.
+
     Args:
         patient: Patient object containing claims data
-        
+
     Returns:
         bool: True if a frame claim is found, False otherwise
     """
     if not patient.claims:
         return False
-        
+
     for claim in patient.claims:
-        if claim.code and claim.code.upper().startswith('V202'):
+        if claim.code and claim.code.strip().upper() == 'V2020':
             return True
-            
+
     return False
 
 def get_page_soup(page) -> BeautifulSoup:

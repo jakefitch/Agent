@@ -41,6 +41,10 @@ class Patient:
     frames: Dict[str, Any] = field(default_factory=dict)
     lenses: Dict[str, Any] = field(default_factory=dict)
     contacts: Dict[str, Any] = field(default_factory=dict)
+
+    # Flags for invoice type
+    has_optical_order: bool = False
+    has_frame: bool = False
     
     def __post_init__(self):
         """Convert dob string to datetime if needed"""
