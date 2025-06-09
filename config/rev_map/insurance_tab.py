@@ -4,6 +4,7 @@ from datetime import datetime
 from core.base import BasePage, PatientContext, Patient
 from typing import Optional
 import random
+from time import sleep
 
 
 class InsuranceTab(BasePage):
@@ -53,6 +54,7 @@ class InsuranceTab(BasePage):
         bool
             ``True`` if a matching row was clicked, ``False`` otherwise.
         """
+        sleep(1)
         try:
             self.logger.log(f"Selecting insurance: {insurance_name} with filters {filters}")
 
@@ -101,12 +103,10 @@ class InsuranceTab(BasePage):
 
             for row in selected_rows:
                 row.click()
-                value = row.locator('[col-id="0"] span').first.inner_text().strip()
-                self.logger.log(f"Clicking insurance: {value}")
-                row.click()
+                
                 self.logger.log(f"Clicked insurance: {value}")
 
-            return True
+                return True
         except Exception as e:
             self.logger.log_error(f"Failed to select insurance by name: {str(e)}")
             self.take_screenshot("Failed to select insurance by name")

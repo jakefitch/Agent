@@ -628,3 +628,5 @@ class PatientPage(BasePage):
             self.logger.log_error(f"Failed to open optical order: {str(e)}")
             self.take_screenshot("Failed to open optical order")
             return False
+
+ 

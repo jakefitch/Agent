@@ -44,9 +44,22 @@ if __name__ == "__main__":
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
     rev.invoice_page.open_invoice("277404029")
+    rev.invoice_page.create_patient_from_invoice()
+    rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
+    rev.patient_page.scrape_demographics(patient)
+    rev.patient_page.scrape_family_demographics(patient)
     rev.patient_page.expand_insurance()
     rev.insurance_tab.select_insurance("VSP")
+    rev.insurance_tab.scrape_insurance(patient)
+    rev.patient_page.click_patient_summary_menu()
+    rev.patient_page.expand_optical_orders()
+    rev.patient_page.open_optical_order(patient)
+    rev.optical_order.scrape_frame_data(patient)
+    rev.optical_order.scrape_lens_data(patient)
+    rev.optical_order.scrape_medical_data(patient)
+    patient.print_data()
+    print('returning  to  patient  page')
     
 
 
