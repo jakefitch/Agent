@@ -52,8 +52,7 @@ if __name__ == "__main__":
         rev.optical_order.scrape_frame_data(patient)
         rev.optical_order.scrape_lens_data(patient)
         rev.optical_order.scrape_medical_data(patient)
-    
-    vsp.member_search_page.build_search_data(patient)
+    patient.print_data()
     vsp.member_search_page.search_member(patient)
     print('returning  to  patient  page')
     

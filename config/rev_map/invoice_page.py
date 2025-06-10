@@ -8,6 +8,7 @@ import re
 from bs4 import BeautifulSoup
 from core.base import ClaimItem
 from core.utils import has_glasses_order, has_frame_claim
+from time import sleep
 
 class InvoicePage(BasePage):
     def __init__(
@@ -691,6 +692,7 @@ class InvoicePage(BasePage):
             patient: Patient object to store the scraped data
             default_diagnosis: Default diagnosis code to use if none found (defaults to 'H52.223')
         """
+        sleep(1)
         try:
             # Get the page content and parse with BeautifulSoup
             html_content = self.page.content()
