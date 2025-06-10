@@ -76,9 +76,7 @@ class MemberSearch(BasePage):
                 self.logger.log("DOS field not visible")
                 return False
                 
-            dos_field.clear()
-            for char in dos:
-                dos_field.fill(char)
+            dos_field.fill(dos)
             return True
         except Exception as e:
             self.logger.log(f"Error entering DOS: {str(e)}")
@@ -112,16 +110,16 @@ class MemberSearch(BasePage):
         try:
             self.logger.log("Clicking search button...")
             self.page.locator("#member-search-search-button").click()
-            
-            # Wait for results
+
             result = self.page.locator("#member-search-result-name-data")
-            if result.is_visible(timeout=5000):
+            try:
+                result.wait_for(state="visible", timeout=5000)
                 self.logger.log("Member found, selecting result...")
                 result.click()
                 return True
-                
-            self.logger.log("No member found")
-            return False
+            except Exception:
+                self.logger.log("No member found")
+                return False
         except Exception as e:
             self.logger.log(f"Error during search: {str(e)}")
             self.take_screenshot("search_error")
@@ -143,39 +141,29 @@ class MemberSearch(BasePage):
             bool: True if member was found and selected, False otherwise
         """
         try:
-            self.logger.log("Starting member search...")
-            
-            # Navigate to search page
-            self.page.goto(self.base_url)
-            if not self.is_loaded():
-                self.logger.log("Member search page failed to load")
-                return False
-            
-            # Enter DOS (required)
-            if not self._enter_dos(search_data['dos']):
+            self.logger.log(f"Starting member search with data: {search_data}")
+
+            self._clear_search_fields()
+
+            if not self._enter_dos(search_data["dos"]):
                 self.logger.log("Failed to enter date of service")
                 return False
             
-            # Clear any existing values
-            self._clear_search_fields()
-            
-            # Fill in available search fields
-            if 'first_name' in search_data:
+            if search_data.get('first_name'):
                 self.page.locator("#member-search-first-name").fill(search_data['first_name'].strip())
-            
-            if 'last_name' in search_data:
+
+            if search_data.get('last_name'):
                 self.page.locator("#member-search-last-name").fill(search_data['last_name'].strip())
-            
-            if 'dob' in search_data:
+
+            if search_data.get('dob'):
                 self.page.locator("#member-search-dob").fill(search_data['dob'].strip())
-            
-            if 'ssn_last4' in search_data:
+
+            if search_data.get('ssn_last4'):
                 self.page.locator("#member-search-last-four").fill(search_data['ssn_last4'].strip())
-            
-            if 'memberid' in search_data and len(search_data['memberid']) >= 9:
+
+            if search_data.get('memberid') and len(search_data['memberid']) >= 9:
                 self.page.locator("#member-search-full-id").fill(search_data['memberid'].strip())
-            
-            # Attempt search
+
             return self._click_search_and_evaluate()
             
         except Exception as e:
@@ -209,44 +197,14 @@ class MemberSearch(BasePage):
             # Navigate to the search page first
             self.navigate_to_member_search()
 
-            # Try each search combination
             for i, search_data in enumerate(search_data_list, 1):
                 self.logger.log(
                     f"Trying search combination {i} of {len(search_data_list)}..."
                 )
-                self.logger.log(f"Search data: {search_data}")
-
-                # Clear any existing values before each search
-                self._clear_search_fields()
-
-                # Enter DOS (required)
-                if not self._enter_dos(search_data['dos']):
-                    self.logger.log("Failed to enter date of service")
-                    continue
-
-                # Fill in available search fields
-                if 'first_name' in search_data:
-                    self.page.locator("#member-search-first-name").fill(search_data['first_name'].strip())
-                
-                if 'last_name' in search_data:
-                    self.page.locator("#member-search-last-name").fill(search_data['last_name'].strip())
-                
-                if 'dob' in search_data:
-                    self.page.locator("#member-search-dob").fill(search_data['dob'].strip())
-                
-                if 'ssn_last4' in search_data:
-                    self.page.locator("#member-search-last-four").fill(search_data['ssn_last4'].strip())
-                
-                if 'memberid' in search_data and len(search_data['memberid']) >= 9:
-                    self.page.locator("#member-search-full-id").fill(search_data['memberid'].strip())
-
-                # Attempt search and evaluate results
-                if self._click_search_and_evaluate():
+                if self.search_member_data(search_data):
                     self.logger.log(f"Member found on attempt {i}")
                     return True
-
                 self.logger.log(f"Search combination {i} did not find a match")
-                # Add a small delay between searches to prevent rate limiting
                 sleep(1)
 
             self.logger.log("All search combinations failed to find a match")
@@ -410,5 +368,3 @@ class MemberSearch(BasePage):
                 unique_data.append(item)
 
         return unique_data
-    
-    
