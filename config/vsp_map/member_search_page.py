@@ -1,7 +1,9 @@
 from playwright.sync_api import Page
 from core.logger import Logger
-from core.base import PatientContext, BasePage
+from core.base import PatientContext, BasePage, Patient
 from typing import Optional, Dict, List
+from datetime import datetime
+import re
 from time import sleep
 
 class MemberSearch(BasePage):
@@ -216,5 +218,142 @@ class MemberSearch(BasePage):
             self.logger.log(f"Error during member search list: {str(e)}")
             self.take_screenshot("member_search_list_error")
             return False
+
+    def build_search_data(self, patient: Patient, dos: str) -> List[Dict]:
+        """Create an ordered list of search dictionaries for a patient.
+
+        The order is:
+            1. Full member IDs
+            2. Name and last 4 of SSN/member ID
+            3. Name and DOB (oldest to youngest)
+
+        Args:
+            patient: ``Patient`` object containing scraped data.
+            dos: Date of service for the search.
+
+        Returns:
+            List of search dictionaries in preferred order.
+        """
+        search_data_list: List[Dict] = []
+
+        # Helper to normalize DOB strings
+        def _normalize_dob(dob_str: Optional[str]) -> Optional[str]:
+            if not dob_str:
+                return None
+            dob_str = dob_str.strip()
+            try:
+                dt = datetime.strptime(dob_str, "%m/%d/%Y")
+                return dt.strftime("%m/%d/%Y")
+            except ValueError:
+                if re.fullmatch(r"\d{8}", dob_str):
+                    try:
+                        dt = datetime.strptime(dob_str, "%m%d%Y")
+                        return dt.strftime("%m/%d/%Y")
+                    except ValueError:
+                        return None
+            return None
+
+        # ------------------------------------
+        # Collect name/dob combinations
+        combos: List[Dict] = patient.insurance_data.get("search_combinations", [])[:]
+
+        # Primary patient information
+        if patient.first_name and patient.last_name:
+            exists = any(
+                c.get("first_name") == patient.first_name and c.get("last_name") == patient.last_name
+                for c in combos
+            )
+            if not exists:
+                combos.append(
+                    {
+                        "first_name": patient.first_name,
+                        "last_name": patient.last_name,
+                        "dob": patient.dob,
+                    }
+                )
+
+        # Policy holder information
+        holder = patient.insurance_data.get("policy_holder")
+        holder_dob = patient.insurance_data.get("dob")
+        if holder:
+            if "," in holder:
+                last, first = [part.strip() for part in holder.split(",", 1)]
+            else:
+                parts = holder.split()
+                first = parts[0]
+                last = parts[-1]
+            exists = any(c.get("first_name") == first and c.get("last_name") == last for c in combos)
+            if not exists:
+                combos.append({"first_name": first, "last_name": last, "dob": holder_dob})
+
+        # ------------------------------------
+        # Collect IDs for memberid/last4 searches
+        ids: List[str] = []
+        for value in patient.insurance_data.values():
+            if not isinstance(value, str):
+                continue
+            for digits in re.findall(r"\d{4,}", value):
+                if len(digits) >= 9 and digits not in ids:
+                    ids.append(digits)
+
+        # Unique list of last four digits
+        last4_list: List[str] = []
+        for mid in ids:
+            last4 = mid[-4:]
+            if last4 not in last4_list:
+                last4_list.append(last4)
+
+        # 1. Full member ID searches
+        for mid in ids:
+            search_data_list.append({"dos": dos, "memberid": mid})
+
+        # 2. Name + last4 searches
+        for combo in combos:
+            for last4 in last4_list:
+                search_data_list.append(
+                    {
+                        "dos": dos,
+                        "first_name": combo.get("first_name", ""),
+                        "last_name": combo.get("last_name", ""),
+                        "ssn_last4": last4,
+                    }
+                )
+
+        # 3. Name + DOB (sorted oldest to youngest)
+        dated_combos = []
+        for combo in combos:
+            dob_norm = _normalize_dob(combo.get("dob"))
+            if dob_norm:
+                try:
+                    dt = datetime.strptime(dob_norm, "%m/%d/%Y")
+                except ValueError:
+                    dt = None
+            else:
+                dt = None
+            dated_combos.append((dt, combo, dob_norm))
+
+        dated_combos.sort(key=lambda t: t[0] or datetime.max)
+
+        for dt, combo, dob_str in dated_combos:
+            if dob_str:
+                search_data_list.append(
+                    {
+                        "dos": dos,
+                        "first_name": combo.get("first_name", ""),
+                        "last_name": combo.get("last_name", ""),
+                        "dob": dob_str,
+                    }
+                )
+
+        # Remove duplicates while preserving order
+        unique_data = []
+        seen = set()
+        for item in search_data_list:
+            key = tuple(sorted(item.items()))
+            if key not in seen:
+                seen.add(key)
+                unique_data.append(item)
+
+        return unique_data
     
     
