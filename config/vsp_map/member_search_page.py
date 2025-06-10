@@ -183,39 +183,44 @@ class MemberSearch(BasePage):
             self.take_screenshot("member_search_error")
             return False
     
-    def search_member(self, search_data_list: List[Dict]) -> bool:
-        """Try multiple search combinations until a member is found.
-        
+    def search_member(self, patient: Optional[Patient] = None) -> bool:
+        """Search for a member using all combinations from :func:`build_search_data`.
+
         Args:
-            search_data_list: List of dictionaries containing search criteria.
-                Each dictionary should contain:
-                - dos: Date of service (required)
-                - first_name: First name (optional)
-                - last_name: Last name (optional)
-                - dob: Date of birth (optional)
-                - ssn_last4: Last 4 of SSN (optional)
-                - memberid: Member ID (optional)
-                
+            patient: ``Patient`` instance to build search data from. If ``None``,
+                the patient from the current context will be used.
+
         Returns:
-            bool: True if member was found in any attempt, False if all attempts failed
+            bool: ``True`` if a matching member was found, otherwise ``False``.
         """
         try:
-            self.logger.log(f"Starting member search with {len(search_data_list)} combinations...")
-            
+            if patient is None:
+                if self.context and getattr(self.context, "patient", None):
+                    patient = self.context.patient
+                else:
+                    raise ValueError("No patient provided for member search")
+
+            search_data_list = self.build_search_data(patient)
+            self.logger.log(
+                f"Starting member search with {len(search_data_list)} combinations..."
+            )
+
             for i, search_data in enumerate(search_data_list, 1):
-                self.logger.log(f"Trying search combination {i} of {len(search_data_list)}...")
-                
+                self.logger.log(
+                    f"Trying search combination {i} of {len(search_data_list)}..."
+                )
+
                 if self.search_member_data(search_data):
                     self.logger.log(f"Member found on attempt {i}")
                     return True
-                    
+
                 self.logger.log(f"Search combination {i} did not find a match")
-            
+
             self.logger.log("All search combinations failed to find a match")
             return False
-            
+
         except Exception as e:
-            self.logger.log(f"Error during member search list: {str(e)}")
+            self.logger.log(f"Error during member search: {str(e)}")
             self.take_screenshot("member_search_list_error")
             return False
 
