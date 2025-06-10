@@ -54,6 +54,8 @@ if __name__ == "__main__":
         rev.optical_order.scrape_medical_data(patient)
     patient.print_data()
     vsp.member_search_page.search_member(patient)
+    sleep(3)
+    vsp.member_search_page.save_page_state("authorizationpage")
     print('returning  to  patient  page')
     
 

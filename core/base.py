@@ -251,17 +251,46 @@ class BasePage:
             name: Base name for the saved files (without extension)
         """
         try:
+            self.logger.log(f"[DEBUG] Starting save_page_state for {name}")
+            
             # Create rev_map/debug folder if it doesn't exist
-            debug_dir = os.path.join('config', 'rev_map', 'debug')
+            debug_dir = os.path.join('config', 'debug')
+            self.logger.log(f"[DEBUG] Creating debug directory: {debug_dir}")
             os.makedirs(debug_dir, exist_ok=True)
             
-            # Save screenshot
+            # Save screenshot with timeout and error handling
             screenshot_path = os.path.join(debug_dir, f"{name}.png")
-            self.page.screenshot(path=screenshot_path)
+            self.logger.log(f"[DEBUG] Saving screenshot to: {screenshot_path}")
+            try:
+                # Try to take screenshot immediately with a short timeout
+                self.logger.log("[DEBUG] Attempting immediate screenshot")
+                self.page.screenshot(path=screenshot_path, timeout=3000)
+                self.logger.log("[DEBUG] Screenshot saved successfully")
+            except Exception as e:
+                self.logger.log_error(f"[DEBUG] Immediate screenshot failed: {str(e)}")
+                # Try alternative screenshot method
+                try:
+                    self.logger.log("[DEBUG] Attempting alternative screenshot method")
+                    self.page.screenshot(path=screenshot_path, full_page=True, timeout=3000)
+                    self.logger.log("[DEBUG] Alternative screenshot saved successfully")
+                except Exception as e2:
+                    self.logger.log_error(f"[DEBUG] Alternative screenshot also failed: {str(e2)}")
+                    # Try one last time with a different approach
+                    try:
+                        self.logger.log("[DEBUG] Attempting final screenshot method")
+                        # Force a small wait to let any animations settle
+                        self.page.wait_for_timeout(1000)
+                        self.page.screenshot(path=screenshot_path, timeout=3000)
+                        self.logger.log("[DEBUG] Final screenshot attempt successful")
+                    except Exception as e3:
+                        self.logger.log_error(f"[DEBUG] All screenshot attempts failed: {str(e3)}")
+                        self.logger.log("[DEBUG] Continuing without screenshot")
             
             # Save HTML soup
+            self.logger.log("[DEBUG] Getting page soup")
             soup = self.get_page_soup()
             html_path = os.path.join(debug_dir, f"{name}.html")
+            self.logger.log(f"[DEBUG] Saving HTML to: {html_path}")
             with open(html_path, 'w', encoding='utf-8') as f:
                 f.write(str(soup.prettify()))
             
@@ -269,6 +298,8 @@ class BasePage:
             
         except Exception as e:
             self.logger.log_error(f"Failed to save page state: {str(e)}")
+            self.logger.log_error(f"Error type: {type(e).__name__}")
+            self.take_screenshot("Failed to save page state")
             raise
 
     def wait_for_network_idle(self, timeout: int = 30000) -> bool:
