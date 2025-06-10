@@ -219,7 +219,7 @@ class MemberSearch(BasePage):
             self.take_screenshot("member_search_list_error")
             return False
 
-    def build_search_data(self, patient: Patient, dos: str) -> List[Dict]:
+    def build_search_data(self, patient: Patient) -> List[Dict]:
         """Create an ordered list of search dictionaries for a patient.
 
         The order is:
@@ -228,13 +228,20 @@ class MemberSearch(BasePage):
             3. Name and DOB (oldest to youngest)
 
         Args:
-            patient: ``Patient`` object containing scraped data.
-            dos: Date of service for the search.
+            patient: ``Patient`` object containing scraped data. ``patient.insurance_data``
+                must contain a ``dos`` key with the date of service.
 
         Returns:
             List of search dictionaries in preferred order.
+        Raises:
+            ValueError: If the date of service is missing from ``patient.insurance_data``.
+
         """
         search_data_list: List[Dict] = []
+
+        dos = patient.insurance_data.get("dos")
+        if not dos:
+            raise ValueError("Date of service not found in patient.insurance_data")
 
         # Helper to normalize DOB strings
         def _normalize_dob(dob_str: Optional[str]) -> Optional[str]:
@@ -256,6 +263,16 @@ class MemberSearch(BasePage):
         # ------------------------------------
         # Collect name/dob combinations
         combos: List[Dict] = patient.insurance_data.get("search_combinations", [])[:]
+
+        # Remove exact duplicate search combinations provided in the data
+        _c_seen = set()
+        deduped_combos: List[Dict] = []
+        for c in combos:
+            k = tuple(sorted(c.items()))
+            if k not in _c_seen:
+                _c_seen.add(k)
+                deduped_combos.append(c)
+        combos = deduped_combos
 
         # Primary patient information
         if patient.first_name and patient.last_name:
