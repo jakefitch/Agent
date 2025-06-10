@@ -20,16 +20,20 @@ class MemberSearch(BasePage):
         super().__init__(page, logger, context)
         self.base_url = "https://eclaim.eyefinity.com/secure/eInsurance/member-search"
     
-    def is_loaded(self) -> bool:
+    def is_loaded(self, timeout: int = 5000) -> bool:
         """Check if the member search page is loaded.
-        
+
+        Args:
+            timeout: Maximum time in milliseconds to wait for the page element.
+
         Returns:
-            bool: True if the page is loaded, False otherwise
+            bool: ``True`` if the page is loaded, otherwise ``False``.
         """
         try:
-            # Check for the valid search combinations link with a 5-second timeout
-            valid_search_link = self.page.locator('#member-search-valid-search-combinations-link')
-            return valid_search_link.wait_for(state='visible', timeout=5000)
+            self.logger.log("Checking if member search page is loaded...")
+            link = self.page.locator('#member-search-valid-search-combinations-link')
+            link.wait_for(state='visible', timeout=timeout)
+            return True
         except Exception as e:
             self.logger.log_error(f"Error checking if member search page is loaded: {str(e)}")
             return False
@@ -43,14 +47,16 @@ class MemberSearch(BasePage):
         3. Verify we're on the correct page using is_loaded
         """
         try:
-            
-            
+
             # Navigate to the member search page
             self.logger.log("Navigating to member search...")
             self.page.goto("https://eclaim.eyefinity.com/secure/eInsurance/member-search")
-            
-            # Wait for the page to load and verify
-            if not self.is_loaded():
+
+            # Give the page a moment to settle before checking
+            self.wait_for_network_idle(timeout=10000)
+
+            # Verify the page has loaded
+            if not self.is_loaded(timeout=10000):
                 raise Exception("Member search page failed to load properly")
             
             self.logger.log("Successfully navigated to member search page")
