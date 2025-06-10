@@ -30,7 +30,7 @@ if __name__ == "__main__":
     rev.login()
 
     vsp.login("ama")
-    vsp.claim_page.submit_claim(patient)
+   
 
     #navigate to patient page
     rev.invoice_page.navigate_to_invoices_page()
