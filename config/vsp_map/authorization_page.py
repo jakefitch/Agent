@@ -90,12 +90,13 @@ class AuthorizationPage(BasePage):
             for i in range(row_count):
                 row = rows.nth(i)
                 name_cell = row.locator('#auth-search-result-name-data')
+                auth_number_cell = row.locator('[id^="auth-search-result-auth-number-data"]')
                 current_name = name_cell.inner_text().strip().upper()
                 self.logger.log(f"Checking row {i+1}: {current_name}")
-                
+
                 if current_name == target_name:
                     self.logger.log(f"Found matching authorization for {target_name}")
-                    name_cell.click()
+                    auth_number_cell.click()
                     return True
                     
             self.logger.log(f"No matching authorization found for {target_name}")
@@ -201,17 +202,34 @@ class AuthorizationPage(BasePage):
                 row = rows.nth(i)
                 name_cell = row.locator('#patient-selection-result-name-data')
                 dob_cell = row.locator('[id^="patient-selection-result-city-dob-data"]')
-                
+
                 current_name = name_cell.inner_text().strip().upper()
                 current_dob = dob_cell.inner_text().strip()
                 self.logger.log(f"Checking row {i+1}: Name={current_name}, DOB={current_dob}")
-                
+
                 if current_name == target_name and current_dob == target_dob:
                     self.logger.log(f"Found matching patient: {target_name}")
                     name_cell.click()
                     return True
-                    
-            self.logger.log(f"No matching patient found for {target_name} with DOB {target_dob}")
+
+            self.logger.log(
+                f"No patient match for name {target_name} with DOB {target_dob}. Trying DOB only."
+            )
+
+            for i in range(row_count):
+                row = rows.nth(i)
+                name_cell = row.locator('#patient-selection-result-name-data')
+                dob_cell = row.locator('[id^="patient-selection-result-city-dob-data"]')
+
+                current_dob = dob_cell.inner_text().strip()
+                self.logger.log(f"Checking row {i+1} for DOB only: DOB={current_dob}")
+
+                if current_dob == target_dob:
+                    self.logger.log(f"Found patient by DOB: {current_dob}")
+                    name_cell.click()
+                    return True
+
+            self.logger.log(f"No matching patient found with DOB {target_dob}")
             return False
         except Exception as e:
             self.logger.log_error(
