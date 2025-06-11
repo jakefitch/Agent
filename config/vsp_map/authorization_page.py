@@ -2,13 +2,14 @@ from playwright.sync_api import Page
 from core.logger import Logger
 from core.base import PatientContext, BasePage
 from typing import Optional, List, Dict
+from time import sleep
 
 class AuthorizationPage(BasePage):
     """Page object for interacting with VSP's authorization page."""
 
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         super().__init__(page, logger, context)
-        self.base_url = "https://eclaim.eyefinity.com/secure/eInsurance/authorization"
+        self.base_url = "https://eclaim.eyefinity.com/secure/eInsurance/member-search/patient-selection"
 
     # ------------------------------------------------------------------
     # Utilities
@@ -81,7 +82,14 @@ class AuthorizationPage(BasePage):
             return False
 
     def delete_authorization(self, auth_number: str) -> bool:
-        """Click the delete icon for the authorization matching ``auth_number``."""
+        """Click the delete icon for the authorization matching ``auth_number`` and confirm deletion.
+        
+        Args:
+            auth_number: The authorization number to delete
+            
+        Returns:
+            bool: True if deletion was successful, False otherwise
+        """
         try:
             rows = self._get_authorization_rows()
             for i in range(rows.count()):
@@ -90,7 +98,17 @@ class AuthorizationPage(BasePage):
                 if num_cell.inner_text().strip() == str(auth_number):
                     delete_cell = row.locator('[id^="auth-search-result-delete-data"] mat-icon')
                     delete_cell.click()
-                    return True
+                    sleep(.5)
+                    # Wait for and click the OK button
+                    try:
+                        ok_button = self.page.locator('#okButton')
+                        ok_button.wait_for(state='visible', timeout=5000)
+                        ok_button.click()
+                        self.logger.log(f"Successfully deleted authorization {auth_number}")
+                        return True
+                    except Exception as e:
+                        self.logger.log_error(f"Failed to click OK button: {str(e)}")
+                        return False
             return False
         except Exception as e:
             self.logger.log_error(f"Failed to delete authorization {auth_number}: {str(e)}")
