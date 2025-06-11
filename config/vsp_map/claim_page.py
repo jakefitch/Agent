@@ -96,14 +96,7 @@ class ClaimPage(BasePage):
 
     def set_doctor(self, patient: Patient) -> None:
         """Set the rendering provider."""
-        try:
-            # First click the dropdown to open it
-            self.page.locator('#exam-rendering-provider-group').click()
-            self.logger.log("Clicked provider dropdown")
-            
-            # Wait a moment for the dropdown to fully open
-            self.page.wait_for_timeout(1000)
-            
+        try:     
             # Determine provider ID based on doctor name
             doctor_name = patient.insurance_data.get('doctor', '')
             if "Fitch" in doctor_name:
