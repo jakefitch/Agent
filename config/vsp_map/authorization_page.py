@@ -242,7 +242,8 @@ class AuthorizationPage(BasePage):
     # Coverage selection utilities
     def _service_checkbox(self, package_index: int, service_index: int):
         """Return locator for a service checkbox."""
-        return self.page.locator(f"#{package_index}-service-checkbox-{service_index}")
+        # Use attribute selector instead of ID selector to handle numeric IDs
+        return self.page.locator(f'[id="{package_index}-service-checkbox-{service_index}"]')
 
     def _services_from_claims(self, patient: Patient) -> List[int]:
         """Determine which service checkboxes to select based on claim codes.
@@ -317,20 +318,21 @@ class AuthorizationPage(BasePage):
             try:
                 checkbox = self._service_checkbox(package_index, idx)
                 checkbox.click()
+                self.logger.log(f"Selected service checkbox {idx}")
             except Exception as e:
                 self.logger.log_error(f"Failed to select service {idx}: {str(e)}")
 
     def select_all_services(self, package_index: int = 0) -> None:
         """Select the 'all available services' checkbox."""
         try:
-            self.page.locator(f"#{package_index}-all-available-services-checkbox").click()
+            self.page.locator(f'[id="{package_index}-all-available-services-checkbox"]').click()
         except Exception as e:
             self.logger.log_error(f"Failed to select all services: {str(e)}")
 
     def issue_authorization(self, package_index: int = 0) -> bool:
         """Click the Issue Authorization button."""
         try:
-            button = self.page.locator(f"#{package_index}-issue-authorization-button")
+            button = self.page.locator(f'[id="{package_index}-issue-authorization-button"]')
             button.wait_for(state="visible", timeout=5000)
             button.click()
             return True
@@ -340,10 +342,30 @@ class AuthorizationPage(BasePage):
             return False
 
     def get_confirmation_number(self) -> Optional[str]:
-        """Return the authorization confirmation number if visible."""
+        """Return the authorization confirmation number if visible and store it in the patient object."""
         try:
             elem = self.page.locator('#auth-confirmation-number')
             elem.wait_for(state='visible', timeout=5000)
-            return elem.inner_text().strip()
-        except Exception:
+            confirmation_number = elem.inner_text().strip()
+            
+            if confirmation_number and self.context and self.context.patient:
+                self.context.patient.authorization_number = confirmation_number
+                self.logger.log(f"Stored authorization number {confirmation_number} in patient object")
+            
+            return confirmation_number
+        except Exception as e:
+            self.logger.log_error(f"Failed to get confirmation number: {str(e)}")
             return None
+
+    def navigate_to_claim(self) -> bool:
+        """Click the View CMS 1500 Form button to navigate to the claim form."""
+        try:
+            button = self.page.locator('[id="authorization-confirmation-go-to-claim-form-button"]')
+            button.wait_for(state="visible", timeout=5000)
+            button.click()
+            self.logger.log("Clicked View CMS 1500 Form button")
+            return True
+        except Exception as e:
+            self.logger.log_error(f"Failed to navigate to claim form: {str(e)}")
+            self.take_screenshot("claim_nav_error")
+            return False
