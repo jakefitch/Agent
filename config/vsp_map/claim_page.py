@@ -55,10 +55,6 @@ class ClaimPage(BasePage):
     # ------------------------------------------------------------------
     def set_dos(self, patient: Patient) -> None:
         """Set the date of service."""
-        if not patient.insurance_data.get("authorization_number"):
-            msg = f"No authorization found for {patient.first_name} {patient.last_name}"
-            self.logger.log_error(msg)
-            raise Exception(msg)
         try:
             dos_field = self.page.locator('#date-of-service')
             dos_field.fill(patient.insurance_data.get("dos", ""))
@@ -68,19 +64,25 @@ class ClaimPage(BasePage):
             raise
 
     def submit_exam(self, patient: Patient) -> None:
-        """Select exam options based on billed codes."""
-        has_new = any(c.code == '92004' for c in patient.claims)
-        has_exist = any(c.code == '92014' for c in patient.claims)
-        try:
-            if has_new:
-                self.page.locator('#exam-type-group1-92004').click()
-            elif has_exist:
-                self.page.locator('#exam-type-group1-92014').click()
+        """Select exam option based on the exam code being billed."""
+        exam_code: Optional[str] = None
+        for claim in patient.claims:
+            code = (claim.code or "").upper()
+            if code in {"92004", "92014", "92002", "92012"} or \
+               code.startswith("99") or code.startswith("S062") or code.startswith("S602"):
+                exam_code = code
+                break
 
-            if has_new or has_exist:
-                refbox = self.page.locator('#exam-refraction-performed-checkbox-input')
-                if not refbox.is_checked():
-                    self.page.locator('[formcontrolname="refractionTestPerformed"]').click()
+        if not exam_code:
+            return
+
+        group = "2" if exam_code.startswith("99") else "1"
+
+        try:
+            self.page.locator(f'#exam-type-group{group}-{exam_code}').click()
+            refbox = self.page.locator('#exam-refraction-performed-checkbox-input')
+            if not refbox.is_checked():
+                self.page.locator('[formcontrolname="refractionTestPerformed"]').click()
         except Exception as e:
             self.logger.log_error(f"Failed to submit exam: {str(e)}")
             self.take_screenshot("claim_exam_error")
