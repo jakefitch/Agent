@@ -1,4 +1,5 @@
 from typing import Optional, List
+import re
 from playwright.sync_api import Page
 from core.logger import Logger
 from core.base import PatientContext, BasePage, Patient
@@ -167,48 +168,22 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_calculate_error")
 
     def fill_pricing(self, patient: Patient) -> None:
-        """Fill in pricing information for the claim."""
+        """Fill billed amounts for each claim item."""
         try:
-            self.logger.log("Starting to fill pricing information...")
-            
-            # Get the first claim for pricing
-            if not patient.claims:
-                self.logger.log_error("No claims found in patient data")
-                return
-                
-            claim = patient.claims[0]
-            self.logger.log(f"Using first claim for pricing: {claim.code} - {claim.description}")
-            
-            # Fill in the amount
-            if not claim.billed_amount:
-                self.logger.log_error("No billed amount found in claim data")
-                return
-                
-            self.logger.log(f"Setting claim amount to: {claim.billed_amount}")
-            self.page.locator('#exam-amount').fill(str(claim.billed_amount))
-            
-            # Fill in the units
-            if not claim.units:
-                self.logger.log_error("No units found in claim data")
-                return
-                
-            self.logger.log(f"Setting claim units to: {claim.units}")
-            self.page.locator('#exam-units').fill(str(claim.units))
-            
-            # Fill in the place of service
-            if not claim.place_of_service:
-                self.logger.log_error("No place of service found in claim data")
-                return
-                
-            self.logger.log(f"Setting place of service to: {claim.place_of_service}")
-            self.page.locator('#exam-place-of-service').fill(str(claim.place_of_service))
-            
-            self.logger.log("Successfully filled all pricing information")
-            
+            for item in patient.claims:
+                code = item.code
+                price = str(item.billed_amount)
+                inputs = self.page.locator("//input[@formcontrolname='cptHcpcsCode']")
+                for i in range(inputs.count()):
+                    inp = inputs.nth(i)
+                    if inp.get_attribute('value') == code:
+                        line_num = inp.get_attribute('id').split('-')[2]
+                        price_input = self.page.locator(f"#service-line-{line_num}-billed-amount-input")
+                        price_input.fill(price)
+                        break
         except Exception as e:
-            self.logger.log_error(f"Failed to fill pricing: {str(e)}")
-            self.take_screenshot("claim_fill_pricing_error")
-            raise
+            self.logger.log_error(f"Failed pricing fill: {str(e)}")
+            self.take_screenshot("claim_price_error")
 
     def set_gender(self, patient: Patient) -> None:
         """Set patient gender switch."""
