@@ -149,72 +149,122 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_calculate_error")
 
     def fill_pricing(self, patient: Patient) -> None:
-       
         """Fill billed amounts and patient payment information."""
         try:
+            self.logger.log("Starting fill_pricing function...")
+            self.logger.log(f"Patient claims count: {len(patient.claims) if patient.claims else 0}")
+            
             # Scroll to pricing section
+            self.logger.log("Scrolling to pricing section...")
             self.page.evaluate("window.scrollTo(0, 4000)")
             self.page.wait_for_timeout(2000)
 
             inputs = self.page.locator("//input[@formcontrolname='cptHcpcsCode']")
             input_count = inputs.count()
+            self.logger.log(f"Found {input_count} CPT/HCPCS code inputs on page")
 
             def calculate_units(desc: str, qty: int) -> int:
+                self.logger.log(f"Calculating units for description: {desc}, quantity: {qty}")
                 pack_sizes = re.findall(r"\b(6|90|30|60|12|24)\b", desc or "")
-                return int(pack_sizes[0]) * int(qty) if pack_sizes else 0
+                result = int(pack_sizes[0]) * int(qty) if pack_sizes else 0
+                self.logger.log(f"Calculated units: {result}")
+                return result
 
             for item in patient.claims:
-
+                self.logger.log(f"\nProcessing claim item: {item}")
+                
                 code = getattr(item, "code", "")
                 price = str(getattr(item, "billed_amount", ""))
                 description = getattr(item, "description", "")
+                qty = getattr(item, "quantity", 1)
+                
+                self.logger.log(f"Item details - Code: {code}, Price: {price}, Description: {description}, Quantity: {qty}")
+
                 if description == "Coopervision Inc. Biofinity":
                     description = "CooperVision Biofinity 6 pack"
-                qty = getattr(item, "quantity", 1)
+                    self.logger.log("Updated description for Biofinity")
 
                 for i in range(input_count):
                     inp = inputs.nth(i)
+                    # Try multiple methods to get the input value
+                    current_value = None
+                    try:
+                        # Method 1: Try input.value
+                        current_value = inp.input_value()
+                    except Exception as e1:
+                        self.logger.log(f"Method 1 failed: {str(e1)}")
+                        try:
+                            # Method 2: Try evaluating the element's value property
+                            current_value = inp.evaluate("el => el.value")
+                        except Exception as e2:
+                            self.logger.log(f"Method 2 failed: {str(e2)}")
+                            try:
+                                # Method 3: Try getting the text content
+                                current_value = inp.text_content()
+                            except Exception as e3:
+                                self.logger.log(f"Method 3 failed: {str(e3)}")
                     
-                    if inp.get_attribute("value") == code:
+                    self.logger.log(f"Checking input {i+1}: value={current_value}")
+                    
+                    if current_value == code:
                         line_num = inp.get_attribute("id").split("-")[2]
+                        self.logger.log(f"Found matching code {code} on line {line_num}")
+                        
                         if code.startswith("V25"):
+                            self.logger.log("Processing V25 code - calculating units")
                             unit_count = calculate_units(description, qty)
                             unit_input = self.page.locator(
                                 f"#service-line-{line_num}-unit-count-input"
                             )
+                            self.logger.log(f"Setting unit count to {unit_count}")
                             unit_input.fill(str(unit_count))
 
                         price_input = self.page.locator(
                             f"#service-line-{line_num}-billed-amount-input"
                         )
+                        self.logger.log(f"Setting billed amount to {price}")
                         price_input.fill(price)
                         break
+                    else:
+                        self.logger.log(f"No match found for code {code} in input {i+1}")
 
             # FSA and patient paid amounts
+            self.logger.log("\nProcessing FSA and patient paid amounts...")
             copay = str(patient.insurance_data.get("copay", ""))
+            self.logger.log(f"Patient copay amount: {copay}")
 
+            self.logger.log("Scrolling to FSA section...")
             self.page.evaluate("window.scrollTo(0, 4400)")
             self.page.wait_for_timeout(1000)
+            
             try:
                 if copay:
+                    self.logger.log("Setting FSA paid amount...")
                     self.page.locator("#services-fsa-paid-input").fill(copay)
-            except Exception:
-                pass
+            except Exception as e:
+                self.logger.log_error(f"Error setting FSA paid amount: {str(e)}")
 
+            self.logger.log("Scrolling to patient paid section...")
             self.page.evaluate("window.scrollTo(0, 4400)")
             self.page.wait_for_timeout(3000)
+            
             try:
                 paid = self.page.locator("#services-patient-paid-amount-input")
                 if copay:
+                    self.logger.log("Setting patient paid amount...")
                     paid.click()
                     paid.fill(copay)
-            except Exception:
-                pass
+            except Exception as e:
+                self.logger.log_error(f"Error setting patient paid amount: {str(e)}")
+
+            self.logger.log("Successfully completed fill_pricing function")
 
         except Exception as e:
-            
             self.logger.log_error(f"Failed to fill pricing: {str(e)}")
+            self.logger.log_error(f"Error type: {type(e).__name__}")
+            self.logger.log_error(f"Error details: {str(e)}")
             self.take_screenshot("claim_price_error")
+            raise
 
     def set_gender(self, patient: Patient) -> None:
         """Set the patient's gender."""
