@@ -65,17 +65,40 @@ class AuthorizationPage(BasePage):
             self.take_screenshot("auth_list_parse_error")
             return []
 
+    def _fix_name_order(self, first_name: str, last_name: str) -> tuple[str, str]:
+        """Fix swapped first and last names if they appear to be in the wrong order."""
+        # If first_name contains a comma, it's likely the last name was put in the first_name field
+        if ',' in first_name:
+            return last_name, first_name.replace(',', '').strip()
+        # If last_name contains a comma, it's likely the first name was put in the last_name field
+        if ',' in last_name:
+            return last_name.replace(',', '').strip(), first_name
+        return first_name, last_name
+
     def select_authorization(self, patient: Patient) -> bool:
         """Select an authorization for the given patient by name."""
         try:
-            target_name = f"{patient.last_name}, {patient.first_name}".upper()
+            first_name, last_name = self._fix_name_order(patient.first_name, patient.last_name)
+            self.logger.log(f"Raw patient data - First Name: '{first_name}', Last Name: '{last_name}'")
+            target_name = f"{last_name}, {first_name}".upper().strip()
+            self.logger.log(f"Searching for authorization with name: {target_name}")
+            
             rows = self._get_authorization_rows()
-            for i in range(rows.count()):
+            row_count = rows.count()
+            self.logger.log(f"Found {row_count} authorization rows to search through")
+            
+            for i in range(row_count):
                 row = rows.nth(i)
                 name_cell = row.locator('#auth-search-result-name-data')
-                if name_cell.inner_text().strip().upper() == target_name:
+                current_name = name_cell.inner_text().strip().upper()
+                self.logger.log(f"Checking row {i+1}: {current_name}")
+                
+                if current_name == target_name:
+                    self.logger.log(f"Found matching authorization for {target_name}")
                     name_cell.click()
                     return True
+                    
+            self.logger.log(f"No matching authorization found for {target_name}")
             return False
         except Exception as e:
             self.logger.log_error(
@@ -87,14 +110,27 @@ class AuthorizationPage(BasePage):
     def delete_authorization(self, patient: Patient) -> bool:
         """Delete an authorization for the given patient."""
         try:
-            target_name = f"{patient.last_name}, {patient.first_name}".upper()
+            first_name, last_name = self._fix_name_order(patient.first_name, patient.last_name)
+            self.logger.log(f"Raw patient data - First Name: '{first_name}', Last Name: '{last_name}'")
+            target_name = f"{last_name}, {first_name}".upper().strip()
+            self.logger.log(f"Searching for authorization to delete with name: {target_name}")
+            
             rows = self._get_authorization_rows()
-            for i in range(rows.count()):
+            row_count = rows.count()
+            self.logger.log(f"Found {row_count} authorization rows to search through")
+            
+            for i in range(row_count):
                 row = rows.nth(i)
                 name_cell = row.locator('#auth-search-result-name-data')
-                if name_cell.inner_text().strip().upper() == target_name:
+                current_name = name_cell.inner_text().strip().upper()
+                self.logger.log(f"Checking row {i+1}: {current_name}")
+                
+                if current_name == target_name:
+                    self.logger.log(f"Found matching authorization to delete: {target_name}")
                     delete_cell = row.locator('[id^="auth-search-result-delete-data"] mat-icon')
                     delete_cell.click()
+                    self.logger.log("Clicked delete icon")
+                    
                     sleep(0.5)
                     try:
                         ok_button = self.page.locator('#okButton')
@@ -107,6 +143,8 @@ class AuthorizationPage(BasePage):
                     except Exception as e:
                         self.logger.log_error(f"Failed to click OK button: {str(e)}")
                         return False
+                        
+            self.logger.log(f"No matching authorization found to delete for {target_name}")
             return False
         except Exception as e:
             self.logger.log_error(
@@ -149,19 +187,31 @@ class AuthorizationPage(BasePage):
     def select_patient(self, patient: Patient) -> bool:
         """Select a patient row by name and date of birth."""
         try:
-            target_name = f"{patient.last_name}, {patient.first_name}".upper()
+            first_name, last_name = self._fix_name_order(patient.first_name, patient.last_name)
+            self.logger.log(f"Raw patient data - First Name: '{first_name}', Last Name: '{last_name}'")
+            target_name = f"{last_name}, {first_name}".upper().strip()
             target_dob = (patient.dob or "").strip()
+            self.logger.log(f"Searching for patient with name: {target_name} and DOB: {target_dob}")
+            
             rows = self._get_patient_rows()
-            for i in range(rows.count()):
+            row_count = rows.count()
+            self.logger.log(f"Found {row_count} patient rows to search through")
+            
+            for i in range(row_count):
                 row = rows.nth(i)
                 name_cell = row.locator('#patient-selection-result-name-data')
                 dob_cell = row.locator('[id^="patient-selection-result-city-dob-data"]')
-                if (
-                    name_cell.inner_text().strip().upper() == target_name
-                    and dob_cell.inner_text().strip() == target_dob
-                ):
+                
+                current_name = name_cell.inner_text().strip().upper()
+                current_dob = dob_cell.inner_text().strip()
+                self.logger.log(f"Checking row {i+1}: Name={current_name}, DOB={current_dob}")
+                
+                if current_name == target_name and current_dob == target_dob:
+                    self.logger.log(f"Found matching patient: {target_name}")
                     name_cell.click()
                     return True
+                    
+            self.logger.log(f"No matching patient found for {target_name} with DOB {target_dob}")
             return False
         except Exception as e:
             self.logger.log_error(
