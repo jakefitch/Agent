@@ -56,6 +56,19 @@ class ClaimPage(BasePage):
     def set_dos(self, patient: Patient) -> None:
         """Set the date of service."""
         try:
+            # --------------------------------------------------------------
+            # Occasionally an intermediate COB page may appear before the
+            # claim form loads. If so, click the link to continue to the
+            # claim without interrupting execution.
+            try:
+                cob_link = self.page.locator('#cob-coverage-navigate-to-claim-link')
+                cob_link.wait_for(state='visible', timeout=2000)
+                cob_link.click()
+                self.wait_for_network_idle(timeout=10000)
+            except Exception:
+                # If the element is not found or not clickable, simply ignore
+                pass
+
             dos_field = self.page.locator('#date-of-service')
             dos_field.fill(patient.insurance_data.get("dos", ""))
         except Exception as e:
