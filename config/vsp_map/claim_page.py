@@ -77,19 +77,27 @@ class ClaimPage(BasePage):
             raise
 
     def submit_exam(self, patient: Patient) -> None:
-        """Select exam options based on billed codes."""
-        has_new = any(c.code == '92004' for c in patient.claims)
-        has_exist = any(c.code == '92014' for c in patient.claims)
-        try:
-            if has_new:
-                self.page.locator('#exam-type-group1-92004').click()
-            elif has_exist:
-                self.page.locator('#exam-type-group1-92014').click()
+        
+        """Select exam option based on the exam code being billed."""
+        exam_code: Optional[str] = None
+        for claim in patient.claims:
+            code = (claim.code or "").upper()
+            if code in {"92004", "92014", "92002", "92012"} or \
+               code.startswith("99") or code.startswith("S062") or code.startswith("S602"):
+                exam_code = code
+                break
 
-            if has_new or has_exist:
-                refbox = self.page.locator('#exam-refraction-performed-checkbox-input')
-                if not refbox.is_checked():
-                    self.page.locator('[formcontrolname="refractionTestPerformed"]').click()
+        if not exam_code:
+            return
+
+            
+        group = "2" if exam_code.startswith("99") else "1"
+
+        try:
+            self.page.locator(f'#exam-type-group{group}-{exam_code}').click()
+            refbox = self.page.locator('#exam-refraction-performed-checkbox-input')
+            if not refbox.is_checked():
+                self.page.locator('[formcontrolname="refractionTestPerformed"]').click()
         except Exception as e:
             self.logger.log_error(f"Failed to submit exam: {str(e)}")
             self.take_screenshot("claim_exam_error")
@@ -135,9 +143,9 @@ class ClaimPage(BasePage):
 
     def disease_reporting(self, patient: Patient) -> None:
         """Enter diagnosis codes for services."""
-        diagnosis = patient.medical_data.get('diagnosis')
+        diagnosis = patient.medical_data.get('dx')
         if not diagnosis:
-            return
+            diagnosis = 'H52.223'
         if not diagnosis.startswith('H52.'):
             diagnosis = 'H52.223'
         diagnosis = diagnosis.split(',')[0]
@@ -159,22 +167,48 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_calculate_error")
 
     def fill_pricing(self, patient: Patient) -> None:
-        """Fill billed amounts for each claim item."""
+        """Fill in pricing information for the claim."""
         try:
-            for item in patient.claims:
-                code = item.code
-                price = str(item.billed_amount)
-                inputs = self.page.locator("//input[@formcontrolname='cptHcpcsCode']")
-                for i in range(inputs.count()):
-                    inp = inputs.nth(i)
-                    if inp.get_attribute('value') == code:
-                        line_num = inp.get_attribute('id').split('-')[2]
-                        price_input = self.page.locator(f"#service-line-{line_num}-billed-amount-input")
-                        price_input.fill(price)
-                        break
+            self.logger.log("Starting to fill pricing information...")
+            
+            # Get the first claim for pricing
+            if not patient.claims:
+                self.logger.log_error("No claims found in patient data")
+                return
+                
+            claim = patient.claims[0]
+            self.logger.log(f"Using first claim for pricing: {claim.code} - {claim.description}")
+            
+            # Fill in the amount
+            if not claim.billed_amount:
+                self.logger.log_error("No billed amount found in claim data")
+                return
+                
+            self.logger.log(f"Setting claim amount to: {claim.billed_amount}")
+            self.page.locator('#exam-amount').fill(str(claim.billed_amount))
+            
+            # Fill in the units
+            if not claim.units:
+                self.logger.log_error("No units found in claim data")
+                return
+                
+            self.logger.log(f"Setting claim units to: {claim.units}")
+            self.page.locator('#exam-units').fill(str(claim.units))
+            
+            # Fill in the place of service
+            if not claim.place_of_service:
+                self.logger.log_error("No place of service found in claim data")
+                return
+                
+            self.logger.log(f"Setting place of service to: {claim.place_of_service}")
+            self.page.locator('#exam-place-of-service').fill(str(claim.place_of_service))
+            
+            self.logger.log("Successfully filled all pricing information")
+            
         except Exception as e:
-            self.logger.log_error(f"Failed pricing fill: {str(e)}")
-            self.take_screenshot("claim_price_error")
+            self.logger.log_error(f"Failed to fill pricing: {str(e)}")
+            self.take_screenshot("claim_fill_pricing_error")
+            raise
 
     def set_gender(self, patient: Patient) -> None:
         """Set patient gender switch."""
@@ -203,7 +237,7 @@ class ClaimPage(BasePage):
 
     def click_submit_claim(self) -> None:
         try:
-            self.page.locator('#claim-tracker-submit').click()
+            self.page.locator('#claimTracker-submitClaim').click()
             self.wait_for_network_idle(timeout=10000)
         except Exception as e:
             self.logger.log_error(f"Submit claim failed: {str(e)}")
