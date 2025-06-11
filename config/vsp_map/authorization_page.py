@@ -1,6 +1,6 @@
 from playwright.sync_api import Page
 from core.logger import Logger
-from core.base import PatientContext, BasePage
+from core.base import PatientContext, BasePage, Patient
 from typing import Optional, List, Dict
 from time import sleep
 
@@ -65,53 +65,53 @@ class AuthorizationPage(BasePage):
             self.take_screenshot("auth_list_parse_error")
             return []
 
-    def select_authorization(self, auth_number: str) -> bool:
-        """Select an authorization by its number."""
+    def select_authorization(self, patient: Patient) -> bool:
+        """Select an authorization for the given patient by name."""
         try:
+            target_name = f"{patient.last_name}, {patient.first_name}".upper()
             rows = self._get_authorization_rows()
             for i in range(rows.count()):
                 row = rows.nth(i)
-                cell = row.locator('[id^="auth-search-result-auth-number-data"]')
-                if cell.inner_text().strip() == str(auth_number):
-                    cell.click()
+                name_cell = row.locator('#auth-search-result-name-data')
+                if name_cell.inner_text().strip().upper() == target_name:
+                    name_cell.click()
                     return True
             return False
         except Exception as e:
-            self.logger.log_error(f"Failed to select authorization {auth_number}: {str(e)}")
+            self.logger.log_error(
+                f"Failed to select authorization for {patient.first_name} {patient.last_name}: {str(e)}"
+            )
             self.take_screenshot("auth_select_error")
             return False
 
-    def delete_authorization(self, auth_number: str) -> bool:
-        """Click the delete icon for the authorization matching ``auth_number`` and confirm deletion.
-        
-        Args:
-            auth_number: The authorization number to delete
-            
-        Returns:
-            bool: True if deletion was successful, False otherwise
-        """
+    def delete_authorization(self, patient: Patient) -> bool:
+        """Delete an authorization for the given patient."""
         try:
+            target_name = f"{patient.last_name}, {patient.first_name}".upper()
             rows = self._get_authorization_rows()
             for i in range(rows.count()):
                 row = rows.nth(i)
-                num_cell = row.locator('[id^="auth-search-result-auth-number-data"]')
-                if num_cell.inner_text().strip() == str(auth_number):
+                name_cell = row.locator('#auth-search-result-name-data')
+                if name_cell.inner_text().strip().upper() == target_name:
                     delete_cell = row.locator('[id^="auth-search-result-delete-data"] mat-icon')
                     delete_cell.click()
-                    sleep(.5)
-                    # Wait for and click the OK button
+                    sleep(0.5)
                     try:
                         ok_button = self.page.locator('#okButton')
                         ok_button.wait_for(state='visible', timeout=5000)
                         ok_button.click()
-                        self.logger.log(f"Successfully deleted authorization {auth_number}")
+                        self.logger.log(
+                            f"Successfully deleted authorization for {patient.first_name} {patient.last_name}"
+                        )
                         return True
                     except Exception as e:
                         self.logger.log_error(f"Failed to click OK button: {str(e)}")
                         return False
             return False
         except Exception as e:
-            self.logger.log_error(f"Failed to delete authorization {auth_number}: {str(e)}")
+            self.logger.log_error(
+                f"Failed to delete authorization for {patient.first_name} {patient.last_name}: {str(e)}"
+            )
             self.take_screenshot("auth_delete_error")
             return False
 
@@ -146,18 +146,69 @@ class AuthorizationPage(BasePage):
             self.take_screenshot("auth_patient_list_error")
             return []
 
-    def select_patient(self, name: str) -> bool:
-        """Select a patient row by exact name."""
+    def select_patient(self, patient: Patient) -> bool:
+        """Select a patient row by name and date of birth."""
         try:
+            target_name = f"{patient.last_name}, {patient.first_name}".upper()
+            target_dob = (patient.dob or "").strip()
             rows = self._get_patient_rows()
             for i in range(rows.count()):
                 row = rows.nth(i)
                 name_cell = row.locator('#patient-selection-result-name-data')
-                if name_cell.inner_text().strip().upper() == name.upper():
+                dob_cell = row.locator('[id^="patient-selection-result-city-dob-data"]')
+                if (
+                    name_cell.inner_text().strip().upper() == target_name
+                    and dob_cell.inner_text().strip() == target_dob
+                ):
                     name_cell.click()
                     return True
             return False
         except Exception as e:
-            self.logger.log_error(f"Failed to select patient {name}: {str(e)}")
+            self.logger.log_error(
+                f"Failed to select patient {patient.first_name} {patient.last_name}: {str(e)}"
+            )
             self.take_screenshot("auth_select_patient_error")
             return False
+
+    # ------------------------------------------------------------------
+    # Coverage selection utilities
+    def _service_checkbox(self, package_index: int, service_index: int):
+        """Return locator for a service checkbox."""
+        return self.page.locator(f"#{package_index}-service-checkbox-{service_index}")
+
+    def select_services(self, service_indices: List[int], package_index: int = 0) -> None:
+        """Select one or more service checkboxes by index."""
+        for idx in service_indices:
+            try:
+                checkbox = self._service_checkbox(package_index, idx)
+                checkbox.click()
+            except Exception as e:
+                self.logger.log_error(f"Failed to select service {idx}: {str(e)}")
+
+    def select_all_services(self, package_index: int = 0) -> None:
+        """Select the 'all available services' checkbox."""
+        try:
+            self.page.locator(f"#{package_index}-all-available-services-checkbox").click()
+        except Exception as e:
+            self.logger.log_error(f"Failed to select all services: {str(e)}")
+
+    def issue_authorization(self, package_index: int = 0) -> bool:
+        """Click the Issue Authorization button."""
+        try:
+            button = self.page.locator(f"#{package_index}-issue-authorization-button")
+            button.wait_for(state="visible", timeout=5000)
+            button.click()
+            return True
+        except Exception as e:
+            self.logger.log_error(f"Failed to issue authorization: {str(e)}")
+            self.take_screenshot("auth_issue_error")
+            return False
+
+    def get_confirmation_number(self) -> Optional[str]:
+        """Return the authorization confirmation number if visible."""
+        try:
+            elem = self.page.locator('#auth-confirmation-number')
+            elem.wait_for(state='visible', timeout=5000)
+            return elem.inner_text().strip()
+        except Exception:
+            return None
