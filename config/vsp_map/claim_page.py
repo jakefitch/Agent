@@ -1,4 +1,5 @@
 from typing import Optional, List
+import re
 from playwright.sync_api import Page
 from core.logger import Logger
 from core.base import PatientContext, BasePage, Patient
@@ -159,21 +160,67 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_calculate_error")
 
     def fill_pricing(self, patient: Patient) -> None:
-        """Fill billed amounts for each claim item."""
+        """Fill billed amounts and patient payment information."""
         try:
+            # Scroll to pricing section
+            self.page.evaluate("window.scrollTo(0, 4000)")
+            self.page.wait_for_timeout(2000)
+
+            inputs = self.page.locator("//input[@formcontrolname='cptHcpcsCode']")
+            input_count = inputs.count()
+
+            def calculate_units(desc: str, qty: int) -> int:
+                pack_sizes = re.findall(r"\b(6|90|30|60|12|24)\b", desc or "")
+                return int(pack_sizes[0]) * int(qty) if pack_sizes else 0
+
             for item in patient.claims:
-                code = item.code
-                price = str(item.billed_amount)
-                inputs = self.page.locator("//input[@formcontrolname='cptHcpcsCode']")
-                for i in range(inputs.count()):
+                code = getattr(item, "code", "")
+                price = str(getattr(item, "billed_amount", ""))
+                description = getattr(item, "description", "")
+                if description == "Coopervision Inc. Biofinity":
+                    description = "CooperVision Biofinity 6 pack"
+                qty = getattr(item, "quantity", 1)
+
+                for i in range(input_count):
                     inp = inputs.nth(i)
-                    if inp.get_attribute('value') == code:
-                        line_num = inp.get_attribute('id').split('-')[2]
-                        price_input = self.page.locator(f"#service-line-{line_num}-billed-amount-input")
+                    if inp.get_attribute("value") == code:
+                        line_num = inp.get_attribute("id").split("-")[2]
+                        if code.startswith("V25"):
+                            unit_count = calculate_units(description, qty)
+                            unit_input = self.page.locator(
+                                f"#service-line-{line_num}-unit-count-input"
+                            )
+                            unit_input.fill(str(unit_count))
+
+                        price_input = self.page.locator(
+                            f"#service-line-{line_num}-billed-amount-input"
+                        )
                         price_input.fill(price)
                         break
+
+            # FSA and patient paid amounts
+            copay = str(patient.insurance_data.get("copay", ""))
+
+            self.page.evaluate("window.scrollTo(0, 4400)")
+            self.page.wait_for_timeout(1000)
+            try:
+                if copay:
+                    self.page.locator("#services-fsa-paid-input").fill(copay)
+            except Exception:
+                pass
+
+            self.page.evaluate("window.scrollTo(0, 4400)")
+            self.page.wait_for_timeout(3000)
+            try:
+                paid = self.page.locator("#services-patient-paid-amount-input")
+                if copay:
+                    paid.click()
+                    paid.fill(copay)
+            except Exception:
+                pass
+
         except Exception as e:
-            self.logger.log_error(f"Failed pricing fill: {str(e)}")
+            self.logger.log_error(f"Failed to fill pricing: {str(e)}")
             self.take_screenshot("claim_price_error")
 
     def set_gender(self, patient: Patient) -> None:
