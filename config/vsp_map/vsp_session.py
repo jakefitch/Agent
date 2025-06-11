@@ -5,6 +5,7 @@ from core.base import PatientContext, BasePage
 from typing import Optional
 from .member_search_page import MemberSearch
 from .authorization_page import AuthorizationPage
+from .claim_page import ClaimPage
 from dotenv import load_dotenv
 
 class VspSession(BasePage):
@@ -18,6 +19,7 @@ class VspSession(BasePage):
             self.logger = logger
             self.member_search_page = MemberSearch(page, logger)
             self.authorization_page = AuthorizationPage(page, logger)
+            self.claim_page = ClaimPage(page, logger)
   
     
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
