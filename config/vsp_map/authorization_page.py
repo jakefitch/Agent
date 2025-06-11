@@ -244,6 +244,73 @@ class AuthorizationPage(BasePage):
         """Return locator for a service checkbox."""
         return self.page.locator(f"#{package_index}-service-checkbox-{service_index}")
 
+    def _services_from_claims(self, patient: Patient) -> List[int]:
+        """Determine which service checkboxes to select based on claim codes.
+
+        Exam                     -> index 0
+        Contact Lens Service     -> index 1
+        Lens                     -> index 2
+        Frame                    -> index 3
+        Contact Lens             -> index 4
+
+        Args:
+            patient: ``Patient`` instance containing claim information.
+
+        Returns:
+            List of checkbox indices corresponding to required services.
+        """
+        if not patient.claims:
+            return []
+
+        select_exam = False
+        select_cl_service = False
+        select_lens = False
+        select_frame = False
+        select_contacts = False
+
+        for claim in patient.claims:
+            code = (claim.vcode or claim.code or "").upper()
+
+            # Exam codes
+            if code in {"92004", "92014"} or code.startswith("99") or \
+               code.startswith("S062") or code.startswith("S602"):
+                select_exam = True
+
+            # Contact lens material codes
+            if code.startswith("V252"):
+                select_contacts = True
+
+            # Frame codes
+            if code in {"V2020", "V2025"}:
+                select_frame = True
+
+            # Lens codes
+            if code.startswith(("V21", "V22", "V23")) or code.startswith("V2781"):
+                select_lens = True
+
+            # Contact lens service codes
+            if code.startswith("9231"):
+                select_cl_service = True
+
+        service_indices = []
+        if select_exam:
+            service_indices.append(0)
+        if select_cl_service:
+            service_indices.append(1)
+        if select_lens:
+            service_indices.append(2)
+        if select_frame:
+            service_indices.append(3)
+        if select_contacts:
+            service_indices.append(4)
+
+        return service_indices
+
+    def select_services_for_patient(self, patient: Patient, package_index: int = 0) -> None:
+        """Select services for a patient based on billing information."""
+        indices = self._services_from_claims(patient)
+        self.select_services(indices, package_index)
+
     def select_services(self, service_indices: List[int], package_index: int = 0) -> None:
         """Select one or more service checkboxes by index."""
         for idx in service_indices:
