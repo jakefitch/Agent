@@ -387,14 +387,48 @@ class ClaimPage(BasePage):
         if not patient.has_optical_order:
             return
         try:
-            # Select supplier based on wholesale status
+            # Select the frame supplier
             supplier_value = "DOCTOR" if patient.has_frame else "PATIENT"
             self.page.locator('#frames-frame-supplier-dropdown').select_option(value=supplier_value)
-            
-            # Fill frame search and click search button
+
+            # Trigger manual frame entry popup
             self.page.locator('#frame-search-textbox').fill('1234')
             self.page.locator('#frame-search-button').click()
-            
+
+            manual = self.page.locator('#search-manual-frames')
+            if manual.is_visible(timeout=3000):
+                manual.click()
+
+            # Wait for the manual entry form
+            self.page.locator('#frame-details-fields').wait_for(state='visible', timeout=10000)
+
+            frames = getattr(patient, 'frames', {})
+
+            def fill(selector: str, value: str) -> None:
+                if value is None:
+                    value = ''
+                field = self.page.locator(selector)
+                if field.count() > 0:
+                    field.fill(value)
+
+            fill('#frame-display-form-manufacturer', frames.get('manufacturer', ''))
+            fill('#frame-display-form-collection', frames.get('collection', ''))
+            fill('#frame-display-form-model', frames.get('model', 'unknown'))
+            fill('#frame-display-form-color', frames.get('color', ''))
+            fill('#frame-display-form-temple', frames.get('temple', ''))
+            fill('#frame-display-form-materialType', frames.get('material', ''))
+            fill('#frame-display-form-eyesize', frames.get('eyesize', ''))
+            fill('#frame-display-form-dbl', frames.get('dbl', ''))
+
+            wholesale = getattr(patient, 'wholesale', None)
+            if wholesale:
+                if wholesale == '0.00':
+                    wholesale = '64.95'
+                fill('#frame-display-form-wholesale-cost', wholesale)
+
+            # Save the details
+            self.page.locator("[title='Click to save your edits']").click()
+
         except Exception as e:
             self.logger.log_error(f"Failed to submit frame: {str(e)}")
             self.take_screenshot("claim_frame_error")
