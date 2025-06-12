@@ -59,14 +59,15 @@ class ClaimPage(BasePage):
     def set_dos(self, patient: Patient) -> bool:
         """Set the date of service on the claim form."""
         try:
-            if not patient.dos:
+            dos = patient.insurance_data.get('dos')
+            if not dos:
                 self.logger.log_error("No date of service provided for patient")
                 return False
 
             dos_field = self.page.locator('[id="dos-field"]')
             dos_field.wait_for(state='visible', timeout=5000)
-            dos_field.fill(patient.dos)
-            self.logger.log(f"Set date of service to {patient.dos}")
+            dos_field.fill(dos)
+            self.logger.log(f"Set date of service to {dos}")
             return True
         except Exception as e:
             self.logger.log_error(f"Failed to set date of service: {str(e)}")
@@ -416,7 +417,19 @@ class ClaimPage(BasePage):
             fill('#frame-display-form-model', frames.get('model', 'unknown'))
             fill('#frame-display-form-color', frames.get('color', ''))
             fill('#frame-display-form-temple', frames.get('temple', ''))
-            fill('#frame-display-form-materialType', frames.get('material', ''))
+            
+            # Handle material dropdown with case-insensitive matching
+            material = frames.get('material', '')
+            if material:
+                material = material.lower()
+                # Get all options from the dropdown
+                options = self.page.locator('#frame-display-form-materialType option').all()
+                # Find matching option (case-insensitive)
+                for option in options:
+                    if option.inner_text().lower() == material:
+                        self.page.locator('#frame-display-form-materialType').select_option(value=option.get_attribute('value'))
+                        break
+            
             fill('#frame-display-form-eyesize', frames.get('eyesize', ''))
             fill('#frame-display-form-dbl', frames.get('dbl', ''))
 

@@ -57,6 +57,7 @@ if __name__ == "__main__":
     vsp.member_search_page.search_member(patient)
     sleep(2)
     vsp.authorization_page.select_authorization(patient)
+    vsp.claim_page.set_dos(patient)
     vsp.claim_page.submit_frame(patient)
     sleep(3)
     print('returning  to  patient  page')
