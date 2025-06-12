@@ -651,7 +651,8 @@ class InvoicePage(BasePage):
                     billed_amount=float(row['Price'].strip('$')),
                     code=row['code'],
                     quantity=int(row['Qty']),
-                    modifier=row['modifiers'] if row['modifiers'] else None
+                    modifier=row['modifiers'] if row['modifiers'] else None,
+                    date=row['post_date']
                 )
                 patient.claims.append(claim_item)
 

@@ -11,6 +11,7 @@ from core.utils import format_date
 import re
 from playwright.sync_api import Page
 from core.logger import Logger
+from time import sleep
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -569,7 +570,7 @@ class PatientPage(BasePage):
                 return False
                 
             # Wait for the table to be visible
-            self.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=5000)
+            sleep(2)
             
             # Text options to match in the order
             text_options = [
@@ -589,15 +590,15 @@ class PatientPage(BasePage):
                     
                     for row in rows:
                         try:
-                            # Find the date cell
-                            date_cell = row.locator(".//*[@data-colindex='1']")
+                            # Find the date cell using proper XPath syntax
+                            date_cell = row.locator("xpath=.//td[@data-colindex='1']")
                             date_text = date_cell.inner_text()
                             
                             if date_text == claim_date:
                                 # Check for matching text options
                                 for text_option in text_options:
                                     try:
-                                        text_cell = row.locator(f".//td[contains(text(), '{text_option}')]")
+                                        text_cell = row.locator(f"xpath=.//td[contains(text(), '{text_option}')]")
                                         if text_cell.is_visible():
                                             self.logger.log(f"Found matching order with text: {text_option}")
                                             text_cell.click()

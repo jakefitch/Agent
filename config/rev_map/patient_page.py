@@ -10,6 +10,7 @@ from typing import Optional
 import time
 from core.utils import format_date
 import re
+from time import sleep
 
 def check_alert_modal(func):
     """Decorator to check for alert modal before executing any method."""
@@ -569,7 +570,7 @@ class PatientPage(BasePage):
                 return False
                 
             # Wait for the table to be visible
-            self.page.wait_for_selector("//table[@role='presentation']/tbody/tr", timeout=5000)
+            sleep(2)
             
             # Text options to match in the order
             text_options = [

@@ -772,7 +772,7 @@ class InvoicePage(BasePage):
             # Determine if this invoice contains optical orders
             patient.has_optical_order = has_glasses_order(patient)
             patient.has_frame = has_frame_claim(patient)
-
+            
             # Store DOS in insurance_data
             if data_rows:
                 patient.insurance_data['dos'] = data_rows[0]['post_date']
