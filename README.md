@@ -98,10 +98,27 @@ class CustomPage(BasePage):
     def _validate_patient_required(self):
         if not self.context or not self.context.patient:
             raise ValueError("CustomPage requires a patient context")
-    
+
     def custom_operation(self):
         # Your implementation here
         pass
+```
+
+### Claim Service Flags
+
+Use `get_claim_service_flags` from `core.utils` to check which services are
+present in a patient's invoice. The function examines `patient.claims` and
+returns boolean flags for common service types.
+
+```python
+from core.utils import get_claim_service_flags
+
+flags = get_claim_service_flags(patient)
+
+if flags["exam"]:
+    vsp.claim_page.submit_exam(patient)
+if flags["contacts"]:
+    vsp.claim_page.submit_cl(patient)
 ```
 
 ## Development Guidelines

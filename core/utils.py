@@ -132,6 +132,63 @@ def has_frame_claim(patient: Patient) -> bool:
 
     return False
 
+def get_claim_service_flags(patient: Patient) -> Dict[str, bool]:
+    """Return boolean flags for the types of services found in ``patient.claims``.
+
+    The flags correspond to the categories used for VSP authorizations and claim
+    submission:
+
+    ``exam`` -- Comprehensive or medical eye exams
+    ``contact_service`` -- Contact lens fitting/services
+    ``lens`` -- Ophthalmic lenses
+    ``frame`` -- Frame materials
+    ``contacts`` -- Contact lens materials
+
+    Args:
+        patient: ``Patient`` instance containing claim items.
+
+    Returns:
+        Dictionary mapping each category name to ``True`` if a matching claim was
+        found, otherwise ``False``.
+    """
+
+    flags = {
+        "exam": False,
+        "contact_service": False,
+        "lens": False,
+        "frame": False,
+        "contacts": False,
+    }
+
+    if not patient.claims:
+        return flags
+
+    for claim in patient.claims:
+        code = (claim.vcode or claim.code or "").upper()
+
+        # Exam codes (92004/92014, 99xxx, S062x, S602x)
+        if code in {"92004", "92014"} or code.startswith("99") or \
+           code.startswith("S062") or code.startswith("S602"):
+            flags["exam"] = True
+
+        # Contact lens material codes
+        if code.startswith("V252"):
+            flags["contacts"] = True
+
+        # Frame codes
+        if code in {"V2020", "V2025"}:
+            flags["frame"] = True
+
+        # Lens codes
+        if code.startswith(("V21", "V22", "V23")) or code.startswith("V2781"):
+            flags["lens"] = True
+
+        # Contact lens service codes
+        if code.startswith("9231"):
+            flags["contact_service"] = True
+
+    return flags
+
 def get_page_soup(page) -> BeautifulSoup:
     """Get the current page's DOM as a BeautifulSoup object."""
     return BeautifulSoup(page.content(), 'html.parser')
