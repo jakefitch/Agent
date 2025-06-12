@@ -5,6 +5,7 @@ from core.logger import Logger
 from time import sleep
 from config.vsp_map.vsp_session import VspSession
 from config.rev_map.rev_session import RevSession
+from core.utils import get_claim_service_flags
 
 
 
@@ -56,13 +57,34 @@ if __name__ == "__main__":
         rev.products.navigate_to_products()
         rev.products.get_wholesale_price(patient)
     patient.print_data()
+
+    # Determine claim flags based on invoice items
+    flags = get_claim_service_flags(patient)
+
     vsp.member_search_page.search_member(patient)
     sleep(2)
     vsp.authorization_page.select_authorization(patient)
     vsp.claim_page.set_dos(patient)
-    vsp.claim_page.submit_frame(patient)
-    vsp.claim_page.send_rx(patient)
-    print('returning  to  patient  page')
+
+    # Exam submission
+    if flags["exam"]:
+        vsp.claim_page.submit_exam(patient)
+
+    # Glasses related processing
+    if flags["frame"]:
+        vsp.claim_page.submit_frame(patient)
+    if flags["lens"]:
+        vsp.claim_page.submit_lens(patient)
+
+    # Send RX info if any eyewear or contact lenses are involved
+    if flags["lens"] or flags["contacts"] or flags["contact_service"]:
+        vsp.claim_page.send_rx(patient)
+
+    # Contact lens materials or services
+    if flags["contacts"] or flags["contact_service"]:
+        vsp.claim_page.submit_cl(patient)
+
+    print("returning  to  patient  page")
     
 
 
