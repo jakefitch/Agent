@@ -17,6 +17,12 @@ class ClaimItem:
     code: str  # CPT or Dx code
     quantity: int = 1
     modifier: Optional[str] = None
+    # Date of service for the claim item. Stored as the post date
+    # scraped from the invoice details page.
+    date: Optional[str] = None
+    # Copay amount associated with the claim item. This is derived from
+    # the "Adjustments" column on the invoice details table.
+    copay: Optional[str] = None
 
 @dataclass
 class Patient:

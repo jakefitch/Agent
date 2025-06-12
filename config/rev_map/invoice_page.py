@@ -708,6 +708,16 @@ class InvoicePage(BasePage):
             for row in table.find_all('tr', class_='e-row'):
                 # Extract data from each cell in the row
                 cells = row.find_all('td')
+
+                # Adjustments column represents the copay but is shown as a
+                # negative number in the UI.  Convert it to a positive value so
+                # downstream code can treat it as a standard copay amount.
+                raw_adjustment = cells[11].get_text(strip=True)
+                adj_clean = raw_adjustment.replace("$", "").replace(",", "")
+                if adj_clean.startswith("-"):
+                    adj_clean = adj_clean[1:]
+                copay_value = f"${adj_clean}" if adj_clean else ""
+
                 row_data = {
                     'post_date': cells[1].get_text(strip=True),
                     'code': cells[2].get_text(strip=True),
@@ -716,7 +726,7 @@ class InvoicePage(BasePage):
                     'description': cells[5].get_text(strip=True),
                     'Qty': cells[6].get_text(strip=True),
                     'Price': cells[10].get_text(strip=True),
-                    'copay': cells[11].get_text(strip=True)
+                    'copay': copay_value
                 }
                 data_rows.append(row_data)
 
@@ -730,6 +740,15 @@ class InvoicePage(BasePage):
                     # Update existing entry
                     merged_data[code]['Qty'] = str(int(merged_data[code]['Qty']) + int(row['Qty']))
                     merged_data[code]['Price'] = str(Decimal(merged_data[code]['Price'].strip('$')) + Decimal(row['Price'].strip('$')))
+                    # Sum copay values for duplicate codes
+                    existing_copay = merged_data[code].get('copay', '').replace('$', '').replace(',', '')
+                    if existing_copay:
+                        existing_value = Decimal(existing_copay)
+                    else:
+                        existing_value = Decimal('0')
+                    new_value = Decimal(row['copay'].replace('$', '').replace(',', '')) if row['copay'] else Decimal('0')
+                    total_copay = existing_value + new_value
+                    merged_data[code]['copay'] = f"${total_copay}"
                 else:
                     # Add new entry
                     merged_data[code] = row
@@ -744,7 +763,9 @@ class InvoicePage(BasePage):
                     billed_amount=float(row['Price'].strip('$')),
                     code=row['code'],
                     quantity=int(row['Qty']),
-                    modifier=row['modifiers'] if row['modifiers'] else None
+                    modifier=row['modifiers'] if row['modifiers'] else None,
+                    date=row['post_date'],
+                    copay=row.get('copay')
                 )
                 patient.claims.append(claim_item)
 
