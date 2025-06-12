@@ -4,7 +4,7 @@ from playwright.sync_api import Page
 from core.logger import Logger
 from core.base import PatientContext, BasePage, Patient
 from time import sleep
-import re
+from config.debug.vsp_error_tracker import save_vsp_error_message
 
 
 class ClaimPage(BasePage):
@@ -305,6 +305,37 @@ class ClaimPage(BasePage):
         except Exception as e:
             self.logger.log_error(f"Submit claim failed: {str(e)}")
             self.take_screenshot("claim_submit_error")
+
+    def submit_claim_and_handle_errors(self) -> bool:
+        """Submit the claim and check for potential error banners."""
+        try:
+            previous_url = self.page.url
+            self.page.locator('#claimTracker-submitClaim').click()
+            self.wait_for_network_idle(timeout=10000)
+
+            if self.page.url != previous_url:
+                self.logger.log("Claim submitted successfully.")
+                return True
+
+            banner = self.page.locator('div.error-message, .alert-banner, .vsp-error')
+            if banner.count() > 0 and banner.first.is_visible():
+                error_text = banner.first.inner_text().strip()
+                self.logger.log_error(f"Claim submission blocked: {error_text}")
+                try:
+                    save_vsp_error_message(error_text)
+                except Exception as e2:
+                    self.logger.log_error(f"Failed to save VSP error message: {str(e2)}")
+                self.take_screenshot("claim_submit_blocked")
+                return False
+
+            self.logger.log_error("Claim did not redirect and no error banner detected.")
+            self.take_screenshot("claim_submit_unknown")
+            return False
+
+        except Exception as e:
+            self.logger.log_error(f"Submit claim threw exception: {str(e)}")
+            self.take_screenshot("claim_submit_exception")
+            return False
 
     def generate_report(self) -> None:
         try:
