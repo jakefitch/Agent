@@ -9,21 +9,7 @@
 
 
 
-#EYEFINITY CLAIM FUNCTIONS
 
-def fill_rx(automation,member):
-    sendrx(automation,member)
-    diseasereporting(automation,member)
-    calculate(automation,member)
-    fillpricing(automation,member)
-    set_gender(automation,member)
-    
-
-def calculate_order(automation,member,second_window):
-    click_submit_claim(automation,member)
-    generate_report(automation,member)
-    #close the second window
-    second_window.destroy()
     
 
 def set_dos(automation,member):
@@ -693,119 +679,7 @@ def sendrx(automation,member):
         send_add_and_seg_to_vsp(automation,member)
     
 
-def submit_frame(automation,member): #should be working. added sleeps to every step.
-    #print(f'about to submit frame. search for membe.lens_type and member.whoelsale now')
-    #print(member.lens_type)
-    #print(member.wholesale)
-    sleep(1)
-    if member.lens_type == None:
-        #print('no lens found. skipping frame')
-        return
-    #automation.execute_script("window.scrollTo(0, 400)")
-    #sleep(1)
-    #automation.wait_for_element(By.XPATH, "/html/body/app-root/div/app-secure/div[2]/div/app-claim-form/div/div[3]/app-frame/div/mat-card/mat-card-content/form/div[2]/div[1]/select/option[2]").click()
-    sleep(1)
-    automation.execute_script("window.scrollTo(0, 2000)")
-    frame_supplier = automation.wait_for_element(By.XPATH, "//*[@id=\"frames-frame-supplier-dropdown\"]")
-    frame_supplier.click()
-    sleep(1)
-    
-    #sets who supplied the frame
-    if member.wholesale != None:
-        #print('setting frame supplier to doctor')
-        automation.wait_for_element(By.XPATH, "/html/body/app-root/div/app-secure/div[2]/div/app-claim-form/div/div[3]/app-frame/div/mat-card/mat-card-content/form/div[2]/div[1]/select/option[2]").click()
-    else:
-        #print('setting frame supplier to patient')
-        automation.wait_for_element(By.XPATH, "/html/body/app-root/div/app-secure/div[2]/div/app-claim-form/div/div[3]/app-frame/div/mat-card/mat-card-content/form/div[2]/div[1]/select/option[3]").click()
-    automation.execute_script("window.scrollTo(0, 2000)")
-    sleep(1)  
-    
-    search_frame = automation.wait_for_element(By.XPATH,"//*[@id=\"frame-search-textbox\"]")
-    search_frame.send_keys("1234")
-    sleep(1)
-    automation.execute_script("window.scrollTo(0, 2000)")
-    sleep(1)
-    search_button = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-search-button\"]")
-    search_button.click()
-    sleep(1)
-    try:
-        search_manual = automation.wait_for_element(By.XPATH, "//*[@id=\"search-manual-frames\"]")
-        search_manual.click()
-    except:
-        pass
-    sleep(2)
-    
-    #sets frame manafacturer
-   
-    manafacturer_field = automation.short_wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-manufacturer\"]")
-    #print(f'found manafacturer field')
 
-    #focus on the popup element containing manafacturer
-    try:
-        manafacturer_field.click()
-        #print(f'attempting to send send {member.manafacturer} to the manafacturer field')
-        manafacturer_field.send_keys(member.manafacturer)
-        sleep(.5)
-        #print('sent manafacturer successfully')
-    except:
-        automation.send_keys(Keys.SHIFT + Keys.TAB)
-        sleep(1)
-        manafacturer_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-manufacturer\"]")
-        manafacturer_field.send_keys(member.manafacturer)
-        #print('sent manafacturer successfully')
-        
-    #sets frame collection
-    collection_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-collection\"]")
-    collection_field.send_keys(member.collection)
-    sleep(.5)
-    
-    #sets frame model
-    try:
-        model_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-model\"]")
-        model_field.send_keys(member.model)
-        sleep(.5)
-    except:
-        model_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-model\"]")
-        model = "unknown"
-        model_field.send_keys(model)
-    
-    #sets frame color
-    color_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-color\"]")
-    color_field.send_keys(member.color)
-    sleep(.5)
-    
-    #sets frame temple
-    temple_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-temple\"]")
-    temple_field.send_keys(member.temple)
-    sleep(.5)
-    
-    #sets frame material
-    material_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-materialType\"]")
-    material_field.send_keys(member.material)
-    sleep(.5)
-    
-    #sets frame eyesize
-    eyesize_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-eyesize\"]")
-    eyesize_field.send_keys(member.eyesize)
-    sleep(.5)
-    
-    #sets frame dbl
-    dbl_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-dbl\"]")
-    dbl_field.send_keys(member.dbl)
-    sleep(.5)
-    
-    #sets frame wholesale cost
-    if member.wholesale != None:
-        if member.wholesale  == '0.00':
-            member.wholesale = '64.95'
-        wholesale_field = automation.wait_for_element(By.XPATH, "//*[@id=\"frame-display-form-wholesale-cost\"]")
-        wholesale_field.send_keys(member.wholesale)
-        sleep(.5)
-    
-    #saves details
-    save_details_button = automation.wait_for_element(By.XPATH, "//*[@title='Click to save your edits']")
-    save_details_button.click()
-    sleep(1)
 
     
 def submit_lens(automation,member): #this will be the most complex. I will need to go into more detail when i'm fully caught up. For now i'm just looking for IOF

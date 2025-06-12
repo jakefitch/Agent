@@ -50,49 +50,52 @@ class Products(BasePage):
             self.take_screenshot("Failed to navigate to products page")
             raise
 
-    def get_wholesale_price(self, frame_name: str) -> str:
-        """Get the wholesale price for a specific frame.
-        
-        Args:
-            frame_name: The name of the frame to search for
-            
-        Returns:
-            str: The wholesale price of the frame, or '64.95' if not found
-        """
+    def get_wholesale_price(self, patient) -> str:
+        """Get the wholesale price for a specific frame using patient data."""
         try:
-            self.logger.log(f"Searching for wholesale price of frame: {frame_name}")
-            
+            model = getattr(patient, 'frames', {}).get('model', None)
+            if not model:
+                self.logger.log("No model found in patient.frames, using default price")
+                patient.frames['wholesale_price'] = '64.95'
+                return '64.95'
+            self.logger.log(f"Searching for wholesale price of frame model: {model}")
+
             # Clear any existing search
             clear_search = self.page.locator('form.mrgn-btm:nth-child(1) > div:nth-child(4) > button:nth-child(2)')
             clear_search.click()
             self.page.wait_for_timeout(1000)
-            
-            # Enter frame name in search field
+
+            # Enter model in search field
             search_field = self.page.locator("[name='productSimpleSearch']")
-            search_field.fill(frame_name)
+            search_field.fill(model)
             search_field.press('Enter')
             self.page.wait_for_timeout(2000)
-            
+
             # Click on the frame link
-            frame_link = self.page.locator(f"[uib-popover='{frame_name}']")
+            frame_link = self.page.locator(f"[uib-popover='{model}']")
             frame_link.click()
             self.page.wait_for_timeout(1000)
-            
+
             # Get the wholesale price
-            wholesale_field = self.page.locator('/html/body/div[2]/div/div/div[8]/rev-inventory-dashboard/div/div/div/rev-inventory-products-dashboard/div/div[2]/div[2]/rev-inventory-product-tab-container/div[2]/div/div[1]/rev-inventory-product-details/form/div[1]/div/div[2]/div/rev-currency[2]/rev-form-control/div/div/rev-currency-input/div/input')
+            wholesale_field = self.page.locator('rev-currency-input input.form-control[type="text"]').nth(2)
             wholesale = wholesale_field.input_value()
-            
+
             if wholesale:
                 self.logger.log(f"Found wholesale price: {wholesale}")
+                patient.frames['wholesale_price'] = wholesale
                 return wholesale
             else:
                 self.logger.log("No wholesale price found, using default")
+                patient.frames['wholesale_price'] = '64.95'
                 return '64.95'
-                
+
         except Exception as e:
             self.logger.log_error(f"Failed to get wholesale price: {str(e)}")
             self.take_screenshot("Failed to get wholesale price")
-            return '64.95'  # Return default price if anything fails
+            patient.frames['wholesale_price'] = '64.95'
+            return '64.95'
+        finally:
+            self.close_product_tabs(close_all=True)
 
     def close_product_tabs(
         self,

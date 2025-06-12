@@ -64,8 +64,18 @@ class ClaimPage(BasePage):
                 self.logger.log_error("No date of service provided for patient")
                 return False
 
-            dos_field = self.page.locator('[id="dos-field"]')
+            # Check for COB link and click if present, but don't delay too long
+            cob_link = self.page.locator('#cob-coverage-navigate-to-claim-link')
+            try:
+                if cob_link.wait_for(state='visible', timeout=500):
+                    cob_link.click()
+                    self.page.wait_for_timeout(500)  # Optional: short wait for UI update
+            except Exception:
+                pass  # COB link not present or not visible, continue as normal
+
+            dos_field = self.page.locator('#date-of-service')
             dos_field.wait_for(state='visible', timeout=5000)
+            dos_field.click()
             dos_field.fill(dos)
             self.logger.log(f"Set date of service to {dos}")
             return True
@@ -357,7 +367,7 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_add_seg_error")
 
     def send_rx(self, patient: Patient) -> None:
-        if patient.lens_type is None:
+        if not patient.has_optical_order:
             return
         try:
             self.page.locator('#prescriptionRightEyeSphereInput').fill(patient.medical_data.get('od_sph', ''))
@@ -395,7 +405,7 @@ class ClaimPage(BasePage):
             # Trigger manual frame entry popup
             self.page.locator('#frame-search-textbox').fill('1234')
             self.page.locator('#frame-search-button').click()
-
+            sleep(1)
             manual = self.page.locator('#search-manual-frames')
             if manual.is_visible(timeout=3000):
                 manual.click()
@@ -426,14 +436,14 @@ class ClaimPage(BasePage):
                 options = self.page.locator('#frame-display-form-materialType option').all()
                 # Find matching option (case-insensitive)
                 for option in options:
-                    if option.inner_text().lower() == material:
+                    if option.inner_text().lower().replace(' ', '') == material.replace(' ', ''):
                         self.page.locator('#frame-display-form-materialType').select_option(value=option.get_attribute('value'))
                         break
             
             fill('#frame-display-form-eyesize', frames.get('eyesize', ''))
             fill('#frame-display-form-dbl', frames.get('dbl', ''))
 
-            wholesale = getattr(patient, 'wholesale', None)
+            wholesale = frames.get('wholesale_price')
             if wholesale:
                 if wholesale == '0.00':
                     wholesale = '64.95'
