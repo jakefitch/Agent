@@ -36,7 +36,7 @@ if __name__ == "__main__":
     rev.invoice_page.navigate_to_invoices_page()
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
-    rev.invoice_page.open_invoice("287074914")
+    rev.invoice_page.open_invoice("287068141")
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     rev.patient_page.click_patient_summary_menu()
     if patient.has_optical_order:
         rev.patient_page.expand_optical_orders()
+        sleep(2)
         rev.patient_page.open_optical_order(patient)
         rev.optical_order.scrape_frame_data(patient)
         rev.optical_order.scrape_lens_data(patient)
