@@ -590,15 +590,15 @@ class PatientPage(BasePage):
                     
                     for row in rows:
                         try:
-                            # Find the date cell
-                            date_cell = row.locator(".//*[@data-colindex='1']")
+                            # Find the date cell using proper XPath syntax
+                            date_cell = row.locator("xpath=.//td[@data-colindex='1']")
                             date_text = date_cell.inner_text()
                             
                             if date_text == claim_date:
                                 # Check for matching text options
                                 for text_option in text_options:
                                     try:
-                                        text_cell = row.locator(f".//td[contains(text(), '{text_option}')]")
+                                        text_cell = row.locator(f"xpath=.//td[contains(text(), '{text_option}')]")
                                         if text_cell.is_visible():
                                             self.logger.log(f"Found matching order with text: {text_option}")
                                             text_cell.click()
