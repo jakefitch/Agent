@@ -638,7 +638,7 @@ class InvoicePage(BasePage):
                 raise ValueError(
                     "No PatientManager provided and none available on InvoicePage"
                 )
-            
+            sleep(1)
             # Get patient name from header
             name_element = self.page.locator('[data-test-id="invoiceHeaderPatientNameLink"]')
             if not name_element.is_visible():

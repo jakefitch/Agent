@@ -379,16 +379,22 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_send_rx_error")
 
     def submit_frame(self, patient: Patient) -> None:
-        if patient.lens_type is None:
+        """Submit frame information to the claim form.
+        
+        Args:
+            patient: Patient object containing frame and insurance data
+        """
+        if not patient.has_optical_order:
             return
         try:
-            self.page.locator('#frames-frame-supplier-dropdown').click()
-            if patient.insurance_data.get('wholesale'):
-                self.page.locator('option[value="doctor"]').click()
-            else:
-                self.page.locator('option[value="patient"]').click()
+            # Select supplier based on wholesale status
+            supplier_value = "DOCTOR" if patient.has_frame else "PATIENT"
+            self.page.locator('#frames-frame-supplier-dropdown').select_option(value=supplier_value)
+            
+            # Fill frame search and click search button
             self.page.locator('#frame-search-textbox').fill('1234')
             self.page.locator('#frame-search-button').click()
+            
         except Exception as e:
             self.logger.log_error(f"Failed to submit frame: {str(e)}")
             self.take_screenshot("claim_frame_error")

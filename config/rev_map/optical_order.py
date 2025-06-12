@@ -302,8 +302,8 @@ class OpticalOrder(BasePage):
             self.take_screenshot("Failed to scrape lens data")
             raise 
 
-    def scrape_copay(self, patient: Patient):
-        """Scrape copay data from the billing tab and update the patient's claims dictionary.
+    def scrape_optical_copay(self, patient: Patient):
+        """Scrape copay data from the billing tab and update the patient's insurance data.
         
         Args:
             patient: Patient object to store the copay data in
@@ -348,19 +348,12 @@ class OpticalOrder(BasePage):
                 close_button = self.page.locator('[data-test-id="invoiceDetailsModalCloseButton"]')
                 close_button.click()
             
-            # Update patient's claims dictionary with copay
-            if not hasattr(patient, 'claims'):
-                patient.claims = []
+            # Update patient's insurance data with copay
+            if not hasattr(patient, 'insurance_data'):
+                patient.insurance_data = {}
             
-            # Add copay to the first claim if it exists, otherwise create a new claim
-            if patient.claims:
-                current_copay = float(patient.claims[0].get('copay', 0))
-                new_copay = float(copay_value)
-                patient.claims[0]['copay'] = str(current_copay + new_copay)
-            else:
-                patient.claims.append({'copay': copay_value})
-            
-            self.logger.log(f"Successfully updated copay in claims to: {patient.claims[0]['copay']}")
+            patient.insurance_data['copay'] = copay_value
+            self.logger.log(f"Successfully updated copay in insurance data to: {copay_value}")
             
         except Exception as e:
             self.logger.log_error(f"Failed to scrape copay data: {str(e)}")

@@ -174,6 +174,8 @@ class Patient:
             print(f"  Quantity: {claim.quantity}")
             if claim.modifier:
                 print(f"  Modifier: {claim.modifier}")
+            if claim.copay:
+                print(f"  Copay: {claim.copay}")
         
         print("\nFrame Data:")
         for key, value in self.frames.items():

@@ -587,8 +587,11 @@ class PatientPage(BasePage):
                 try:
                     # Get all rows
                     rows = self.page.locator("//table[@role='presentation']/tbody/tr").all()
-                    
+
                     for row in rows:
+                        #intentionally skip the first row
+                        if row == rows[0]:
+                            continue
                         try:
                             # Find the date cell using proper XPath syntax
                             date_cell = row.locator("xpath=.//td[@data-colindex='1']")

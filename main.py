@@ -52,9 +52,12 @@ if __name__ == "__main__":
         rev.patient_page.open_optical_order(patient)
         rev.optical_order.scrape_frame_data(patient)
         rev.optical_order.scrape_lens_data(patient)
-        rev.optical_order.scrape_medical_data(patient)
+        rev.optical_order.scrape_optical_copay(patient)
     patient.print_data()
     vsp.member_search_page.search_member(patient)
+    sleep(2)
+    vsp.authorization_page.select_authorization(patient)
+    vsp.claim_page.submit_frame(patient)
     sleep(3)
     print('returning  to  patient  page')
     
