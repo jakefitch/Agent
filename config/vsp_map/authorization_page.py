@@ -245,6 +245,36 @@ class AuthorizationPage(BasePage):
         # Use attribute selector instead of ID selector to handle numeric IDs
         return self.page.locator(f'[id="{package_index}-service-checkbox-{service_index}"]')
 
+    def _service_availability(self, package_index: int, service_index: int):
+        """Return locator for a service availability cell."""
+        return self.page.locator(f'[id="{package_index}-availability-{service_index}"]')
+
+    def _parse_service_status(self, text: str) -> str:
+        """Return standardized service status based on availability cell text."""
+        value = text.strip()
+        lower = value.lower()
+        if lower in {"yes", "available"}:
+            return "available"
+        if "authorized" in lower:
+            return "authorized"
+        return value  # assume a date string or unknown text
+
+    def get_service_statuses(self, package_index: int = 0) -> Dict[int, str]:
+        """Return availability status for each service in a package."""
+        statuses: Dict[int, str] = {}
+        idx = 0
+        while True:
+            locator = self._service_availability(package_index, idx)
+            if locator.count() == 0:
+                break
+            try:
+                text = locator.inner_text().strip()
+            except Exception:
+                text = ""
+            statuses[idx] = self._parse_service_status(text)
+            idx += 1
+        return statuses
+
     def _services_from_claims(self, patient: Patient) -> List[int]:
         """Determine which service checkboxes to select based on claim codes.
 
@@ -313,8 +343,13 @@ class AuthorizationPage(BasePage):
         self.select_services(indices, package_index)
 
     def select_services(self, service_indices: List[int], package_index: int = 0) -> None:
-        """Select one or more service checkboxes by index."""
+        """Select one or more service checkboxes by index if available."""
+        statuses = self.get_service_statuses(package_index)
         for idx in service_indices:
+            status = statuses.get(idx, "available")
+            if status != "available":
+                self.logger.log(f"Skipping service {idx} due to status: {status}")
+                continue
             try:
                 checkbox = self._service_checkbox(package_index, idx)
                 checkbox.click()
