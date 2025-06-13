@@ -132,7 +132,7 @@ class ClaimPage(BasePage):
         """Set the rendering provider."""
         try:
             # First click the dropdown to open it
-            self.page.locator('#exam-rendering-provider-group').click()
+            n
             self.logger.log("Clicked provider dropdown")
             
             # Wait a moment for the dropdown to fully open

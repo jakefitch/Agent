@@ -67,16 +67,23 @@ if __name__ == "__main__":
     vsp.authorization_page.select_patient(patient)
     auth_status = vsp.authorization_page.select_services_for_patient(patient)
 
-    if auth_status == "unavailable":
+    if auth_status == "unavailable" or auth_status == "exam_authorized":
         
         vsp.authorization_page.get_plan_name(patient)
         #check the plan name from the insurance data
         if patient.insurance_data['plan_name'] == "VSP Exam Plus Plan":
             print("Plan is VSP Exam Plus Plan, submitting just exam")
-            vsp.authorization_page.get_exam_service()
-            vsp.authorization_page.issue_authorization(patient)
-            vsp.authorization_page.get_confirmation_number()
-            vsp.authorization_page.navigate_to_claim()
+            vsp.authorization_page.get_exam_service() #THIS STILL NEEDS TO CHECK IF THE EXAM IS AVAILABLE FOR AUTHORIZATION
+            if auth_status == "unavailable":               
+                vsp.authorization_page.issue_authorization(patient)
+                vsp.authorization_page.get_confirmation_number()
+                vsp.authorization_page.navigate_to_claim()
+            else:
+                print("Exam is authorized, skipping authorization")
+                vsp.authorization_page.navigate_to_authorizations()
+                vsp.authorization_page.select_authorization(patient)
+                
+                
             #unflag frame lens and contacts
             flags["frame"] = False
             flags["lens"] = False
@@ -86,6 +93,10 @@ if __name__ == "__main__":
         else:
             print("Plan name is not familiar, skipping authorization")
             raise Exception("Plan name is not familiar, skipping authorization")
+        
+  
+
+
     elif auth_status == "use_existing":
         print("Services already authorized for patient")
         vsp.authorization_page.navigate_to_authorization_page()

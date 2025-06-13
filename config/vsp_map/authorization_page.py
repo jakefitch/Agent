@@ -1,7 +1,7 @@
 from playwright.sync_api import Page
 from core.logger import Logger
-from core.base import PatientContext, BasePage, Patient
-from typing import Optional, List, Dict
+from core.base import PatientContext, BasePage, Patient, ClaimItem
+from typing import Optional, List, Dict, Set
 from time import sleep
 
 class AuthorizationPage(BasePage):
@@ -14,6 +14,13 @@ class AuthorizationPage(BasePage):
         3: "frame",
         4: "contacts",
     }
+
+    # Service code mappings
+    _exam_codes = {"92004", "92014", "92015"}  # Common exam codes
+    _lens_codes = {"V21", "V22", "V23", "V2781"}  # Lens code prefixes
+    _frame_codes = {"V2020", "V2025"} #Frame code prefixes
+    _contacts_codes = {"V25"} #Contact code prefixes
+    _contact_services = {"92310"} #Contact lens code prefix
 
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         super().__init__(page, logger, context)
@@ -260,168 +267,175 @@ class AuthorizationPage(BasePage):
     def _parse_service_status(self, text: str) -> str:
         """Return standardized service status based on availability cell text."""
         value = text.strip()
+        self.logger.log(f"[_parse_service_status] Parsing text: '{value}'")
         if not value:
+            self.logger.log("[_parse_service_status] Empty text, returning 'unavailable'")
             return "unavailable"
         lower = value.lower()
         if lower in {"yes", "available"}:
+            self.logger.log("[_parse_service_status] Found 'available' status")
             return "available"
-        if "authorized" in lower:
+        if lower in {"no", "unavailable"}:
+            self.logger.log("[_parse_service_status] Found 'unavailable' status")
+            return "unavailable"
+        if lower in {"authorized", "auth"}:
+            self.logger.log("[_parse_service_status] Found 'authorized' status")
             return "authorized"
-        return value  # assume a date string or unknown text
+        self.logger.log(f"[_parse_service_status] Unknown status '{value}', returning as is")
+        return value
 
     def get_service_statuses(self, package_index: int = 0, max_services: int = 5) -> Dict[int, str]:
         """Return availability status for each service in a package."""
         statuses: Dict[int, str] = {}
+        self.logger.log(f"[get_service_statuses] Checking statuses for package {package_index}")
         for idx in range(max_services):
+            self.logger.log(f"[get_service_statuses] Checking service index {idx}")
             locator = self._service_availability(package_index, idx)
             if locator.count() == 0:
+                self.logger.log(f"[get_service_statuses] No element found for service {idx}")
                 continue
             try:
                 text = locator.inner_text().strip()
-            except Exception:
+                self.logger.log(f"[get_service_statuses] Raw text for service {idx}: '{text}'")
+                status = self._parse_service_status(text)
+                self.logger.log(f"[get_service_statuses] Parsed status for service {idx}: {status}")
+                statuses[idx] = status
+            except Exception as e:
+                self.logger.log_error(f"[get_service_statuses] Error getting status for service {idx}: {str(e)}")
                 text = ""
-            statuses[idx] = self._parse_service_status(text)
+                statuses[idx] = self._parse_service_status(text)
+        self.logger.log(f"[get_service_statuses] Final statuses: {statuses}")
         return statuses
 
-    def _services_from_claims(self, patient: Patient) -> List[int]:
-        """Determine which service checkboxes to select based on claim codes.
+    def _services_from_claims(self, claims: List[ClaimItem]) -> Set[int]:
+        """Return set of service indices from claims."""
+        indices = set()
+        self.logger.log(f"[_services_from_claims] Processing {len(claims)} claims")
+        for claim in claims:
+            self.logger.log(f"[_services_from_claims] Checking claim: {claim.vcode} - {claim.description}")
+            if claim.vcode in self._exam_codes:
+                self.logger.log(f"[_services_from_claims] Found exam code {claim.vcode}, adding index 0")
+                indices.add(0)
+            elif any(claim.vcode.startswith(code) for code in self._lens_codes):
+                self.logger.log(f"[_services_from_claims] Found lens code {claim.vcode}, adding index 2")
+                indices.add(2)
+            elif claim.vcode in self._frame_codes:
+                self.logger.log(f"[_services_from_claims] Found frame code {claim.vcode}, adding index 3")
+                indices.add(3)
+            else:
+                self.logger.log(f"[_services_from_claims] Code {claim.vcode} not mapped to any service")
+        self.logger.log(f"[_services_from_claims] Final service indices: {indices}")
+        return indices
 
-        Exam                     -> index 0
-        Contact Lens Service     -> index 1
-        Lens                     -> index 2
-        Frame                    -> index 3
-        Contact Lens             -> index 4
-
+    def is_exam_authorized(self, package_index: int = 0) -> bool:
+        """Check if the exam service is already authorized.
+        
         Args:
-            patient: ``Patient`` instance containing claim information.
-
+            package_index: The index of the package to check.
+            
         Returns:
-            List of checkbox indices corresponding to required services.
+            bool: True if exam service is authorized, False otherwise.
         """
-        if not patient.claims:
-            return []
+        try:
+            status = self.get_service_statuses(package_index).get(0, "unavailable")
+            self.logger.log(f"[is_exam_authorized] Exam service status: {status}")
+            return status == "authorized"
+        except Exception as e:
+            self.logger.log_error(f"[is_exam_authorized] Failed to check exam authorization: {str(e)}")
+            return False
 
-        select_exam = False
-        select_cl_service = False
-        select_lens = False
-        select_frame = False
-        select_contacts = False
-
-        for claim in patient.claims:
-            code = (claim.vcode or claim.code or "").upper()
-
-            # Exam codes
-            if code in {"92004", "92014"} or code.startswith("99") or \
-               code.startswith("S062") or code.startswith("S602"):
-                select_exam = True
-
-            # Contact lens material codes
-            if code.startswith("V252"):
-                select_contacts = True
-
-            # Frame codes
-            if code in {"V2020", "V2025"}:
-                select_frame = True
-
-            # Lens codes
-            if code.startswith(("V21", "V22", "V23")) or code.startswith("V2781"):
-                select_lens = True
-
-            # Contact lens service codes
-            if code.startswith("9231"):
-                select_cl_service = True
-
-        service_indices = []
-        if select_exam:
-            service_indices.append(0)
-        if select_cl_service:
-            service_indices.append(1)
-        if select_lens:
-            service_indices.append(2)
-        if select_frame:
-            service_indices.append(3)
-        if select_contacts:
-            service_indices.append(4)
-
-        return service_indices
-
-    def select_services_for_patient(self, patient: Patient, package_index: int = 0) -> str:
-        """Determine and select services for a patient based on claim data.
-
-        The method combines the claim-derived service list with the current
-        availability statuses on the page to decide the next action.
-
-        Returns a string describing the workflow decision:
-            ``"issue"``          - select services and issue a new authorization
-            ``"use_existing"``   - services already authorized exactly match
-            ``"delete_existing"``- existing authorization does not match claims
-            ``"unavailable"``    - a required service is unavailable or not
-                                   offered on the plan
-            ``"no_services"``    - no billable services were found
+    def select_services_for_patient(self, patient: Patient) -> str:
+        """Select all available services for a patient based on their claims.
+        
+        Returns:
+            str: One of:
+                "unavailable" - if any required service is unavailable
+                "use_existing" - if authorized services exactly match billed services
+                "delete_existing" - if there are authorized services but they don't match billed services
+                "issue" - if all billed services are available for authorization
+                "exam_authorized" - if exam is already authorized but materials are unavailable
         """
-        self.logger.log(f"[select_services_for_patient] Called for patient: {getattr(patient, 'first_name', None)} {getattr(patient, 'last_name', None)}")
-        self.logger.log(f"[select_services_for_patient] Claims: {getattr(patient, 'claims', None)}")
-        indices = self._services_from_claims(patient)
-        self.logger.log(f"[select_services_for_patient] Service indices from claims: {indices}")
-        if not indices:
-            self.logger.log("[select_services_for_patient] No billable services found in claims")
-            return "no_services"
-
-        statuses = self.get_service_statuses(package_index)
-        self.logger.log(f"[select_services_for_patient] Service statuses for package {package_index}: {statuses}")
-        desired_set = set(indices)
-        authorized_set = {i for i, s in statuses.items() if s == "authorized"}
-        self.logger.log(f"[select_services_for_patient] Desired set: {desired_set}")
-        self.logger.log(f"[select_services_for_patient] Authorized set: {authorized_set}")
-
+        self.logger.log(f"[select_services_for_patient] Called for patient: {patient.first_name} {patient.last_name}")
+        self.logger.log(f"[select_services_for_patient] Claims: {patient.claims}")
+        
+        # Get service indices from claims
+        service_indices = self._services_from_claims(patient.claims)
+        self.logger.log(f"[select_services_for_patient] Service indices from claims: {sorted(list(service_indices))}")
+        
+        # Get current service statuses
+        statuses = self.get_service_statuses()
+        self.logger.log(f"[select_services_for_patient] Service statuses for package 0: {statuses}")
+        
+        # Track which services we can and cannot authorize
+        desired = service_indices
+        authorized = {idx for idx, status in statuses.items() if status == "authorized"}
+        self.logger.log(f"[select_services_for_patient] Desired set: {desired}")
+        self.logger.log(f"[select_services_for_patient] Authorized set: {authorized}")
+        
+        # Check each service's status
         available = []
-        authorized = []
         unavailable = []
-
-        for idx in indices:
+        for idx in desired:
             status = statuses.get(idx, "unavailable")
             self.logger.log(f"[select_services_for_patient] Service idx {idx} has status: {status}")
             if status == "available":
                 available.append(idx)
-            elif status == "authorized":
-                authorized.append(idx)
-            else:
+            elif status == "unavailable":
                 unavailable.append(idx)
-
-        self.logger.log(f"[select_services_for_patient] Available: {available}, Authorized: {authorized}, Unavailable: {unavailable}")
-
+        
+        self.logger.log(f"[select_services_for_patient] Available: {available}, Authorized: {sorted(list(authorized))}, Unavailable: {unavailable}")
+        
+        # Log which services are unavailable
         if unavailable:
-            names = ", ".join(self.SERVICE_NAMES.get(i, str(i)) for i in unavailable)
-            self.logger.log(f"[select_services_for_patient] Services unavailable for authorization: {names}")
+            unavailable_services = []
+            for idx in unavailable:
+                if idx == 0:
+                    unavailable_services.append("exam")
+                elif idx == 2:
+                    unavailable_services.append("lens")
+                elif idx == 3:
+                    unavailable_services.append("frame")
+            self.logger.log(f"[select_services_for_patient] Services unavailable for authorization: {', '.join(unavailable_services)}")
+            
+            # Check if exam is already authorized when materials are unavailable
+            if 0 not in unavailable and self.is_exam_authorized():
+                self.logger.log("[select_services_for_patient] Exam is already authorized but materials are unavailable")
+                return "exam_authorized"
             return "unavailable"
-
-        if authorized_set == desired_set:
-            self.logger.log("[select_services_for_patient] Desired services already authorized - using existing authorization")
+        
+        # Check if authorized services exactly match desired services
+        if authorized == desired:
+            self.logger.log("[select_services_for_patient] Authorized services exactly match desired services")
             return "use_existing"
-
+        
+        # If there are any authorized services but they don't match desired services
         if authorized:
-            self.logger.log(f"[select_services_for_patient] Authorized services do not match desired - will delete authorization. Authorized: {authorized}, Desired: {indices}")
+            self.logger.log("[select_services_for_patient] Authorized services exist but don't match desired services")
             return "delete_existing"
+        
+        # If we get here, all services are available and none are authorized
+        self.logger.log("[select_services_for_patient] All services available for authorization")
+        if self.select_services(0, set(available)):
+            return "issue"
+        return "unavailable"  # Fallback if selection fails
 
-        self.logger.log(f"[select_services_for_patient] All required services available - selecting for authorization. Indices: {indices}")
-        self.select_services(indices, package_index)
-        return "issue"
-
-    def select_services(self, service_indices: List[int], package_index: int = 0) -> None:
-        """Select one or more service checkboxes by index if available."""
-        statuses = self.get_service_statuses(package_index)
-        for idx in service_indices:
-            # Missing status indicates the service is not offered on the plan
-            status = statuses.get(idx, "unavailable")
-            if status != "available":
-                self.logger.log(f"Skipping service {idx} due to status: {status}")
-                continue
-            try:
-                checkbox = self._service_checkbox(package_index, idx)
-                checkbox.click()
-                self.logger.log(f"Selected service checkbox {idx}")
-            except Exception as e:
-                self.logger.log_error(f"Failed to select service {idx}: {str(e)}")
+    def select_services(self, package_index: int, service_indices: Set[int]) -> bool:
+        """Select services in a package by clicking their checkboxes."""
+        self.logger.log(f"[select_services] Selecting services {service_indices} in package {package_index}")
+        try:
+            for idx in service_indices:
+                self.logger.log(f"[select_services] Attempting to select service {idx}")
+                checkbox = self.page.locator(f'[id="{package_index}-service-checkbox-{idx}"]')
+                if checkbox.is_visible():
+                    self.logger.log(f"[select_services] Found visible checkbox for service {idx}")
+                    checkbox.click()
+                    self.logger.log(f"[select_services] Clicked checkbox for service {idx}")
+                else:
+                    self.logger.log(f"[select_services] Checkbox for service {idx} not visible")
+            return True
+        except Exception as e:
+            self.logger.log_error(f"[select_services] Failed to select services: {str(e)}")
+            return False
 
     def select_all_services(self, package_index: int = 0) -> None:
         """Select the 'all available services' checkbox."""
