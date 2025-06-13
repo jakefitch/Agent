@@ -355,7 +355,8 @@ class AuthorizationPage(BasePage):
             ``"issue"``          - select services and issue a new authorization
             ``"use_existing"``   - services already authorized exactly match
             ``"delete_existing"``- existing authorization does not match claims
-            ``"unavailable"``    - one or more required services are unavailable
+            ``"unavailable"``    - a required service is unavailable or not
+                                   offered on the plan
             ``"no_services"``    - no billable services were found
         """
 
@@ -373,7 +374,9 @@ class AuthorizationPage(BasePage):
         unavailable = []
 
         for idx in indices:
-            status = statuses.get(idx, "available")
+            # If the status for a desired service is missing, the plan does not
+            # support it. Treat this the same as any other unavailable status.
+            status = statuses.get(idx, "unavailable")
             if status == "available":
                 available.append(idx)
             elif status == "authorized":
@@ -403,7 +406,8 @@ class AuthorizationPage(BasePage):
         """Select one or more service checkboxes by index if available."""
         statuses = self.get_service_statuses(package_index)
         for idx in service_indices:
-            status = statuses.get(idx, "available")
+            # Missing status indicates the service is not offered on the plan
+            status = statuses.get(idx, "unavailable")
             if status != "available":
                 self.logger.log(f"Skipping service {idx} due to status: {status}")
                 continue
