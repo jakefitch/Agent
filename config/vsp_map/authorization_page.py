@@ -7,6 +7,14 @@ from time import sleep
 class AuthorizationPage(BasePage):
     """Page object for interacting with VSP's authorization page."""
 
+    SERVICE_NAMES = {
+        0: "exam",
+        1: "contact_service",
+        2: "lens",
+        3: "frame",
+        4: "contacts",
+    }
+
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         super().__init__(page, logger, context)
         self.base_url = "https://eclaim.eyefinity.com/secure/eInsurance/member-search/patient-selection"
@@ -337,10 +345,59 @@ class AuthorizationPage(BasePage):
 
         return service_indices
 
-    def select_services_for_patient(self, patient: Patient, package_index: int = 0) -> None:
-        """Select services for a patient based on billing information."""
+    def select_services_for_patient(self, patient: Patient, package_index: int = 0) -> str:
+        """Determine and select services for a patient based on claim data.
+
+        The method combines the claim-derived service list with the current
+        availability statuses on the page to decide the next action.
+
+        Returns a string describing the workflow decision:
+            ``"issue"``          - select services and issue a new authorization
+            ``"use_existing"``   - services already authorized exactly match
+            ``"delete_existing"``- existing authorization does not match claims
+            ``"unavailable"``    - one or more required services are unavailable
+            ``"no_services"``    - no billable services were found
+        """
+
         indices = self._services_from_claims(patient)
+        if not indices:
+            self.logger.log("No billable services found in claims")
+            return "no_services"
+
+        statuses = self.get_service_statuses(package_index)
+        desired_set = set(indices)
+        authorized_set = {i for i, s in statuses.items() if s == "authorized"}
+
+        available = []
+        authorized = []
+        unavailable = []
+
+        for idx in indices:
+            status = statuses.get(idx, "available")
+            if status == "available":
+                available.append(idx)
+            elif status == "authorized":
+                authorized.append(idx)
+            else:
+                unavailable.append(idx)
+
+        if unavailable:
+            names = ", ".join(self.SERVICE_NAMES.get(i, str(i)) for i in unavailable)
+            self.logger.log(f"Services unavailable for authorization: {names}")
+            return "unavailable"
+
+        if authorized_set == desired_set:
+            self.logger.log("Desired services already authorized - using existing authorization")
+            return "use_existing"
+
+        if authorized:
+            self.logger.log("Authorized services do not match desired - will delete authorization")
+            return "delete_existing"
+
+        # All required services are available
+        self.logger.log("All required services available - selecting for authorization")
         self.select_services(indices, package_index)
+        return "issue"
 
     def select_services(self, service_indices: List[int], package_index: int = 0) -> None:
         """Select one or more service checkboxes by index if available."""
