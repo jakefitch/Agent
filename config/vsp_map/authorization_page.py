@@ -260,6 +260,8 @@ class AuthorizationPage(BasePage):
     def _parse_service_status(self, text: str) -> str:
         """Return standardized service status based on availability cell text."""
         value = text.strip()
+        if not value:
+            return "unavailable"
         lower = value.lower()
         if lower in {"yes", "available"}:
             return "available"
@@ -267,20 +269,18 @@ class AuthorizationPage(BasePage):
             return "authorized"
         return value  # assume a date string or unknown text
 
-    def get_service_statuses(self, package_index: int = 0) -> Dict[int, str]:
+    def get_service_statuses(self, package_index: int = 0, max_services: int = 5) -> Dict[int, str]:
         """Return availability status for each service in a package."""
         statuses: Dict[int, str] = {}
-        idx = 0
-        while True:
+        for idx in range(max_services):
             locator = self._service_availability(package_index, idx)
             if locator.count() == 0:
-                break
+                continue
             try:
                 text = locator.inner_text().strip()
             except Exception:
                 text = ""
             statuses[idx] = self._parse_service_status(text)
-            idx += 1
         return statuses
 
     def _services_from_claims(self, patient: Patient) -> List[int]:
