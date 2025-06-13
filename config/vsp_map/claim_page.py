@@ -157,15 +157,22 @@ class ClaimPage(BasePage):
             raise
 
     def submit_cl(self, patient: Patient) -> None:
-        """Submit the contact lens claim."""
+        """Fill contact lens information if present."""
+        contact_codes = {'V2500', 'V2501', 'V2502', 'V2503', 'V2520', 'V2521', 'V2522', 'V2523'}
+        cl_items = [c for c in patient.claims if c.code in contact_codes]
+        if not cl_items:
+            return
+        first = cl_items[0]
         try:
-            self.logger.log("Submitting contact lens claim...")
-            self.page.locator('#submit-cl-claim-button').click()
-            self.logger.log("Successfully submitted contact lens claim")
+            self.page.locator('#contacts-material-type-dropdown').select_option(first.code)
+            self.page.locator('#contacts-reason-dropdown').select_option("0")
+            self.page.locator('#contacts-manufacturer-dropdown').select_option(patient.insurance_data.get('cl_manufacturer', 'Other'))
+            self.page.locator('#contacts-brand-dropdown').select_option('Other')
+            self.page.locator('#contacts-number-of-boxes-textbox').fill(str(first.quantity))
+            self.page.locator('#additional-information-claim-input').fill(first.description)
         except Exception as e:
-            self.logger.log_error(f"Failed to submit contact lens claim: {str(e)}")
-            self.take_screenshot("claim_submit_cl_error")
-            raise
+            self.logger.log_error(f"Failed to submit CL info: {str(e)}")
+            self.take_screenshot("claim_cl_error")
 
     def disease_reporting(self, patient: Patient) -> None:
         """Enter diagnosis codes for services."""
@@ -311,19 +318,13 @@ class ClaimPage(BasePage):
             raise
 
     def set_gender(self, patient: Patient) -> None:
-        """Set the patient's gender."""
+        """Set patient gender switch."""
         try:
-            if not patient.gender:
-                self.logger.log_error("No gender provided for patient")
-                return
-
-            self.logger.log(f"Setting gender to {patient.gender}")
-            self.page.locator('#exam-gender').select_option(value=patient.gender)
-            
+            self.page.locator('#patient-sex-male-toggle' if patient.demographics.get('gender') == 'Male' else '#patient-sex-female-toggle').click()
         except Exception as e:
             self.logger.log_error(f"Failed to set gender: {str(e)}")
-            self.take_screenshot("claim_set_gender_error")
-            raise
+            self.take_screenshot("claim_gender_error")
+            
 
     def fill_address(self, patient: Patient) -> None:
         """Fill patient address if not already present."""
