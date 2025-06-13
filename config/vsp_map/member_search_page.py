@@ -5,6 +5,7 @@ from typing import Optional, Dict, List
 from datetime import datetime
 import re
 from time import sleep
+import time
 
 class MemberSearch(BasePage):
     """Class for handling VSP member search operations."""
@@ -109,27 +110,36 @@ class MemberSearch(BasePage):
     
     def _click_search_and_evaluate(self) -> bool:
         """Click search button and evaluate results.
-        
+
         Returns:
             bool: True if member was found and selected, False otherwise
         """
         try:
             self.logger.log("Clicking search button...")
             self.page.locator("#member-search-search-button").click()
+            self.page.wait_for_timeout(500)  # Let DOM settle
 
-            result = self.page.locator("#member-search-result-name-data")
-            try:
-                result.wait_for(state="visible", timeout=5000)
-                self.logger.log("Member found, selecting result...")
-                result.click()
-                return True
-            except Exception:
-                self.logger.log("No member found")
-                return False
+            selector = "#member-search-result-name-data"
+            start = time.time()
+            timeout_seconds = 5
+
+            while time.time() - start < timeout_seconds:
+                locator = self.page.locator(selector).first
+                if locator.is_visible() and locator.inner_text().strip():
+                    self.logger.log(f"Member found after {round(time.time() - start, 2)}s, selecting result...")
+                    locator.click()
+                    return True
+                self.page.wait_for_timeout(200)  # brief poll delay
+
+            self.logger.log(f"Member not found after {round(time.time() - start, 2)}s")
+            return False
+
         except Exception as e:
             self.logger.log(f"Error during search: {str(e)}")
             self.take_screenshot("search_error")
             return False
+
+
     
     def search_member_data(self, search_data: Dict) -> bool:
         """Search for a member using the provided search criteria.
@@ -214,12 +224,12 @@ class MemberSearch(BasePage):
                 sleep(1)
 
             self.logger.log("All search combinations failed to find a match")
-            return False
+            raise Exception("Stopping execution due to failed member search")
 
         except Exception as e:
             self.logger.log_error(f"Error during member search: {str(e)}")
             self.take_screenshot("member_search_list_error")
-            return False
+            raise
 
     def build_search_data(self, patient: Patient) -> List[Dict]:
         """Create an ordered list of search dictionaries for a patient.
