@@ -84,15 +84,48 @@ class ClaimPage(BasePage):
             self.take_screenshot("dos_set_error")
             return False
 
+    def _extract_exam_code(self, patient: Patient) -> Optional[str]:
+        """Return the exam code from ``patient.claims`` if present."""
+        exam_codes = {
+            "92002",
+            "92004",
+            "92012",
+            "92014",
+            "S0620",
+            "S0621",
+            "99202",
+            "99203",
+            "99204",
+            "99205",
+            "99211",
+            "99212",
+            "99213",
+            "99214",
+            "99215",
+        }
+
+        for item in getattr(patient, "claims", []):
+            code = (getattr(item, "vcode", "") or getattr(item, "code", "")).upper()
+            if code in exam_codes:
+                return code
+        return None
+
     def submit_exam(self, patient: Patient) -> None:
-        """Submit the exam claim."""
+        """Select the exam type for the claim based on patient data."""
         try:
-            self.logger.log("Submitting exam claim...")
-            self.page.locator('#submit-claim-button').click()
-            self.logger.log("Successfully submitted exam claim")
+            exam_code = self._extract_exam_code(patient)
+            if not exam_code:
+                self.logger.log_error("No exam code found to select")
+                return
+
+            dropdown = self.page.locator('#exam-type-group')
+            dropdown.wait_for(state='visible', timeout=5000)
+            dropdown.select_option(value=exam_code)
+            self.logger.log(f"Selected exam type {exam_code}")
+
         except Exception as e:
-            self.logger.log_error(f"Failed to submit exam claim: {str(e)}")
-            self.take_screenshot("claim_submit_error")
+            self.logger.log_error(f"Failed to select exam type: {str(e)}")
+            self.take_screenshot("exam_type_select_error")
             raise
 
     def set_doctor(self, patient: Patient) -> None:
