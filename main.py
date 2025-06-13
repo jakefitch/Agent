@@ -65,6 +65,7 @@ if __name__ == "__main__":
     sleep(2)
     vsp.authorization_page.select_authorization(patient)
     vsp.claim_page.set_dos(patient)
+    vsp.claim_page.set_doctor(patient)
 
     # Exam submission
     if flags["exam"]:
@@ -75,14 +76,14 @@ if __name__ == "__main__":
         vsp.claim_page.submit_frame(patient)
     if flags["lens"]:
         vsp.claim_page.submit_lens(patient)
-
-    # Send RX info if any eyewear or contact lenses are involved
-    if flags["lens"] or flags["contacts"] or flags["contact_service"]:
         vsp.claim_page.send_rx(patient)
 
+
     # Contact lens materials or services
-    if flags["contacts"] or flags["contact_service"]:
+    if flags["contacts"]:
         vsp.claim_page.submit_cl(patient)
+
+    vsp.claim_page.fill_pricing(patient)
 
     print("returning  to  patient  page")
     

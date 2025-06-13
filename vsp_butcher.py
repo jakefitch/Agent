@@ -12,94 +12,9 @@
 
     
 
-def set_dos(automation,member):
-    if not member.authorization:
-        error_msg = f'unable to obtain an authorization for {member.first_name} {member.last_name}'
-        print(error_msg)
-        raise Exception(error_msg)  # This will stop the entire claim submission process
-        
-    #try looking for a link that has an id 'cob-coverage-navigate-to-claim-link'
-    try:
-        cob_link = automation.short_wait_for_element(By.ID, "cob-coverage-navigate-to-claim-link")
-        if cob_link:
-            cob_link.click()
-    except Exception as e:
-        pass
-    
-    #wait for no overlay
-    automation.wait_for_no_overlay()
-    #print('overlay gone')
-    try:
-        dos_field = automation.wait_for_element(By.XPATH, "//*[@id='date-of-service']")
-        if not dos_field:
-            error_msg = f'DOS field not found for {member.first_name} {member.last_name} - authorization may not be valid'
-            print(error_msg)
-            raise Exception(error_msg)
-            
-        date_string = member.dos
-        for char in date_string:
-            dos_field.send_keys(char)
-        #print(f'Successfully set DOS for {member.first_name} {member.last_name}')
-    except Exception as e:
-        error_msg = f'error finding dos field: {e}. Authorization may not have been issued'
-        print(error_msg)
-        raise Exception(error_msg)
 
 
-def submitexam(automation,member):
 
-
-    new_exam = False
-    existing_exam = False
-
-    # Iterate through each dictionary in the list
-    for item in member.billed_items:
-        if item['code'] == '92004':
-            new_exam = True
-            break  # Exit the loop if the code is found
-
-    # Iterate through each dictionary in the list
-    for item in member.billed_items:
-        if item['code'] == '92014':
-            existing_exam = True
-            break  # Exit the loop if the code is found
-
-
-    #if doesn't have a new or existing exam code forget this function and move on
-    submit_refraction = False
-
-    if new_exam:
-        automation.wait_for_element(By.XPATH, "//*[@id=\"exam-type-group1-92004\"]").click()
-        submit_refraction = True
-    elif existing_exam:
-        automation.wait_for_element(By.XPATH, "//*[@id=\"exam-type-group1-92014\"]").click()
-        submit_refraction = True
-
-    sleep(.5)
-
-    if submit_refraction:
-        refractionbox = automation.wait_for_element(By.XPATH, "//*[@id='exam-refraction-performed-checkbox-input']")
-        refractionticked = refractionbox.is_selected()
-
-        if refractionticked == False:
-            sleep(.5)
-            refraction_tick = automation.wait_for_element(By.XPATH, "//*[@formcontrolname='refractionTestPerformed']")           
-            refraction_tick.click()     
-
-
-def setDr(automation,member):
-    sleep(1)
-    automation.execute_script("window.scrollTo(0, 50)")
-    sleep(1)
-
-    automation.wait_for_clickable(By.ID, "exam-rendering-provider-group").click()
-    sleep(1)
-    if "Fitch" in member.doctor:
-            automation.wait_for_element(By.XPATH,"//*[@id=\"exam-rendering-provider-1740293919\"]").click()
-    elif "Hollingsworth" in member.doctor:
-        automation.wait_for_element(By.XPATH, "//*[@id=\"exam-rendering-provider-1639335516\"]").click()
-    else:
-        automation.wait_for_element(By.XPATH, "//*[@id=\"exam-rendering-provider-1891366597\"]").click()
 
 
 def submit_cl(automation,member):
@@ -231,56 +146,8 @@ def submit_cl(automation,member):
     box_19.send_keys(cl_brand)
 
 
-def diseasereporting(automation,member):
-    automation.execute_script("window.scrollTo(0, 3600)")
-    #nocondition = automation.wait_for_element(By.CSS_SELECTOR, "#known-conditions-none-checkbox > label:nth-child(1) > div:nth-child(1)")
-    #noconditionselected = nocondition.is_selected()
-    #if noconditionselected == False:
-
-        #diseasereporting = automation.wait_for_element(By.CSS_SELECTOR, "#known-conditions-none-checkbox > label:nth-child(1) > div:nth-child(1)")
-        #diseasereporting.click()
-    
-    #else:
-
-        #pass
-    
-    if not member.diagnoses.startswith("H52."):
-        member.diagnoses = "H52.223"
-    
-    #if the member diagnoses im multiple diagnoses, split them at the , and only use the first one
-    if ',' in member.diagnoses:
-        member.diagnoses = member.diagnoses.split(',')[0]
-
-    diagnosisfield = automation.wait_for_element(By.XPATH, "//*[@id=\"services-diagnosis-code-A-textbox\"]")
-    diagnosisfield.click()
-    sleep(.5)
-    diagnosisfield.clear()
-    sleep(.5)
-    diagnosisfield.click()
-    diagnosisfield.send_keys(member.diagnoses)
-    #actions.perform()
-    sleep(.5)
 
 
-def calculate(automation,member):
-   # print('calculating')
-    automation.wait_for_element(By.XPATH, "//*[@id='claim-tracker-calculate']").click()
-    automation.wait_for_no_overlay()
-    #print('overlay gone')
-
-    try:
-        alert_box = automation.short_wait_for_element(By.XPATH, "//*[@id='warning-message-container']")
-            #get all of the inner text of the alert box
-        alert_message = alert_box.text
-        #print(alert_message)
-        if 'UPC and SKU' in alert_message:
-            acknowledge = automation.wait_for_element(By.XPATH, "//*[@class='mat-focus-indicator acknowledge-button mat-stroked-button mat-button-base mat-primary']")
-            acknowledge.click()
-            automation.wait_for_element(By.XPATH, "//*[@id='claim-tracker-calculate']").click()
-            automation.wait_for_no_overlay()
-            #print('overlay gone')
-    except:
-        pass
 
 
 def fillpricing(automation,member):
@@ -379,48 +246,6 @@ def fillpricing(automation,member):
     sleep(.5)
     
 
-def set_gender(automation,member):
-    automation.execute_script("window.scrollTo(0, 4725)")
-
-
-    if member.gender == 'Male':
-        automation.wait_for_element(By.XPATH, '//*[@id="patient-sex-male-toggle"]').click()
-    else:
-        automation.wait_for_element(By.XPATH, '//*[@id="patient-sex-female-toggle"]').click()
-
-
-def fill_address(automation,member):
-    automation.execute_script("window.scrollTo(0, 4725)")
-    sleep(.5)
-    address_field = automation.wait_for_element(By.XPATH, "//*[@id='patient-address1']")
-    #check to see if there is any text already in the address field
-    address_field_text = address_field.get_attribute('value')
-    #print(f'the address field contains: {address_field_text}')
-    if address_field_text == '':
-        address_field.send_keys(member.address)
-        automation.execute_script("window.scrollTo(0, 4725)")
-        city_field = automation.wait_for_element(By.XPATH, "//*[@id='patient-city-input']")
-        city_field.send_keys(member.city)
-        automation.execute_script("window.scrollTo(0, 4725)")
-
-        import us
-
-        def get_state_abbreviation(state_name):
-            state = us.states.lookup(state_name)
-            return state.abbr if state else None
-
-        abbreviated_state = get_state_abbreviation(member.state)
-        #select the state from a listbox by the state abbreviation text inside the class 'ng-option-label ng-star-inserted'
-        state_field = automation.wait_for_element(By.XPATH, "//*[@id='patient-state-input']")
-        state_field.click()
-        automation.send_keys(abbreviated_state)
-        sleep(.5)
-        automation.send_keys(Keys.ENTER)
-    
-        #state_field.send_keys(Keys.ENTER)
-        automation.execute_script("window.scrollTo(0, 4725)")
-        zip_field = automation.wait_for_element(By.XPATH, "//*[@id='patient-zip-code-input']")
-        zip_field.send_keys(member.zip)
 
 
 def click_submit_claim(automation,member):
