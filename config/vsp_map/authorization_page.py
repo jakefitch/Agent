@@ -359,24 +359,28 @@ class AuthorizationPage(BasePage):
                                    offered on the plan
             ``"no_services"``    - no billable services were found
         """
-
+        self.logger.log(f"[select_services_for_patient] Called for patient: {getattr(patient, 'first_name', None)} {getattr(patient, 'last_name', None)}")
+        self.logger.log(f"[select_services_for_patient] Claims: {getattr(patient, 'claims', None)}")
         indices = self._services_from_claims(patient)
+        self.logger.log(f"[select_services_for_patient] Service indices from claims: {indices}")
         if not indices:
-            self.logger.log("No billable services found in claims")
+            self.logger.log("[select_services_for_patient] No billable services found in claims")
             return "no_services"
 
         statuses = self.get_service_statuses(package_index)
+        self.logger.log(f"[select_services_for_patient] Service statuses for package {package_index}: {statuses}")
         desired_set = set(indices)
         authorized_set = {i for i, s in statuses.items() if s == "authorized"}
+        self.logger.log(f"[select_services_for_patient] Desired set: {desired_set}")
+        self.logger.log(f"[select_services_for_patient] Authorized set: {authorized_set}")
 
         available = []
         authorized = []
         unavailable = []
 
         for idx in indices:
-            # If the status for a desired service is missing, the plan does not
-            # support it. Treat this the same as any other unavailable status.
             status = statuses.get(idx, "unavailable")
+            self.logger.log(f"[select_services_for_patient] Service idx {idx} has status: {status}")
             if status == "available":
                 available.append(idx)
             elif status == "authorized":
@@ -384,21 +388,22 @@ class AuthorizationPage(BasePage):
             else:
                 unavailable.append(idx)
 
+        self.logger.log(f"[select_services_for_patient] Available: {available}, Authorized: {authorized}, Unavailable: {unavailable}")
+
         if unavailable:
             names = ", ".join(self.SERVICE_NAMES.get(i, str(i)) for i in unavailable)
-            self.logger.log(f"Services unavailable for authorization: {names}")
+            self.logger.log(f"[select_services_for_patient] Services unavailable for authorization: {names}")
             return "unavailable"
 
         if authorized_set == desired_set:
-            self.logger.log("Desired services already authorized - using existing authorization")
+            self.logger.log("[select_services_for_patient] Desired services already authorized - using existing authorization")
             return "use_existing"
 
         if authorized:
-            self.logger.log("Authorized services do not match desired - will delete authorization")
+            self.logger.log(f"[select_services_for_patient] Authorized services do not match desired - will delete authorization. Authorized: {authorized}, Desired: {indices}")
             return "delete_existing"
 
-        # All required services are available
-        self.logger.log("All required services available - selecting for authorization")
+        self.logger.log(f"[select_services_for_patient] All required services available - selecting for authorization. Indices: {indices}")
         self.select_services(indices, package_index)
         return "issue"
 
@@ -464,4 +469,40 @@ class AuthorizationPage(BasePage):
         except Exception as e:
             self.logger.log_error(f"Failed to navigate to claim form: {str(e)}")
             self.take_screenshot("claim_nav_error")
+            return False
+
+    def get_plan_name(self, patient: Patient) -> bool:
+        """Find the plan name and see if it is a plan that doesn't cover a product we tried to create a claim for
+        or if it was unavailable for the patient for any other reason. Log a note in the patient account to suggest looking for an
+        alternate plan.
+        """
+        try:
+            plan_name = self.page.locator('#coverage-summary-product-package-title-index-0').inner_text().strip()
+            self.logger.log(f"Plan name: {plan_name}")
+            #add the plan name to the patients insurance data   
+            patient.insurance_data['plan_name'] = plan_name
+            return True
+        except Exception as e:
+            self.logger.log_error(f"Failed to research authorization: {str(e)}")
+            return False
+
+    def get_exam_service(self, package_index: int = 0) -> bool:
+        """Check if exam service is available and click it if it is.
+
+        Args:
+            package_index: The index of the package to check.
+
+        Returns:
+            bool: True if exam service was available and clicked, False otherwise.
+        """
+        try:
+            # Check if exam service is available
+            status = self._service_availability(package_index, 0)
+            if status == 'available':
+                # Click the exam service checkbox
+                self.page.locator(f'[id="{package_index}-service-checkbox-0"]').click()
+                return True
+            return False
+        except Exception as e:
+            self.logger.log_error(f"Failed to check exam service: {str(e)}")
             return False

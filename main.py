@@ -47,15 +47,15 @@ if __name__ == "__main__":
     rev.insurance_tab.select_insurance("VSP")
     rev.insurance_tab.scrape_insurance(patient)
     rev.patient_page.click_patient_summary_menu()
-    if patient.has_optical_order:
-        rev.patient_page.expand_optical_orders()
-        sleep(2)
-        rev.patient_page.open_optical_order(patient)
-        rev.optical_order.scrape_frame_data(patient)
-        rev.optical_order.scrape_lens_data(patient)
-        rev.optical_order.scrape_optical_copay(patient)
-        rev.products.navigate_to_products()
-        rev.products.get_wholesale_price(patient)
+    #if patient.has_optical_order:
+        #rev.patient_page.expand_optical_orders()
+        #sleep(2)
+        #rev.patient_page.open_optical_order(patient)
+        #rev.optical_order.scrape_frame_data(patient)
+        #rev.optical_order.scrape_lens_data(patient)
+        #rev.optical_order.scrape_optical_copay(patient)
+        #rev.products.navigate_to_products()
+        #rev.products.get_wholesale_price(patient)
     patient.print_data()
 
     # Determine claim flags based on invoice items
@@ -63,7 +63,49 @@ if __name__ == "__main__":
 
     vsp.member_search_page.search_member(patient)
     sleep(2)
-    vsp.authorization_page.select_authorization(patient)
+    
+    vsp.authorization_page.select_patient(patient)
+    auth_status = vsp.authorization_page.select_services_for_patient(patient)
+
+    if auth_status == "unavailable":
+        
+        vsp.authorization_page.get_plan_name(patient)
+        #check the plan name from the insurance data
+        if patient.insurance_data['plan_name'] == "VSP Exam Plus Plan":
+            print("Plan is VSP Exam Plus Plan, submitting just exam")
+            vsp.authorization_page.get_exam_service()
+            vsp.authorization_page.issue_authorization(patient)
+            vsp.authorization_page.get_confirmation_number()
+            vsp.authorization_page.navigate_to_claim()
+            #unflag frame lens and contacts
+            flags["frame"] = False
+            flags["lens"] = False
+            flags["contacts"] = False
+            
+            
+        else:
+            print("Plan name is not familiar, skipping authorization")
+            raise Exception("Plan name is not familiar, skipping authorization")
+    elif auth_status == "use_existing":
+        print("Services already authorized for patient")
+        vsp.authorization_page.navigate_to_authorization_page()
+        vsp.authorization_page.select_authorization(patient)
+    elif auth_status == "delete_existing":
+        print("Services already authorized for patient")
+        vsp.authorization_page.navigate_to_authorization_page()
+        vsp.authorization_page.delete_authorization(patient)
+        vsp.authorization_page.select_patient(patient)
+        vsp.authorization_page.select_services(patient)
+        vsp.authorization_page.issue_authorization(patient)
+        vsp.authorization_page.get_confirmation_number()
+        vsp.authorization_page.navigate_to_claim()
+    elif auth_status == "issue":
+        print("Services already authorized for patient")
+        vsp.authorization_page.select_services(patient)
+        vsp.authorization_page.issue_authorization(patient)
+        vsp.authorization_page.get_confirmation_number()
+        vsp.authorization_page.navigate_to_claim()
+
     vsp.claim_page.set_dos(patient)
     vsp.claim_page.set_doctor(patient)
 
