@@ -433,7 +433,7 @@ class AuthorizationPage(BasePage):
     def issue_authorization(self, package_index: int = 0) -> bool:
         """Click the Issue Authorization button."""
         try:
-            button = self.page.locator(f'[id="{package_index}-issue-authorization-button"]')
+            button = self.page.locator(f'[id="0-issue-authorization-button"]')
             button.wait_for(state="visible", timeout=5000)
             button.click()
             return True
@@ -496,11 +496,10 @@ class AuthorizationPage(BasePage):
             bool: True if exam service was available and clicked, False otherwise.
         """
         try:
-            # Check if exam service is available
-            status = self._service_availability(package_index, 0)
-            if status == 'available':
-                # Click the exam service checkbox
-                self.page.locator(f'[id="{package_index}-service-checkbox-0"]').click()
+            # Directly check the exam service checkbox
+            checkbox = self.page.locator(f'[id="{package_index}-service-checkbox-0"]')
+            if checkbox.is_visible():
+                checkbox.click()
                 return True
             return False
         except Exception as e:

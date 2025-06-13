@@ -125,7 +125,12 @@ if __name__ == "__main__":
     if flags["contacts"]:
         vsp.claim_page.submit_cl(patient)
 
+    vsp.claim_page.disease_reporting(patient) 
+    vsp.claim_page.calculate_claim()
     vsp.claim_page.fill_pricing(patient)
+    vsp.claim_page.set_gender(patient)
+    vsp.claim_page.fill_address(patient)
+    vsp.claim_page.click_submit_claim()
 
     print("returning  to  patient  page")
     
