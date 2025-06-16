@@ -347,8 +347,21 @@ class ClaimPage(BasePage):
 
     def click_submit_claim(self) -> None:
         try:
+            # Click the initial submit claim button
             self.page.locator('#claimTracker-submitClaim').click()
-            self.wait_for_network_idle(timeout=10000)
+            
+            # Wait briefly for the confirmation popup
+            self.page.wait_for_timeout(1000)
+            
+            # Click the confirmation button in the popup
+            confirm_button = self.page.locator('#submit-claim-modal-ok-button')
+            if confirm_button.is_visible(timeout=5000):
+                confirm_button.click()
+                self.wait_for_network_idle(timeout=10000)
+            else:
+                self.logger.log_error("Confirmation popup not found after clicking submit claim")
+                self.take_screenshot("claim_submit_no_popup")
+                
         except Exception as e:
             self.logger.log_error(f"Submit claim failed: {str(e)}")
             self.take_screenshot("claim_submit_error")
@@ -501,4 +514,44 @@ class ClaimPage(BasePage):
         except Exception as e:
             self.logger.log_error(f"Failed to submit lens: {str(e)}")
             self.take_screenshot("claim_lens_error")
+
+    def fill_copay_and_fsa(self, patient: Patient) -> None:
+        """Fill out the copay amount and FSA paid amount fields if available.
+        
+        Args:
+            patient: Patient object containing the copay amount in insurance_data
+        """
+        try:
+            copay = str(patient.insurance_data.get("copay", ""))
+            if not copay:
+                self.logger.log("No copay amount found in patient data")
+                raise Exception("No copay amount found in patient data")
+
+            # Scroll to the patient paid section
+            self.page.evaluate("window.scrollTo(0, 4400)")
+            self.page.wait_for_timeout(1000)
+
+            # Fill copay amount
+            copay_field = self.page.locator("#services-patient-paid-amount-input")
+            if copay_field.is_visible(timeout=5000):
+                copay_field.click()
+                copay_field.fill(copay)
+                self.logger.log(f"Set patient paid amount to {copay}")
+            else:
+                self.logger.log_error("Could not find patient paid amount field")
+
+            # Try to fill FSA amount if field exists
+            try:
+                fsa_field = self.page.locator("#services-fsa-paid-input")
+                if fsa_field.is_visible(timeout=1000):  # Short timeout since this field is optional
+                    fsa_field.click()
+                    fsa_field.fill(copay)
+                    self.logger.log(f"Set FSA paid amount to {copay}")
+            except Exception as e:
+                self.logger.log("FSA paid field not found or not visible - this is expected in some cases")
+
+        except Exception as e:
+            self.logger.log_error(f"Failed to fill copay and FSA amounts: {str(e)}")
+            self.take_screenshot("claim_copay_fsa_error")
+            raise
 

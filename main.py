@@ -23,7 +23,7 @@ def launch_browser():
 
 
 if __name__ == "__main__":
-    load_dotenv("/home/jake/Code/.env")
+    load_dotenv("/home/printpc/Code/.env")
 
     p, browser, rev, vsp = launch_browser()
     #p, browser, rev = launch_browser()
