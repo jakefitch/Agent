@@ -359,6 +359,7 @@ class AuthorizationPage(BasePage):
         self.logger.log(f"[select_services_for_patient] Claims: {patient.claims}")
         
         # Get service indices from claims
+        sleep(1)
         service_indices = self._services_from_claims(patient.claims)
         self.logger.log(f"[select_services_for_patient] Service indices from claims: {sorted(list(service_indices))}")
         

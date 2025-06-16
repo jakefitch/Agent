@@ -116,7 +116,7 @@ if __name__ == "__main__":
         vsp.authorization_page.issue_authorization(patient)
         vsp.authorization_page.get_confirmation_number()
         vsp.authorization_page.navigate_to_claim()
-
+    sleep(2)
     vsp.claim_page.set_dos(patient)
     vsp.claim_page.set_doctor(patient)
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         vsp.claim_page.submit_cl(patient)
 
     vsp.claim_page.disease_reporting(patient) 
-    vsp.claim_page.calculate_claim()
+    vsp.claim_page.calculate(patient)
     vsp.claim_page.fill_pricing(patient)
     vsp.claim_page.set_gender(patient)
     vsp.claim_page.fill_address(patient)

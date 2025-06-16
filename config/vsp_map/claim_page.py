@@ -58,6 +58,7 @@ class ClaimPage(BasePage):
     # ------------------------------------------------------------------
     def set_dos(self, patient: Patient) -> bool:
         """Set the date of service on the claim form."""
+        sleep(1)
         try:
             dos = patient.insurance_data.get('dos')
             if not dos:
@@ -74,7 +75,7 @@ class ClaimPage(BasePage):
                 pass  # COB link not present or not visible, continue as normal
 
             dos_field = self.page.locator('#date-of-service')
-            dos_field.wait_for(state='visible', timeout=5000)
+            dos_field.wait_for(state='visible', timeout=15000)
             dos_field.click()
             dos_field.fill(dos)
             self.logger.log(f"Set date of service to {dos}")
@@ -82,7 +83,7 @@ class ClaimPage(BasePage):
         except Exception as e:
             self.logger.log_error(f"Failed to set date of service: {str(e)}")
             self.take_screenshot("dos_set_error")
-            return False
+            raise Exception("Failed to set date of service")
 
     def _extract_exam_code(self, patient: Patient) -> Optional[str]:
         """Return the exam code from ``patient.claims`` if present."""
@@ -132,7 +133,7 @@ class ClaimPage(BasePage):
         """Set the rendering provider."""
         try:
             # First click the dropdown to open it
-            n
+            
             self.logger.log("Clicked provider dropdown")
             
             # Wait a moment for the dropdown to fully open
@@ -176,6 +177,7 @@ class ClaimPage(BasePage):
 
     def disease_reporting(self, patient: Patient) -> None:
         """Enter diagnosis codes for services."""
+        sleep(1)
         diagnosis = patient.medical_data.get('dx')
         if not diagnosis:
             diagnosis = 'H52.223'
