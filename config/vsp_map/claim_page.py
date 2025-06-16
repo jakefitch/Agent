@@ -367,25 +367,53 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_submit_error")
 
     def submit_claim_and_handle_errors(self) -> bool:
-        """Submit the claim and check for potential error banners."""
+        """Submit the claim and handle any hard or soft edit banners.
+
+        Returns ``True`` if the page navigates away after submission. If the
+        claim is blocked by errors or warnings, the messages are logged and
+        saved using :func:`save_vsp_error_message` and ``False`` is returned.
+        """
         try:
             previous_url = self.page.url
-            self.page.locator('#claimTracker-submitClaim').click()
+
+            # Use the existing helper to click submit and confirm
+            self.click_submit_claim()
             self.wait_for_network_idle(timeout=10000)
 
             if self.page.url != previous_url:
                 self.logger.log("Claim submitted successfully.")
                 return True
 
-            banner = self.page.locator('div.error-message, .alert-banner, .vsp-error')
-            if banner.count() > 0 and banner.first.is_visible():
-                error_text = banner.first.inner_text().strip()
-                self.logger.log_error(f"Claim submission blocked: {error_text}")
+            errors = []
+            warnings = []
+
+            error_panel = self.page.locator("#error-message-container")
+            if error_panel.count() > 0 and error_panel.first.is_visible():
+                msg = error_panel.first.inner_text().strip()
+                errors.append(msg)
+
+            warning_panel = self.page.locator("#warning-message-container")
+            if warning_panel.count() > 0 and warning_panel.first.is_visible():
+                msg = warning_panel.first.inner_text().strip()
+                warnings.append(msg)
+                # Attempt to acknowledge/resolve the warning for logging purposes
                 try:
-                    save_vsp_error_message(error_text)
-                except Exception as e2:
-                    self.logger.log_error(f"Failed to save VSP error message: {str(e2)}")
+                    buttons = warning_panel.first.locator("button")
+                    for i in range(buttons.count()):
+                        btn = buttons.nth(i)
+                        btn.click()
+                        self.page.wait_for_timeout(500)
+                except Exception as e:
+                    self.logger.log_error(f"Failed to handle warning buttons: {str(e)}")
+
+            if errors or warnings:
+                for msg in errors + warnings:
+                    try:
+                        save_vsp_error_message(msg)
+                    except Exception as e2:
+                        self.logger.log_error(f"Failed to save VSP error message: {str(e2)}")
                 self.take_screenshot("claim_submit_blocked")
+                self.logger.log_error(f"Claim submission blocked. Errors: {errors}, Warnings: {warnings}")
                 return False
 
             self.logger.log_error("Claim did not redirect and no error banner detected.")
