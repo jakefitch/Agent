@@ -124,6 +124,14 @@ class ClaimPage(BasePage):
             dropdown.select_option(value=exam_code)
             self.logger.log(f"Selected exam type {exam_code}")
 
+            # Click the refraction performed checkbox
+            refraction_checkbox = self.page.locator('#exam-refraction-performed-checkbox')
+            if refraction_checkbox.is_visible(timeout=5000):
+                refraction_checkbox.click()
+                self.logger.log("Clicked refraction performed checkbox")
+            else:
+                self.logger.log_error("Could not find refraction performed checkbox")
+
         except Exception as e:
             self.logger.log_error(f"Failed to select exam type: {str(e)}")
             self.take_screenshot("exam_type_select_error")

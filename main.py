@@ -47,15 +47,15 @@ if __name__ == "__main__":
     rev.insurance_tab.select_insurance("VSP")
     rev.insurance_tab.scrape_insurance(patient)
     rev.patient_page.click_patient_summary_menu()
-    #if patient.has_optical_order:
-        #rev.patient_page.expand_optical_orders()
-        #sleep(2)
-        #rev.patient_page.open_optical_order(patient)
-        #rev.optical_order.scrape_frame_data(patient)
-        #rev.optical_order.scrape_lens_data(patient)
-        #rev.optical_order.scrape_optical_copay(patient)
-        #rev.products.navigate_to_products()
-        #rev.products.get_wholesale_price(patient)
+    if patient.has_optical_order:
+        rev.patient_page.expand_optical_orders()
+        sleep(2)
+        rev.patient_page.open_optical_order(patient)
+        rev.optical_order.scrape_frame_data(patient)
+        rev.optical_order.scrape_lens_data(patient)
+        rev.optical_order.scrape_optical_copay(patient)
+        rev.products.navigate_to_products()
+        rev.products.get_wholesale_price(patient)
     patient.print_data()
 
     # Determine claim flags based on invoice items
@@ -63,7 +63,8 @@ if __name__ == "__main__":
 
     vsp.member_search_page.search_member(patient)
     sleep(2)
-    
+    write_off_materials = False
+
     vsp.authorization_page.select_patient(patient)
     auth_status = vsp.authorization_page.select_services_for_patient(patient)
 
@@ -88,6 +89,7 @@ if __name__ == "__main__":
             flags["frame"] = False
             flags["lens"] = False
             flags["contacts"] = False
+            write_off_materials = True
             
             
         else:
@@ -141,6 +143,7 @@ if __name__ == "__main__":
     vsp.claim_page.fill_pricing(patient)
     vsp.claim_page.set_gender(patient)
     vsp.claim_page.fill_address(patient)
+    vsp.claim_page.fill_copay_and_fsa(patient)
     vsp.claim_page.click_submit_claim()
 
     print("returning  to  patient  page")
