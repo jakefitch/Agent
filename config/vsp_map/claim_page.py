@@ -194,8 +194,10 @@ class ClaimPage(BasePage):
         diagnosis = diagnosis.split(',')[0]
         try:
             field = self.page.locator('#services-diagnosis-code-A-textbox')
-            field.click()
+            
+
             field.fill(diagnosis)
+            self.logger.log(f"Filled diagnosis code: {diagnosis}")
         except Exception as e:
             self.logger.log_error(f"Failed disease reporting: {str(e)}")
             self.take_screenshot("claim_disease_report_error")

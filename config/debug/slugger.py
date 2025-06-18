@@ -384,8 +384,9 @@ def run_gui():
         method_dropdown['values'] = extract_method_names_by_class(filepath, selected_class)
         method_dropdown.set('')
 
-    def on_submit(include_html=False):
+    def on_submit():
         prompt = prompt_entry.get("1.0", "end-1c").strip()
+        html_context = html_entry.get("1.0", "end-1c").strip()
         filepath_input = filepath_entry.get().strip()
 
         if not prompt:
@@ -403,23 +404,23 @@ def run_gui():
                 # Build the prompt with context
                 prompt_parts = []
                 
-                # Add the original prompt
+                # Add the original prompt (main instruction)
                 prompt_parts.append(prompt)
                 
-                # Add destination file context if it exists
-                if filepath.exists():
-                    file_context = read_destination_file(filepath)
-                    if file_context:
-                        prompt_parts.append(f"\nHere is the current content of the destination file:\n```python\n{file_context}\n```")
+                # Add the rules about only returning code
+                prompt_parts.append("\n\nIMPORTANT: Return ONLY the function code, nothing else. Do not include any explanations, examples, or markdown formatting. Do not include any human-readable text or comments. The response should be a single, clean Python function.")
                 
-                # Add HTML state if requested
-                if include_html:
-                    html_state = read_html_state()
-                    if html_state:
-                        prompt_parts.append(f"\nHere is the HTML structure of the page:\n{html_state}")
-                        logging.info("Including HTML state in prompt")
-                    else:
-                        logging.warning("No HTML state file found, proceeding without it")
+                # Add HTML context if provided
+                if html_context:
+                    prompt_parts.append(f"\n\nHere is the HTML that is surrounding the locator we're trying to interact with:\n{html_context}")
+                    logging.info("Including HTML context in prompt")
+                
+                # Add code structure examples if destination file exists
+                if filepath.exists():
+                    file_context = read_destination_file(filepath, max_lines=300)
+                    if file_context:
+                        prompt_parts.append(f"\n\nPlease use the following provided examples of the class and method structures to make your methods compliant with the code's structure:\n```python\n{file_context}\n```")
+                        logging.info("Including code structure examples in prompt")
                 
                 # Combine all parts
                 final_prompt = "\n".join(prompt_parts)
@@ -451,7 +452,7 @@ def run_gui():
 
     root = tk.Tk()
     root.title("CodeClerk GUI")
-    root.geometry("800x600")  # Made window larger to accommodate log
+    root.geometry("800x700")  # Made window larger to accommodate HTML field
 
     # Create main frame
     main_frame = tk.Frame(root)
@@ -459,11 +460,17 @@ def run_gui():
 
     # Top section for inputs
     input_frame = tk.Frame(main_frame)
-    input_frame.pack(fill=tk.X, pady=(0, 10))
+    input_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
+    # Main prompt section
     tk.Label(input_frame, text="Enter your prompt:", font=("Arial", 12)).pack(pady=(0, 5))
     prompt_entry = tk.Text(input_frame, font=("Consolas", 11), height=4)
-    prompt_entry.pack(fill=tk.X, pady=(0, 5))
+    prompt_entry.pack(fill=tk.X, pady=(0, 10))
+
+    # HTML context section
+    tk.Label(input_frame, text="HTML Context (optional):", font=("Arial", 12)).pack(pady=(0, 5))
+    html_entry = tk.Text(input_frame, font=("Consolas", 11), height=3)
+    html_entry.pack(fill=tk.X, pady=(0, 10))
 
     path_frame = tk.Frame(input_frame)
     path_frame.pack(fill=tk.X, pady=5)
@@ -486,31 +493,16 @@ def run_gui():
     method_dropdown = ttk.Combobox(method_frame, font=("Consolas", 10), state="readonly")
     method_dropdown.pack(side="left", padx=5, fill=tk.X, expand=True)
 
-    # Button frame for the two buttons
-    button_frame = tk.Frame(input_frame)
-    button_frame.pack(fill=tk.X, pady=10)
-    
-    # Regular generate button
+    # Single generate button
     submit_button = tk.Button(
-        button_frame, 
+        input_frame, 
         text="Generate Code", 
-        command=lambda: on_submit(False), 
+        command=on_submit, 
         font=("Arial", 12), 
         bg="#4CAF50", 
         fg="white"
     )
-    submit_button.pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
-    
-    # Generate with HTML button
-    submit_with_html_button = tk.Button(
-        button_frame, 
-        text="Generate with HTML", 
-        command=lambda: on_submit(True), 
-        font=("Arial", 12), 
-        bg="#2196F3", 
-        fg="white"
-    )
-    submit_with_html_button.pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
+    submit_button.pack(fill=tk.X, pady=10)
 
     # Log section
     log_frame = tk.LabelFrame(main_frame, text="Log Output", font=("Arial", 10))

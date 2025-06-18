@@ -40,8 +40,6 @@ class Products(BasePage):
             self.page.wait_for_timeout(2000)  # 2 second delay
             
             # Wait for the products table to be visible
-            
-                
             self.logger.log("Successfully navigated to products page")
             
         except Exception as e:
@@ -59,38 +57,80 @@ class Products(BasePage):
                 return '64.95'
             self.logger.log(f"Searching for wholesale price of frame model: {model}")
 
-            # Clear any existing search
-            clear_search = self.page.locator('form.mrgn-btm:nth-child(1) > div:nth-child(4) > button:nth-child(2)')
-            clear_search.click()
-            self.page.wait_for_timeout(1000)
+            # First attempt - try the regular method
+            try:
+                # Clear any existing search
+                clear_search = self.page.locator('form.mrgn-btm:nth-child(1) > div:nth-child(4) > button:nth-child(2)')
+                clear_search.click()
+                self.page.wait_for_timeout(1000)
 
-            # Enter model in search field
-            search_field = self.page.locator("[name='productSimpleSearch']")
-            search_field.fill(model)
-            search_field.press('Enter')
-            self.page.wait_for_timeout(2000)
+                # Enter model in search field
+                search_field = self.page.locator("[name='productSimpleSearch']")
+                search_field.fill(model)
+                search_field.press('Enter')
+                self.page.wait_for_timeout(2000)
 
-            # Click on the frame link
-            frame_link = self.page.locator(f"[uib-popover='{model}']")
-            frame_link.click()
-            self.page.wait_for_timeout(1000)
+                # Click on the frame link
+                frame_link = self.page.locator(f"[uib-popover='{model}']")
+                frame_link.click()
+                self.page.wait_for_timeout(1000)
 
-            # Get the wholesale price
-            wholesale_field = self.page.locator('rev-currency-input input.form-control[type="text"]').nth(2)
-            wholesale = wholesale_field.input_value()
+                # Get the wholesale price
+                wholesale_field = self.page.locator('rev-currency-input input.form-control[type="text"]').nth(2)
+                wholesale = wholesale_field.input_value()
 
-            if wholesale:
-                self.logger.log(f"Found wholesale price: {wholesale}")
-                patient.frames['wholesale_price'] = wholesale
-                return wholesale
-            else:
-                self.logger.log("No wholesale price found, using default")
-                patient.frames['wholesale_price'] = '64.95'
-                return '64.95'
+                if wholesale:
+                    self.logger.log(f"Found wholesale price: {wholesale}")
+                    patient.frames['wholesale_price'] = wholesale
+                    return wholesale
+                else:
+                    raise Exception("No wholesale price found in first attempt")
+
+            except Exception as first_attempt_error:
+                self.logger.log(f"First attempt failed: {str(first_attempt_error)}")
+                self.logger.log("Trying with set_button_icon_all()...")
+                
+                # Second attempt - try with set_button_icon_all
+                try:
+                    # Set button icon to "All"
+                    self.set_button_icon_all()
+                    self.page.wait_for_timeout(1000)
+                    
+                    # Clear any existing search
+                    clear_search = self.page.locator('form.mrgn-btm:nth-child(1) > div:nth-child(4) > button:nth-child(2)')
+                    clear_search.click()
+                    self.page.wait_for_timeout(1000)
+
+                    # Enter model in search field
+                    search_field = self.page.locator("[name='productSimpleSearch']")
+                    search_field.fill(model)
+                    search_field.press('Enter')
+                    self.page.wait_for_timeout(2000)
+
+                    # Click on the frame link
+                    frame_link = self.page.locator(f"[uib-popover='{model}']")
+                    frame_link.click()
+                    self.page.wait_for_timeout(1000)
+
+                    # Get the wholesale price
+                    wholesale_field = self.page.locator('rev-currency-input input.form-control[type="text"]').nth(2)
+                    wholesale = wholesale_field.input_value()
+
+                    if wholesale:
+                        self.logger.log(f"Found wholesale price on second attempt: {wholesale}")
+                        patient.frames['wholesale_price'] = wholesale
+                        return wholesale
+                    else:
+                        raise Exception("No wholesale price found in second attempt")
+
+                except Exception as second_attempt_error:
+                    self.logger.log(f"Second attempt also failed: {str(second_attempt_error)}")
+                    raise Exception(f"Both attempts failed. First: {str(first_attempt_error)}, Second: {str(second_attempt_error)}")
 
         except Exception as e:
             self.logger.log_error(f"Failed to get wholesale price: {str(e)}")
             self.take_screenshot("Failed to get wholesale price")
+            self.logger.log("Using default wholesale price: 64.95")
             patient.frames['wholesale_price'] = '64.95'
             return '64.95'
         finally:
@@ -164,3 +204,15 @@ class Products(BasePage):
             self.logger.log_error(f"Failed to close product tab(s): {str(e)}")
             self.take_screenshot("Failed to close product tab")
             raise
+
+    def set_button_icon_all(self):
+        try:
+            self.logger.log("Setting button icon to 'All'...")
+            all_radio_button = self.page.locator('input[type="radio"][value="-1"]').filter(has_text="All")
+            all_radio_button.click()
+            self.logger.log("Successfully set button icon to 'All'")
+        except Exception as e:
+            self.logger.log_error(f"Failed to set button icon to 'All': {str(e)}")
+            self.take_screenshot("Failed to set button icon to 'All'")
+            raise
+

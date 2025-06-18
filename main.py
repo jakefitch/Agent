@@ -23,7 +23,7 @@ def launch_browser():
 
 
 if __name__ == "__main__":
-    load_dotenv("/home/printpc/Code/.env")
+    load_dotenv("/home/jake/Code/.env")
 
     p, browser, rev, vsp = launch_browser()
     #p, browser, rev = launch_browser()
@@ -73,6 +73,8 @@ if __name__ == "__main__":
         vsp.authorization_page.get_plan_name(patient)
         #check the plan name from the insurance data
         if patient.insurance_data['plan_name'] == "VSP Exam Plus Plan":
+            #set the patient copay to 0
+            patient.copay = 0
             print("Plan is VSP Exam Plus Plan, submitting just exam")
             vsp.authorization_page.get_exam_service() #THIS STILL NEEDS TO CHECK IF THE EXAM IS AVAILABLE FOR AUTHORIZATION
             if auth_status == "unavailable":               
