@@ -384,3 +384,7 @@ class MemberSearch(BasePage):
                 unique_data.append(item)
 
         return unique_data
+
+    
+
+

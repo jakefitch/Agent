@@ -266,13 +266,30 @@ class BasePage:
             self.logger.log(f"[DEBUG] Creating debug directory: {debug_dir}")
             os.makedirs(debug_dir, exist_ok=True)
             
+            # Scroll to capture full page content
+            self.logger.log("[DEBUG] Scrolling to capture full page content")
+            try:
+                # Get page height
+                page_height = self.page.evaluate("document.documentElement.scrollHeight")
+                viewport_height = self.page.evaluate("window.innerHeight")
+                
+                # Scroll to bottom
+                self.page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+                # Wait for any lazy-loaded content
+                self.page.wait_for_timeout(1000)
+                # Scroll back to top
+                self.page.evaluate("window.scrollTo(0, 0)")
+                self.page.wait_for_timeout(500)
+            except Exception as e:
+                self.logger.log_error(f"[DEBUG] Scrolling failed: {str(e)}")
+            
             # Save screenshot with timeout and error handling
             screenshot_path = os.path.join(debug_dir, f"{name}.png")
             self.logger.log(f"[DEBUG] Saving screenshot to: {screenshot_path}")
             try:
                 # Try to take screenshot immediately with a short timeout
                 self.logger.log("[DEBUG] Attempting immediate screenshot")
-                self.page.screenshot(path=screenshot_path, timeout=3000)
+                self.page.screenshot(path=screenshot_path, timeout=3000, full_page=True)
                 self.logger.log("[DEBUG] Screenshot saved successfully")
             except Exception as e:
                 self.logger.log_error(f"[DEBUG] Immediate screenshot failed: {str(e)}")
@@ -296,7 +313,9 @@ class BasePage:
             
             # Save HTML soup
             self.logger.log("[DEBUG] Getting page soup")
-            soup = self.get_page_soup()
+            # Get the full HTML content after scrolling
+            html_content = self.page.evaluate("document.documentElement.outerHTML")
+            soup = BeautifulSoup(html_content, 'html.parser')
             html_path = os.path.join(debug_dir, f"{name}.html")
             self.logger.log(f"[DEBUG] Saving HTML to: {html_path}")
             with open(html_path, 'w', encoding='utf-8') as f:
@@ -309,6 +328,13 @@ class BasePage:
             self.logger.log_error(f"Error type: {type(e).__name__}")
             self.take_screenshot("Failed to save page state")
             raise
+
+    def save_state(self) -> None:
+        """Save both a screenshot and HTML soup of the current page state using default filenames.
+        
+        This is a simplified version of save_page_state that uses 'state' as the base filename.
+        """
+        self.save_page_state("state")
 
     def wait_for_network_idle(self, timeout: int = 30000) -> bool:
         """Wait until the page's network activity has settled."""

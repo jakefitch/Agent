@@ -5,8 +5,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 import re
-import ast
-import textwrap
 from datetime import datetime
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -38,69 +36,54 @@ def extract_all_code_blocks(response: str) -> str:
 
 
 def extract_class_names(filepath: Path):
-    """Return a list of top level class names in ``filepath`` using ``ast``."""
     if not filepath.exists():
         return []
     try:
-        tree = ast.parse(filepath.read_text())
-        return [node.name for node in tree.body if isinstance(node, ast.ClassDef)]
+        with open(filepath, "r") as f:
+            content = f.read()
+        return re.findall(r"^class (\w+)", content, re.MULTILINE)
     except Exception as e:
         console.print(f"[red]Failed to read classes from file: {e}[/red]")
         return []
 
 
 def extract_method_names_by_class(filepath: Path, class_name: str):
-    """Return method names for ``class_name`` using ``ast``."""
     if not filepath.exists() or not class_name:
         return []
     try:
-        tree = ast.parse(filepath.read_text())
-        for node in tree.body:
-            if isinstance(node, ast.ClassDef) and node.name == class_name:
-                return [n.name for n in node.body if isinstance(n, ast.FunctionDef) and n.name != "__init__"]
-        return []
+        with open(filepath, "r") as f:
+            lines = f.readlines()
+
+        inside_class = False
+        indent_level = None
+        methods = []
+
+        for line in lines:
+            if re.match(rf"^class {class_name}\b", line):
+                inside_class = True
+                continue
+            if inside_class:
+                if re.match(r"^\S", line):  # outdent = end of class
+                    break
+                method_match = re.match(r"^(\s+)def (\w+)\(", line)
+                if method_match:
+                    if indent_level is None:
+                        indent_level = len(method_match.group(1))
+                    if len(method_match.group(1)) == indent_level:
+                        method_name = method_match.group(2)
+                        if method_name != "__init__":
+                            methods.append(method_name)
+
+        return methods
     except Exception as e:
         console.print(f"[red]Failed to read methods for class {class_name}: {e}[/red]")
         return []
 
 
-def insert_or_replace_in_class(filepath: Path, class_name: str, method_name: str | None, content: str, prompt: str):
-    """Insert a new method or replace an existing one using ``ast``."""
+def insert_or_replace_in_class(filepath: Path, class_name: str, method_name: str, content: str, prompt: str):
     try:
-        source = filepath.read_text() if filepath.exists() else ""
-        tree = ast.parse(source)
-
-        # locate or create the class
-        target_class = None
-        for node in tree.body:
-            if isinstance(node, ast.ClassDef) and node.name == class_name:
-                target_class = node
-                break
-
-        if target_class is None:
-            target_class = ast.ClassDef(name=class_name, bases=[], keywords=[], body=[], decorator_list=[])
-            tree.body.append(target_class)
-
-        # remove placeholder pass
-        target_class.body = [n for n in target_class.body if not isinstance(n, ast.Pass)]
-
-        snippet = ast.parse(textwrap.dedent(content))
-        func_nodes = [n for n in snippet.body if isinstance(n, ast.FunctionDef)]
-        if not func_nodes:
-            console.print("[red]No function definition found in generated code.[/red]")
-            return
-        func = func_nodes[0]
-
-        replaced = False
-        if method_name:
-            for i, n in enumerate(target_class.body):
-                if isinstance(n, ast.FunctionDef) and n.name == method_name:
-                    target_class.body[i] = func
-                    replaced = True
-                    break
-
-        if not replaced:
-            target_class.body.append(func)
+        with open(filepath, "r") as f:
+            lines = f.readlines()
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         header = (
@@ -111,10 +94,41 @@ def insert_or_replace_in_class(filepath: Path, class_name: str, method_name: str
             + "#" * 80 + "\n"
         )
 
-        new_source = ast.unparse(tree)
-        filepath.write_text(header + new_source + "\n")
+        new_lines = []
+        inside_class = False
+        inside_target_method = False
+        indent = "    "
+        replaced = False
 
-        console.print(f"✅ {'Replaced' if replaced else 'Inserted'} method in class '{class_name}' in [bold green]{filepath}[/bold green]")
+        for i, line in enumerate(lines):
+            if re.match(rf"^class {class_name}\b", line):
+                inside_class = True
+                new_lines.append(line)
+                continue
+            if inside_class:
+                if re.match(r"^\S", line):  # dedent = class ends
+                    if not replaced and method_name:
+                        new_lines.append(f"{indent}# insert failed, method not found\n")
+                    if not method_name:
+                        new_lines.append("\n" + indent + header.replace("\n", f"\n{indent}") + indent + content.replace("\n", f"\n{indent}") + "\n")
+                    inside_class = False
+                if method_name:
+                    if re.match(rf"^\s+def {method_name}\(", line):
+                        inside_target_method = True
+                        replaced = True
+                        new_lines.append("\n" + indent + header.replace("\n", f"\n{indent}") + indent + content.replace("\n", f"\n{indent}") + "\n")
+                        continue
+                    if inside_target_method and re.match(r"^\s+def ", line):
+                        inside_target_method = False
+                if not inside_target_method:
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+
+        with open(filepath, "w") as f:
+            f.writelines(new_lines)
+
+        console.print(f"✅ {'Replaced' if method_name else 'Inserted'} into class '{class_name}' in [bold green]{filepath}[/bold green]")
     except Exception as e:
         console.print(f"[red]Failed to inject code: {e}[/red]")
 
