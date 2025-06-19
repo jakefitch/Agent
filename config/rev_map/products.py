@@ -96,20 +96,11 @@ class Products(BasePage):
                     self.set_button_icon_all()
                     self.page.wait_for_timeout(1000)
                     
-                    # Clear any existing search
-                    clear_search = self.page.locator('form.mrgn-btm:nth-child(1) > div:nth-child(4) > button:nth-child(2)')
-                    clear_search.click()
-                    self.page.wait_for_timeout(1000)
-
-                    # Enter model in search field
-                    search_field = self.page.locator("[name='productSimpleSearch']")
-                    search_field.fill(model)
-                    search_field.press('Enter')
-                    self.page.wait_for_timeout(2000)
+                   
 
                     # Click on the frame link
                     frame_link = self.page.locator(f"[uib-popover='{model}']")
-                    frame_link.click()
+                    frame_link.click(timeout=2000)
                     self.page.wait_for_timeout(1000)
 
                     # Get the wholesale price
@@ -208,8 +199,8 @@ class Products(BasePage):
     def set_button_icon_all(self):
         try:
             self.logger.log("Setting button icon to 'All'...")
-            all_radio_button = self.page.locator('input[type="radio"][value="-1"]').filter(has_text="All")
-            all_radio_button.click()
+            all_radio_button = self.page.get_by_role("radio", name="All")
+            all_radio_button.check()
             self.logger.log("Successfully set button icon to 'All'")
         except Exception as e:
             self.logger.log_error(f"Failed to set button icon to 'All': {str(e)}")

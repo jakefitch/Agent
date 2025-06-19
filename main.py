@@ -37,7 +37,7 @@ if __name__ == "__main__":
     rev.invoice_page.navigate_to_invoices_page()
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
-    rev.invoice_page.open_invoice("276285548")
+    rev.invoice_page.open_invoice("277175912")
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
@@ -66,6 +66,7 @@ if __name__ == "__main__":
     write_off_materials = False
 
     vsp.authorization_page.select_patient(patient)
+    sleep(1)
     auth_status = vsp.authorization_page.select_services_for_patient(patient)
 
     if auth_status == "unavailable" or auth_status == "exam_authorized":
@@ -74,7 +75,8 @@ if __name__ == "__main__":
         #check the plan name from the insurance data
         if patient.insurance_data['plan_name'] == "VSP Exam Plus Plan":
             #set the patient copay to 0
-            patient.copay = 0
+            patient.insurance_data['copay'] = "0.00"
+            patient.print_data()
             print("Plan is VSP Exam Plus Plan, submitting just exam")
             vsp.authorization_page.get_exam_service() #THIS STILL NEEDS TO CHECK IF THE EXAM IS AVAILABLE FOR AUTHORIZATION
             if auth_status == "unavailable":               
@@ -103,20 +105,20 @@ if __name__ == "__main__":
 
     elif auth_status == "use_existing":
         print("Services already authorized for patient")
-        vsp.authorization_page.navigate_to_authorization_page()
+        vsp.authorization_page.navigate_to_authorizations()
         vsp.authorization_page.select_authorization(patient)
     elif auth_status == "delete_existing":
         print("Services already authorized for patient")
-        vsp.authorization_page.navigate_to_authorization_page()
+        vsp.authorization_page.navigate_to_authorizations()
         vsp.authorization_page.delete_authorization(patient)
         vsp.authorization_page.select_patient(patient)
-        vsp.authorization_page.select_services(patient)
+        vsp.authorization_page.select_services_for_patient(patient)
         vsp.authorization_page.issue_authorization(patient)
         vsp.authorization_page.get_confirmation_number()
         vsp.authorization_page.navigate_to_claim()
     elif auth_status == "issue":
         print("Services already authorized for patient")
-        vsp.authorization_page.select_services(patient)
+        vsp.authorization_page.select_services_for_patient(patient)
         vsp.authorization_page.issue_authorization(patient)
         vsp.authorization_page.get_confirmation_number()
         vsp.authorization_page.navigate_to_claim()
@@ -145,9 +147,9 @@ if __name__ == "__main__":
     vsp.claim_page.fill_pricing(patient)
     vsp.claim_page.set_gender(patient)
     vsp.claim_page.fill_address(patient)
-    vsp.claim_page.fill_copay_and_fsa(patient)
-    vsp.claim_page.click_submit_claim()
-
+    success = vsp.claim_page.click_submit_claim()
+    if not success:
+        pass
     print("returning  to  patient  page")
     
 

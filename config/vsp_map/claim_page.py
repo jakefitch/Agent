@@ -5,6 +5,7 @@ from core.logger import Logger
 from core.base import PatientContext, BasePage, Patient
 from time import sleep
 from config.debug.vsp_error_tracker import save_vsp_error_message
+import time
 
 
 class ClaimPage(BasePage):
@@ -124,13 +125,21 @@ class ClaimPage(BasePage):
             dropdown.select_option(value=exam_code)
             self.logger.log(f"Selected exam type {exam_code}")
 
-            # Click the refraction performed checkbox
             refraction_checkbox = self.page.locator('#exam-refraction-performed-checkbox')
+
+            # Only click if not already checked
             if refraction_checkbox.is_visible(timeout=5000):
-                refraction_checkbox.click()
-                self.logger.log("Clicked refraction performed checkbox")
+                is_checked = refraction_checkbox.get_attribute("class")
+                if "mat-checkbox-checked" not in is_checked:
+                    # Click the inner box (where the check toggle actually happens)
+                    click_target = refraction_checkbox
+                    click_target.click()
+                    self.logger.log("Checked refraction performed checkbox")
+                else:
+                    self.logger.log("Refraction checkbox already checked")
             else:
-                self.logger.log_error("Could not find refraction performed checkbox")
+                self.logger.log_error("Refraction checkbox not visible")
+
 
         except Exception as e:
             self.logger.log_error(f"Failed to select exam type: {str(e)}")
@@ -355,85 +364,8 @@ class ClaimPage(BasePage):
             self.logger.log_error(f"Failed to fill address: {str(e)}")
             self.take_screenshot("claim_address_error")
 
-    def click_submit_claim(self) -> None:
-        try:
-            # Click the initial submit claim button
-            self.page.locator('#claimTracker-submitClaim').click()
-            
-            # Wait briefly for the confirmation popup
-            self.page.wait_for_timeout(1000)
-            
-            # Click the confirmation button in the popup
-            confirm_button = self.page.locator('#submit-claim-modal-ok-button')
-            if confirm_button.is_visible(timeout=5000):
-                confirm_button.click()
-                self.wait_for_network_idle(timeout=10000)
-            else:
-                self.logger.log_error("Confirmation popup not found after clicking submit claim")
-                self.take_screenshot("claim_submit_no_popup")
-                
-        except Exception as e:
-            self.logger.log_error(f"Submit claim failed: {str(e)}")
-            self.take_screenshot("claim_submit_error")
-
-    def submit_claim_and_handle_errors(self) -> bool:
-        """Submit the claim and handle any hard or soft edit banners.
-
-        Returns ``True`` if the page navigates away after submission. If the
-        claim is blocked by errors or warnings, the messages are logged and
-        saved using :func:`save_vsp_error_message` and ``False`` is returned.
-        """
-        try:
-            previous_url = self.page.url
-
-            # Use the existing helper to click submit and confirm
-            self.click_submit_claim()
-            self.wait_for_network_idle(timeout=10000)
-
-            if self.page.url != previous_url:
-                self.logger.log("Claim submitted successfully.")
-                return True
-
-            errors = []
-            warnings = []
-
-            error_panel = self.page.locator("#error-message-container")
-            if error_panel.count() > 0 and error_panel.first.is_visible():
-                msg = error_panel.first.inner_text().strip()
-                errors.append(msg)
-
-            warning_panel = self.page.locator("#warning-message-container")
-            if warning_panel.count() > 0 and warning_panel.first.is_visible():
-                msg = warning_panel.first.inner_text().strip()
-                warnings.append(msg)
-                # Attempt to acknowledge/resolve the warning for logging purposes
-                try:
-                    buttons = warning_panel.first.locator("button")
-                    for i in range(buttons.count()):
-                        btn = buttons.nth(i)
-                        btn.click()
-                        self.page.wait_for_timeout(500)
-                except Exception as e:
-                    self.logger.log_error(f"Failed to handle warning buttons: {str(e)}")
-
-            if errors or warnings:
-                for msg in errors + warnings:
-                    try:
-                        save_vsp_error_message(msg)
-                    except Exception as e2:
-                        self.logger.log_error(f"Failed to save VSP error message: {str(e2)}")
-                self.take_screenshot("claim_submit_blocked")
-                self.logger.log_error(f"Claim submission blocked. Errors: {errors}, Warnings: {warnings}")
-                return False
-
-            self.logger.log_error("Claim did not redirect and no error banner detected.")
-            self.take_screenshot("claim_submit_unknown")
-            return False
-
-        except Exception as e:
-            self.logger.log_error(f"Submit claim threw exception: {str(e)}")
-            self.take_screenshot("claim_submit_exception")
-            return False
+    
+    
 
     def generate_report(self) -> None:
         try:
@@ -592,4 +524,319 @@ class ClaimPage(BasePage):
             self.logger.log_error(f"Failed to fill copay and FSA amounts: {str(e)}")
             self.take_screenshot("claim_copay_fsa_error")
             raise
+
+    def handle_popup_window(self) -> bool:
+        """Handle popup window that may open after claim submission.
+        
+        Returns:
+            bool: True if popup was handled successfully, False otherwise
+        """
+        try:
+            # Wait for a new page to open (popup window)
+            popup_page = self.context.wait_for_event('page', timeout=5000)
+            self.logger.log("Popup window detected, switching to it...")
+            
+            # Switch to the popup page
+            popup_page.wait_for_load_state()
+            self.logger.log(f"Popup page loaded: {popup_page.url}")
+            
+            # Perform actions in the popup window
+            success = self.perform_popup_actions(popup_page)
+            
+            # Close the popup window
+            popup_page.close()
+            self.logger.log("Popup window closed")
+            
+            return success
+            
+        except Exception as e:
+            self.logger.log(f"No popup window opened or popup handling failed: {str(e)}")
+            return False
+
+    def perform_popup_actions(self, popup_page) -> bool:
+        """Perform specific actions in the popup window.
+        
+        This handles the frameset-based report popup with:
+        - rptTop frame (contains tab bar with "Service Report")
+        - rptPage frame (main preview panel)
+        - rptPrint frame (hidden/printing)
+        
+        Args:
+            popup_page: The popup page object to interact with
+            
+        Returns:
+            bool: True if actions were successful, False otherwise
+        """
+        try:
+            self.logger.log("Performing actions in popup window...")
+            
+            # Wait for the popup to fully load
+            popup_page.wait_for_load_state("domcontentloaded")
+            self.logger.log("Popup page loaded, accessing frames...")
+            
+            # Step 1: Access the rptTop frame (contains the tab bar)
+            try:
+                rpt_top = popup_page.frame(name="rptTop")
+                if not rpt_top:
+                    self.logger.log_error("Could not find rptTop frame")
+                    return False
+                self.logger.log("Successfully accessed rptTop frame")
+            except Exception as e:
+                self.logger.log_error(f"Failed to access rptTop frame: {str(e)}")
+                return False
+            
+            # Step 2: Click the "Service Report" tab in rptTop frame
+            try:
+                # Try multiple approaches to find and click the Service Report tab
+                service_report_clicked = False
+                
+                # Approach 1: Try role-based locator
+                try:
+                    service_report_link = rpt_top.get_by_role("link", name="Service Report")
+                    if service_report_link.is_visible(timeout=3000):
+                        service_report_link.click()
+                        service_report_clicked = True
+                        self.logger.log("Clicked Service Report tab using role-based locator")
+                except Exception as e1:
+                    self.logger.log(f"Role-based locator failed: {str(e1)}")
+                
+                # Approach 2: Try text-based locator
+                if not service_report_clicked:
+                    try:
+                        service_report_link = rpt_top.locator("a", has_text="Service Report")
+                        if service_report_link.is_visible(timeout=3000):
+                            service_report_link.click()
+                            service_report_clicked = True
+                            self.logger.log("Clicked Service Report tab using text-based locator")
+                    except Exception as e2:
+                        self.logger.log(f"Text-based locator failed: {str(e2)}")
+                
+                # Approach 3: Try more generic selector
+                if not service_report_clicked:
+                    try:
+                        service_report_link = rpt_top.locator("a:has-text('Service Report')")
+                        if service_report_link.is_visible(timeout=3000):
+                            service_report_link.click()
+                            service_report_clicked = True
+                            self.logger.log("Clicked Service Report tab using generic selector")
+                    except Exception as e3:
+                        self.logger.log(f"Generic selector failed: {str(e3)}")
+                
+                if not service_report_clicked:
+                    self.logger.log_error("Could not find or click Service Report tab")
+                    return False
+                    
+            except Exception as e:
+                self.logger.log_error(f"Failed to click Service Report tab: {str(e)}")
+                return False
+            
+            # Step 3: Wait for rptPage frame to load new content
+            try:
+                rpt_page = popup_page.frame(name="rptPage")
+                if not rpt_page:
+                    self.logger.log_error("Could not find rptPage frame")
+                    return False
+                
+                # Wait for the frame content to load
+                rpt_page.wait_for_load_state("domcontentloaded")
+                self.logger.log("Successfully accessed rptPage frame and waited for content")
+                
+                # Optional: Take a screenshot of the report
+                try:
+                    screenshot_path = f"logs/screenshots/service_report_{int(time.time())}.png"
+                    rpt_page.screenshot(path=screenshot_path)
+                    self.logger.log(f"Service report screenshot saved: {screenshot_path}")
+                except Exception as screenshot_error:
+                    self.logger.log(f"Failed to take screenshot: {str(screenshot_error)}")
+                
+                # Optional: Try to find and click download/print button
+                self.try_download_report(rpt_page)
+                
+            except Exception as e:
+                self.logger.log_error(f"Failed to access rptPage frame: {str(e)}")
+                return False
+            
+            self.logger.log("Popup actions completed successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.log_error(f"Failed to perform popup actions: {str(e)}")
+            return False
+
+    def try_download_report(self, rpt_page) -> bool:
+        """Try to download or print the report from the rptPage frame.
+        
+        Args:
+            rpt_page: The rptPage frame object
+            
+        Returns:
+            bool: True if download/print was successful, False otherwise
+        """
+        try:
+            self.logger.log("Attempting to download/print report...")
+            
+            # Try multiple approaches to find download/print button
+            download_clicked = False
+            
+            # Approach 1: Try role-based download button
+            try:
+                download_button = rpt_page.get_by_role("button", name="Download")
+                if download_button.is_visible(timeout=2000):
+                    download_button.click()
+                    download_clicked = True
+                    self.logger.log("Clicked download button using role-based locator")
+            except Exception as e1:
+                self.logger.log(f"Role-based download button not found: {str(e1)}")
+            
+            # Approach 2: Try title-based download button
+            if not download_clicked:
+                try:
+                    download_button = rpt_page.get_by_title("Download")
+                    if download_button.is_visible(timeout=2000):
+                        download_button.click()
+                        download_clicked = True
+                        self.logger.log("Clicked download button using title-based locator")
+                except Exception as e2:
+                    self.logger.log(f"Title-based download button not found: {str(e2)}")
+            
+            # Approach 3: Try aria-label-based download button
+            if not download_clicked:
+                try:
+                    download_button = rpt_page.locator("button[aria-label='Download']")
+                    if download_button.is_visible(timeout=2000):
+                        download_button.click()
+                        download_clicked = True
+                        self.logger.log("Clicked download button using aria-label selector")
+                except Exception as e3:
+                    self.logger.log(f"Aria-label download button not found: {str(e3)}")
+            
+            # Approach 4: Try print button
+            if not download_clicked:
+                try:
+                    print_button = rpt_page.get_by_role("button", name="Print")
+                    if print_button.is_visible(timeout=2000):
+                        print_button.click()
+                        download_clicked = True
+                        self.logger.log("Clicked print button")
+                except Exception as e4:
+                    self.logger.log(f"Print button not found: {str(e4)}")
+            
+            # Approach 5: Try to trigger browser print dialog
+            if not download_clicked:
+                try:
+                    rpt_page.evaluate("window.print()")
+                    self.logger.log("Triggered browser print dialog")
+                    download_clicked = True
+                except Exception as e5:
+                    self.logger.log(f"Failed to trigger print dialog: {str(e5)}")
+            
+            if download_clicked:
+                self.logger.log("Report download/print action completed")
+                return True
+            else:
+                self.logger.log("No download/print button found, report is viewable in popup")
+                return False
+                
+        except Exception as e:
+            self.logger.log_error(f"Failed to download/print report: {str(e)}")
+            return False
+
+    def click_submit_claim(self) -> bool:
+        """Submit the claim and handle all post-submission flows.
+        
+        This is the master method that handles the complete claim submission process:
+        1. Clicks the submit claim button
+        2. Handles the confirmation popup
+        3. Waits for processing
+        4. Handles the success modal if it appears
+        5. Handles any popup windows that may open
+        6. Handles any errors or warnings
+        
+        Returns:
+            bool: True if claim was submitted successfully, False if blocked by errors
+        """
+        try:
+            self.logger.log("Starting claim submission process...")
+            previous_url = self.page.url
+
+            # Step 1: Click the initial submit claim button
+            self.page.locator('#claimTracker-submitClaim').click()
+            self.logger.log("Clicked submit claim button")
+            
+            # Step 2: Handle the confirmation popup
+            self.page.wait_for_timeout(1000)
+            confirm_button = self.page.locator('#submit-claim-modal-ok-button')
+            if confirm_button.is_visible(timeout=5000):
+                confirm_button.click()
+                self.logger.log("Clicked confirmation button in popup")
+                self.wait_for_network_idle(timeout=10000)
+            else:
+                self.logger.log("No confirmation popup found, proceeding...")
+
+            # Step 3: Check if we navigated away (success)
+            if self.page.url != previous_url:
+                self.logger.log("Claim submitted successfully - page navigated away")
+                return True
+
+            # Step 4: Handle success modal if it appears
+            try:
+                success_button = self.page.locator('#successfully-submitted-claim-modal-yes-button')
+                if success_button.is_visible(timeout=3000):
+                    success_button.click()
+                    self.logger.log("Clicked yes button in success modal")
+                    self.wait_for_network_idle(timeout=5000)
+                    
+                    # Step 5: Handle popup window if it opens
+                    popup_success = self.handle_popup_window()
+                    if popup_success:
+                        return True
+                    
+            except Exception as e:
+                self.logger.log(f"Success modal not found or not clickable: {str(e)}")
+
+            # Step 6: Check for errors or warnings
+            errors = []
+            warnings = []
+
+            error_panel = self.page.locator("#error-message-container")
+            if error_panel.count() > 0 and error_panel.first.is_visible():
+                msg = error_panel.first.inner_text().strip()
+                errors.append(msg)
+                self.logger.log_error(f"Error found: {msg}")
+
+            warning_panel = self.page.locator("#warning-message-container")
+            if warning_panel.count() > 0 and warning_panel.first.is_visible():
+                msg = warning_panel.first.inner_text().strip()
+                warnings.append(msg)
+                self.logger.log(f"Warning found: {msg}")
+                
+                # Attempt to acknowledge/resolve the warning
+                try:
+                    buttons = warning_panel.first.locator("button")
+                    for i in range(buttons.count()):
+                        btn = buttons.nth(i)
+                        btn.click()
+                        self.page.wait_for_timeout(500)
+                    self.logger.log("Attempted to resolve warnings")
+                except Exception as e:
+                    self.logger.log_error(f"Failed to handle warning buttons: {str(e)}")
+
+            if errors or warnings:
+                for msg in errors + warnings:
+                    try:
+                        save_vsp_error_message(msg)
+                    except Exception as e2:
+                        self.logger.log_error(f"Failed to save VSP error message: {str(e2)}")
+                self.take_screenshot("claim_submit_blocked")
+                self.logger.log_error(f"Claim submission blocked. Errors: {errors}, Warnings: {warnings}")
+                return False
+
+            self.logger.log_error("Claim did not redirect and no error banner detected.")
+            self.take_screenshot("claim_submit_unknown")
+            return False
+
+        except Exception as e:
+            self.logger.log_error(f"Submit claim threw exception: {str(e)}")
+            self.take_screenshot("claim_submit_exception")
+            return False
 

@@ -77,7 +77,8 @@ def get_completion(prompt: str, model="gpt-4", temperature=0.3):
 7. Do not add any introductory or concluding text
 8. If the prompt asks for a class method, include only the method definition
 9. If the prompt asks for a standalone function, include only the function definition
-10. You will see a list of examples of how the code is written. Use it as a good clue as to how to write the code"""
+10. You will see a list of examples of how the code is written. Use it as a good clue as to how to write the code
+11. When building playwright or selenium selectors, try to use data-test-id, or id in combination with the text of the element unless a more reliabe selector is obvious"""
 
     response = client.chat.completions.create(
         model=model,
