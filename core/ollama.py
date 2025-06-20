@@ -29,7 +29,7 @@ class TesseractTool(AbstractPDFTool):
         return {"text": ocr_text}
 
 class OllamaClient:
-    def __init__(self, base_url: str = "http://192.168.1.199:11434", timeout: float = 60.0):
+    def __init__(self, base_url: str = "http://100.120.49.120:11434", timeout: float = 60.0):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.default_model = "llama3:70b"
