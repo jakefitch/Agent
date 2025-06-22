@@ -1,11 +1,13 @@
 import requests
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from abc import ABC, abstractmethod
 import fitz  # PyMuPDF
 from PIL import Image
 import pytesseract
 from PyPDF2 import PdfReader
 import os
+import json
+from datetime import datetime
 
 class AbstractPDFTool(ABC):
     @abstractmethod
@@ -225,6 +227,183 @@ Format your response in a clear, structured manner.
         except Exception as e:
             print(f"[❌] Comprehensive PDF analysis failed: {e}")
             return None
+
+    def analyze_playwright_selector(self, default_selector: str, html_snippet: str, ranking_model: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Analyze HTML snippet to find Playwright selectors using multiple models.
+        
+        Args:
+            default_selector: The default selector that was already set
+            html_snippet: HTML code snippet containing the target element
+            ranking_model: Model to use for ranking (defaults to self.default_model)
+            
+        Returns:
+            Dict containing analysis results, rankings, and logs
+        """
+        try:
+            print(f"[🔍] Starting Playwright selector analysis...")
+            
+            # Get all available models
+            models = self.get_models()
+            if not models:
+                print("[❌] No models available for analysis")
+                return {"error": "No models available"}
+            
+            print(f"[📋] Found {len(models)} models to test")
+            
+            # Create log directory if it doesn't exist
+            log_dir = os.path.join(os.path.dirname(__file__), "logs")
+            os.makedirs(log_dir, exist_ok=True)
+            
+            # Create timestamp for this analysis
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_file = os.path.join(log_dir, f"selector_analysis_{timestamp}.json")
+            
+            # Prepare the analysis prompt
+            analysis_prompt = f"""
+You are an expert at creating Playwright selectors. Given this HTML snippet and a default selector, 
+create the best possible Playwright selector for the target element.
+
+HTML Snippet:
+{html_snippet}
+
+Default Selector: {default_selector}
+
+Please create a Playwright selector that:
+1. Is specific enough to target only the intended element
+2. Is robust and won't break with minor HTML changes
+3. Uses the most reliable selector strategy (data-test-id > id > aria-label > text content > CSS selectors)
+4. Is human-readable and maintainable
+
+Return ONLY the selector string, nothing else.
+Do not include any other text or comments in your response
+"""
+            
+            # Test each model and collect results
+            model_results = {}
+            successful_models = []
+            
+            for model in models:
+                try:
+                    print(f"[🧪] Testing model: {model}")
+                    
+                    # Generate selector with this model
+                    selector = self.generate(analysis_prompt, model=model)
+                    
+                    if selector:
+                        # Clean up the response (remove extra whitespace, quotes, etc.)
+                        selector = selector.strip().strip('"').strip("'")
+                        
+                        model_results[model] = {
+                            "selector": selector,
+                            "status": "success",
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        successful_models.append(model)
+                        print(f"[✅] {model}: {selector}")
+                    else:
+                        model_results[model] = {
+                            "selector": None,
+                            "status": "failed",
+                            "error": "No response generated",
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        print(f"[❌] {model}: No response")
+                        
+                except Exception as e:
+                    model_results[model] = {
+                        "selector": None,
+                        "status": "error",
+                        "error": str(e),
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    print(f"[❌] {model}: Error - {str(e)}")
+            
+            # Create ranking prompt
+            ranking_model_to_use = ranking_model or self.default_model
+            ranking_prompt = f"""
+You are an expert at evaluating Playwright selectors. Given these selectors for the same HTML element,
+rank them from most likely to succeed (1) to least likely to succeed ({len(successful_models)}).
+
+HTML Snippet:
+{html_snippet}
+
+Default Selector: {default_selector}
+
+Generated Selectors:
+"""
+            
+            # Add each successful selector to the ranking prompt
+            for i, model in enumerate(successful_models, 1):
+                selector = model_results[model]["selector"]
+                ranking_prompt += f"{i}. {model}: {selector}\n"
+            
+            ranking_prompt += f"""
+Please rank these selectors from 1 (best) to {len(successful_models)} (worst) based on:
+1. Specificity and accuracy
+2. Robustness against HTML changes
+3. Readability and maintainability
+4. Likelihood of success in Playwright
+
+Return ONLY a JSON array with the ranking, like: [3, 1, 2, 4] where the numbers correspond to the selector numbers above.
+"""
+            
+            # Get ranking from the ranking model
+            ranking_response = self.generate(ranking_prompt, model=ranking_model_to_use)
+            ranking = None
+            
+            if ranking_response:
+                try:
+                    # Try to parse the ranking response
+                    ranking_text = ranking_response.strip()
+                    if ranking_text.startswith('[') and ranking_text.endswith(']'):
+                        ranking = json.loads(ranking_text)
+                    else:
+                        # Try to extract numbers from the response
+                        import re
+                        numbers = re.findall(r'\d+', ranking_text)
+                        if numbers:
+                            ranking = [int(n) for n in numbers[:len(successful_models)]]
+                except Exception as e:
+                    print(f"[⚠️] Could not parse ranking response: {e}")
+                    ranking = list(range(1, len(successful_models) + 1))  # Default order
+            
+            # Create final results structure
+            results = {
+                "timestamp": timestamp,
+                "html_snippet": html_snippet,
+                "default_selector": default_selector,
+                "models_tested": len(models),
+                "successful_models": len(successful_models),
+                "model_results": model_results,
+                "ranking_model": ranking_model_to_use,
+                "ranking": ranking,
+                "ranked_selectors": []
+            }
+            
+            # Create ranked selectors list
+            if ranking and successful_models:
+                for rank, selector_index in enumerate(ranking, 1):
+                    if 1 <= selector_index <= len(successful_models):
+                        model_name = successful_models[selector_index - 1]
+                        results["ranked_selectors"].append({
+                            "rank": rank,
+                            "model": model_name,
+                            "selector": model_results[model_name]["selector"]
+                        })
+            
+            # Save results to log file
+            with open(log_file, 'w') as f:
+                json.dump(results, f, indent=2)
+            
+            print(f"[📝] Analysis results saved to: {log_file}")
+            print(f"[🏆] Top selector: {results['ranked_selectors'][0]['selector'] if results['ranked_selectors'] else 'None'}")
+            
+            return results
+            
+        except Exception as e:
+            print(f"[❌] Playwright selector analysis failed: {e}")
+            return {"error": str(e)}
 
 # Convenience function for backward compatibility
 def create_pdf_reader(tool_type: str = "fast"):

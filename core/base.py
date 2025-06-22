@@ -7,6 +7,7 @@ from core.logger import Logger
 import os
 import time
 from bs4 import BeautifulSoup
+import json
 
 @dataclass
 class ClaimItem:
@@ -328,6 +329,207 @@ class BasePage:
             self.logger.log_error(f"Error type: {type(e).__name__}")
             self.take_screenshot("Failed to save page state")
             raise
+
+    def save_element_context(self, selector: str, name: str = None, context_lines: int = 5) -> Dict[str, Any]:
+        """Save HTML context around a specific element when a selector fails.
+        
+        This function captures the HTML snippet around the target element, including
+        parent and sibling elements, to help debug selector issues.
+        
+        Args:
+            selector: The Playwright selector that failed
+            name: Base name for the saved files (defaults to 'element_context')
+            context_lines: Number of lines of context to capture around the element
+            
+        Returns:
+            Dict containing the captured HTML snippet and metadata
+        """
+        try:
+            if name is None:
+                name = "element_context"
+            
+            self.logger.log(f"[DEBUG] Starting save_element_context for selector: {selector}")
+            
+            # Create debug folder if it doesn't exist
+            debug_dir = os.path.join('config', 'debug')
+            os.makedirs(debug_dir, exist_ok=True)
+            
+            # Get the full page HTML
+            html_content = self.page.evaluate("document.documentElement.outerHTML")
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Try to find the element using the selector
+            try:
+                # Use JavaScript to find the element and get its context
+                js_code = f"""
+                (() => {{
+                    try {{
+                        const element = document.querySelector('{selector}');
+                        if (!element) {{
+                            return {{
+                                found: false,
+                                error: 'Element not found',
+                                similar_elements: []
+                            }};
+                        }}
+                        
+                        // Get the element's outer HTML
+                        const elementHTML = element.outerHTML;
+                        
+                        // Get parent context (up to 3 levels)
+                        let parentContext = '';
+                        let current = element.parentElement;
+                        let level = 0;
+                        while (current && level < 3) {{
+                            parentContext = current.outerHTML + '\\n' + parentContext;
+                            current = current.parentElement;
+                            level++;
+                        }}
+                        
+                        // Get sibling context
+                        const siblings = Array.from(element.parentElement?.children || []);
+                        const siblingContext = siblings.map(sibling => sibling.outerHTML).join('\\n');
+                        
+                        // Find similar elements (same tag name or similar attributes)
+                        const similarElements = Array.from(document.querySelectorAll('*')).filter(el => {{
+                            if (el === element) return false;
+                            if (el.tagName === element.tagName) return true;
+                            if (el.className && element.className && el.className === element.className) return true;
+                            if (el.id && element.id && el.id === element.id) return true;
+                            return false;
+                        }}).slice(0, 5).map(el => {{
+                            return {{
+                                tag: el.tagName,
+                                id: el.id,
+                                className: el.className,
+                                textContent: el.textContent?.substring(0, 100),
+                                outerHTML: el.outerHTML
+                            }};
+                        }});
+                        
+                        return {{
+                            found: true,
+                            elementHTML: elementHTML,
+                            parentContext: parentContext,
+                            siblingContext: siblingContext,
+                            similar_elements: similarElements,
+                            elementInfo: {{
+                                tag: element.tagName,
+                                id: element.id,
+                                className: element.className,
+                                attributes: Array.from(element.attributes).map(attr => {{
+                                    return {{ name: attr.name, value: attr.value }};
+                                }})
+                            }}
+                        }};
+                    }} catch (error) {{
+                        return {{
+                            found: false,
+                            error: error.message,
+                            similar_elements: []
+                        }};
+                    }}
+                }})();
+                """
+                
+                result = self.page.evaluate(js_code)
+                
+                if not result.get('found', False):
+                    # Element not found, try to find similar elements
+                    self.logger.log(f"[DEBUG] Element not found with selector: {selector}")
+                    
+                    # Create a context file with the error and similar elements
+                    context_data = {
+                        "timestamp": datetime.now().isoformat(),
+                        "selector": selector,
+                        "error": result.get('error', 'Element not found'),
+                        "similar_elements": result.get('similar_elements', []),
+                        "full_page_html": str(soup.prettify())[:10000]  # First 10k chars for context
+                    }
+                    
+                    context_path = os.path.join(debug_dir, f"{name}_context.json")
+                    with open(context_path, 'w', encoding='utf-8') as f:
+                        json.dump(context_data, f, indent=2, ensure_ascii=False)
+                    
+                    self.logger.log(f"[DEBUG] Saved element context (not found) to: {context_path}")
+                    return context_data
+                
+                # Element found, save detailed context
+                context_data = {
+                    "timestamp": datetime.now().isoformat(),
+                    "selector": selector,
+                    "found": True,
+                    "element_info": result.get('elementInfo', {}),
+                    "element_html": result.get('elementHTML', ''),
+                    "parent_context": result.get('parentContext', ''),
+                    "sibling_context": result.get('siblingContext', ''),
+                    "similar_elements": result.get('similar_elements', [])
+                }
+                
+                # Save context data
+                context_path = os.path.join(debug_dir, f"{name}_context.json")
+                with open(context_path, 'w', encoding='utf-8') as f:
+                    json.dump(context_data, f, indent=2, ensure_ascii=False)
+                
+                # Save HTML snippet for easy viewing
+                html_snippet = f"""
+<!-- Element Context for Selector: {selector} -->
+<!-- Timestamp: {context_data['timestamp']} -->
+
+<!-- Target Element HTML: -->
+{context_data['element_html']}
+
+<!-- Parent Context: -->
+{context_data['parent_context']}
+
+<!-- Sibling Context: -->
+{context_data['sibling_context']}
+"""
+                
+                html_path = os.path.join(debug_dir, f"{name}_snippet.html")
+                with open(html_path, 'w', encoding='utf-8') as f:
+                    f.write(html_snippet)
+                
+                # Take a screenshot of the area around the element
+                try:
+                    screenshot_path = os.path.join(debug_dir, f"{name}_screenshot.png")
+                    # Try to take a screenshot of the element if it's visible
+                    element = self.page.locator(selector)
+                    if element.is_visible(timeout=1000):
+                        element.screenshot(path=screenshot_path)
+                        context_data["screenshot_path"] = screenshot_path
+                    else:
+                        # Take full page screenshot if element not visible
+                        self.page.screenshot(path=screenshot_path, full_page=True)
+                        context_data["screenshot_path"] = screenshot_path
+                except Exception as e:
+                    self.logger.log_error(f"[DEBUG] Screenshot failed: {str(e)}")
+                
+                self.logger.log(f"[DEBUG] Saved element context to: {context_path}")
+                self.logger.log(f"[DEBUG] Saved HTML snippet to: {html_path}")
+                
+                return context_data
+                
+            except Exception as e:
+                self.logger.log_error(f"[DEBUG] Error finding element: {str(e)}")
+                
+                # Save error context
+                error_data = {
+                    "timestamp": datetime.now().isoformat(),
+                    "selector": selector,
+                    "error": str(e),
+                    "full_page_html": str(soup.prettify())[:10000]
+                }
+                
+                error_path = os.path.join(debug_dir, f"{name}_error.json")
+                with open(error_path, 'w', encoding='utf-8') as f:
+                    json.dump(error_data, f, indent=2, ensure_ascii=False)
+                
+                return error_data
+                
+        except Exception as e:
+            self.logger.log_error(f"Failed to save element context: {str(e)}")
+            return {"error": str(e)}
 
     def save_state(self) -> None:
         """Save both a screenshot and HTML soup of the current page state using default filenames.

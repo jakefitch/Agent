@@ -3,8 +3,6 @@
 ├── actions
 │   └── __init__.py
 ├── config
-│   ├── agent_instructions
-│   │   └── agent_instruction.txt
 │   ├── rev_map
 │   │   ├── claims_page.py
 │   │   ├── insurance_tab.py
@@ -20,6 +18,16 @@
 │   └── workflows
 │       └── vsp_submission.yaml
 ├── core
+│   ├── ai_tools
+│   │   ├── agent_instructions
+│   │   │   └── agent_instruction.txt
+│   │   ├── __init__.py
+│   │   ├── ollama.py
+│   │   ├── example_usage.py
+│   │   ├── example_element_context.py
+│   │   ├── test_selector_analysis.py
+│   │   ├── README.md
+│   │   └── logs/
 │   ├── base.py
 │   ├── __init__.py
 │   ├── logger.py
