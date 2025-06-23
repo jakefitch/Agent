@@ -147,32 +147,60 @@ class ClaimPage(BasePage):
             raise
 
     def set_doctor(self, patient: Patient) -> None:
-        """Set the rendering provider."""
-        try:
-            # First click the dropdown to open it
-            
-            self.logger.log("Clicked provider dropdown")
-            
-            # Wait a moment for the dropdown to fully open
-            self.page.wait_for_timeout(1000)
-            
-            # Determine provider ID based on doctor name
-            doctor_name = patient.insurance_data.get('doctor', '')
-            if "Fitch" in doctor_name:
-                provider_id = "1740293919"
-            elif "Hollingsworth" in doctor_name:
-                provider_id = "1639335516"
-            else:
-                provider_id = "1891366597"  # Default to Schaeffer
-            
-            # Use select_option to select the provider
-            self.page.locator('#exam-rendering-provider-group').select_option(value=provider_id)
-            self.logger.log(f"Selected provider {provider_id} for doctor {doctor_name}")
-            
-        except Exception as e:
-            self.logger.log_error(f"Failed to set doctor: {str(e)}")
-            self.take_screenshot("claim_set_doctor_error")
-            raise
+        """Set the rendering provider with validation and retry logic."""
+        max_attempts = 3
+        doctor_name = patient.insurance_data.get('doctor', '')
+        
+        # Determine provider ID based on doctor name
+        if "Fitch" in doctor_name:
+            provider_id = "1740293919"
+        elif "Hollingsworth" in doctor_name:
+            provider_id = "1639335516"
+        else:
+            provider_id = "1891366597"  # Default to Schaeffer
+        
+        self.logger.log(f"Attempting to set doctor: {doctor_name} (provider_id: {provider_id})")
+        
+        for attempt in range(1, max_attempts + 1):
+            try:
+                self.logger.log(f"Set doctor attempt {attempt}/{max_attempts}")
+                
+                # Wait a moment for the dropdown to be ready
+                self.page.wait_for_timeout(1000)
+                
+                # Use select_option to select the provider
+                provider_dropdown = self.page.locator('#exam-rendering-provider-group')
+                provider_dropdown.select_option(value=provider_id)
+                self.logger.log(f"Selected provider {provider_id} for doctor {doctor_name}")
+                
+                # Validate the selection was successful
+                self.page.wait_for_timeout(500)  # Wait for selection to register
+                
+                # Check if the dropdown now shows the selected value
+                selected_value = provider_dropdown.evaluate("el => el.value")
+                if selected_value == provider_id:
+                    self.logger.log(f"Doctor selection validated successfully on attempt {attempt}")
+                    return
+                else:
+                    self.logger.log_error(f"Validation failed - expected {provider_id}, got {selected_value}")
+                    if attempt < max_attempts:
+                        self.logger.log(f"Retrying doctor selection...")
+                        continue
+                    else:
+                        raise Exception(f"Failed to validate doctor selection after {max_attempts} attempts")
+                        
+            except Exception as e:
+                self.logger.log_error(f"Set doctor attempt {attempt} failed: {str(e)}")
+                if attempt < max_attempts:
+                    self.logger.log(f"Retrying doctor selection...")
+                    self.page.wait_for_timeout(1000)  # Wait before retry
+                else:
+                    self.logger.log_error(f"All {max_attempts} attempts to set doctor failed")
+                    self.take_screenshot("claim_set_doctor_error")
+                    raise Exception(f"Failed to set doctor after {max_attempts} attempts: {str(e)}")
+        
+        # This should never be reached due to the raise above, but just in case
+        raise Exception(f"Failed to set doctor after {max_attempts} attempts")
 
     def submit_cl(self, patient: Patient) -> None:
         """Fill contact lens information if present."""
@@ -508,6 +536,11 @@ class ClaimPage(BasePage):
             design = "Stock Spherical w/ Premium AR (C) - Clear"
         elif ar == "" and material == "Polycarbonate" and lens_type == "Single Vision" and photo:
             design = "Stock Spherical - Photochromic Other"
+        elif ar =="Lab Choice (AR Coating D) (AR Coating D)" and material == "Polycarbonate" and lens_type == "Single Vision" and photo:
+            design = "Stock Spherical w/ Premium AR (D) - Photochromic Other"
+        elif ar =="Lab Choice (AR Coating D) (AR Coating D)" and material == "Polycarbonate" and lens_type == "Single Vision":
+            design = "Stock Spherical w/ Premium AR (D) - Clear"
+    
 
         try:
             # Scroll to the start of the lens section
@@ -517,8 +550,8 @@ class ClaimPage(BasePage):
             # --- Finishing type dropdown ---
             finishing = self.page.locator('#lens-finishing-dropdown')
             if finishing.count() > 0:
-                finishing.click()
-                self.page.locator('#lens-finishing-option-in-office-stock-lens').click()
+                # Use select_option instead of click to avoid visibility issues
+                finishing.select_option(value="IN_OFFICE_STOCK_LENS")
                 self.page.wait_for_timeout(500)
 
             # --- Vision type dropdown ---
@@ -534,7 +567,11 @@ class ClaimPage(BasePage):
             if design:
                 lens_dd = self.page.locator('#lens-lens-dropdown')
                 lens_dd.click()
+                # Wait for the dropdown to open
+                self.page.wait_for_timeout(500)
+                # Type the design text to filter and select
                 lens_dd.fill(design)
+                self.page.wait_for_timeout(500)
                 lens_dd.press('Enter')
                 self.page.wait_for_timeout(500)
 
