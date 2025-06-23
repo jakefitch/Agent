@@ -476,11 +476,71 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_frame_error")
 
     def submit_lens(self, patient: Patient) -> None:
-        if patient.lens_type is None:
-            return
+        """Fill out the lens information based on ``patient.lenses`` data.
+
+        The lens form is highly sequential: each dropdown reloads the next one
+        when a selection is made.  We therefore step through the form in order,
+        waiting briefly after each choice.  ``patient.lenses`` is a dictionary
+        populated during scraping with keys like ``type``, ``material``, ``ar``
+        and ``photochromatic``.
+        """
+
+        lens_data = getattr(patient, "lenses", {}) or {}
+        lens_type = lens_data.get("type")
+        if not lens_type:
+            return  # nothing to submit
+
+        material = lens_data.get("material", "")
+        ar = lens_data.get("ar", "")
+        photo = lens_data.get("photochromatic", False)
+
+        # Map lens info to the specific design string used in the final dropdown
+        design = None
+        if ar == "" and material == "CR-39" and lens_type == "Single Vision":
+            design = "Stock Spherical - Clear"
+        elif ar == "" and material == "Polycarbonate" and lens_type == "Single Vision" and not photo:
+            design = "Stock Spherical - Clear"
+        elif ar == "Other (AR Coating A)" and material == "Polycarbonate" and lens_type == "Single Vision":
+            design = "Stock Aspheric w/ Standard AR (A) - Clear"
+        elif ar == "Lab Choice (AR Coating C) (AR Coating C)" and material == "Polycarbonate" and lens_type == "Single Vision" and photo:
+            design = "Stock Aspheric w/ Premium AR (C) - Photochromic Other"
+        elif ar == "Lab Choice (AR Coating C) (AR Coating C)" and material == "Polycarbonate" and lens_type == "Single Vision":
+            design = "Stock Spherical w/ Premium AR (C) - Clear"
+        elif ar == "" and material == "Polycarbonate" and lens_type == "Single Vision" and photo:
+            design = "Stock Spherical - Photochromic Other"
+
         try:
-            self.page.locator('#lens-finishing-dropdown').click()
-            self.page.locator('#lens-finishing-option-in-office-stock-lens').click()
+            # Scroll to the start of the lens section
+            self.page.evaluate("window.scrollTo(0, 500)")
+            self.page.wait_for_timeout(500)
+
+            # --- Finishing type dropdown ---
+            finishing = self.page.locator('#lens-finishing-dropdown')
+            if finishing.count() > 0:
+                finishing.click()
+                self.page.locator('#lens-finishing-option-in-office-stock-lens').click()
+                self.page.wait_for_timeout(500)
+
+            # --- Vision type dropdown ---
+            self.page.locator('#lens-vision-dropdown').select_option(label=lens_type)
+            self.page.wait_for_timeout(500)
+
+            # --- Material dropdown ---
+            if material:
+                self.page.locator('#lens-material-dropdown').select_option(label=material)
+                self.page.wait_for_timeout(500)
+
+            # --- Lens design dropdown ---
+            if design:
+                lens_dd = self.page.locator('#lens-lens-dropdown')
+                lens_dd.click()
+                lens_dd.fill(design)
+                lens_dd.press('Enter')
+                self.page.wait_for_timeout(500)
+
+            # --- Lab ID ---
+            self.page.evaluate("window.scrollTo(0, 1900)")
+            self.page.locator('#lab-lab-textbox').fill('0557')
         except Exception as e:
             self.logger.log_error(f"Failed to submit lens: {str(e)}")
             self.take_screenshot("claim_lens_error")
