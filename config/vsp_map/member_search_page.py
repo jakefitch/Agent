@@ -305,15 +305,20 @@ class MemberSearch(BasePage):
         holder = patient.insurance_data.get("policy_holder")
         holder_dob = patient.insurance_data.get("dob")
         if holder:
+            self.logger.log(f"Processing policy holder: '{holder}'")
             if "," in holder:
                 last, first = [part.strip() for part in holder.split(",", 1)]
+                self.logger.log(f"Split policy holder - Last: '{last}', First: '{first}'")
             else:
                 parts = holder.split()
                 first = parts[0]
                 last = parts[-1]
+                self.logger.log(f"Split policy holder (no comma) - Last: '{last}', First: '{first}'")
             exists = any(c.get("first_name") == first and c.get("last_name") == last for c in combos)
             if not exists:
-                combos.append({"first_name": first, "last_name": last, "dob": holder_dob})
+                combo_to_add = {"first_name": first, "last_name": last, "dob": holder_dob}
+                self.logger.log(f"Adding policy holder combo: {combo_to_add}")
+                combos.append(combo_to_add)
 
         # ------------------------------------
         # Collect IDs for memberid/last4 searches
@@ -365,14 +370,14 @@ class MemberSearch(BasePage):
 
         for dt, combo, dob_str in dated_combos:
             if dob_str:
-                search_data_list.append(
-                    {
-                        "dos": dos,
-                        "first_name": combo.get("first_name", ""),
-                        "last_name": combo.get("last_name", ""),
-                        "dob": dob_str,
-                    }
-                )
+                search_item = {
+                    "dos": dos,
+                    "first_name": combo.get("first_name", ""),
+                    "last_name": combo.get("last_name", ""),
+                    "dob": dob_str,
+                }
+                self.logger.log(f"Adding name+DOB search combination: {search_item}")
+                search_data_list.append(search_item)
 
         # Remove duplicates while preserving order
         unique_data = []

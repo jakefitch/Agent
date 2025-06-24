@@ -51,10 +51,6 @@ class ClaimPage(BasePage):
         self.fill_pricing(patient)
         self.set_gender(patient)
 
-    def calculate_order(self) -> None:
-        """Submit the claim and generate the report."""
-        self.click_submit_claim()
-        self.generate_report()
 
     # ------------------------------------------------------------------
     def set_dos(self, patient: Patient) -> bool:
@@ -244,6 +240,35 @@ class ClaimPage(BasePage):
         try:
             self.page.locator('#claim-tracker-calculate').click()
             self.wait_for_network_idle(timeout=10000)
+            
+            # Check for warning popup that may appear after calculation
+            try:
+                warning_container = self.page.locator('#warning-message-container')
+                if warning_container.is_visible(timeout=2000):  # Reduced from 5000ms to 2000ms
+                    self.logger.log("Warning popup detected after calculation")
+                    
+                    # Try to click the Acknowledge button
+                    acknowledge_button = self.page.locator('#soft-edit-ackn-1')
+                    if acknowledge_button.is_visible(timeout=1000):  # Reduced from 2000ms to 1000ms
+                        acknowledge_button.click()
+                        self.logger.log("Clicked Acknowledge button in warning popup")
+                        self.page.wait_for_timeout(500)
+                        self.page.locator('#claim-tracker-calculate').click()
+                        self.wait_for_network_idle(timeout=10000)
+                          # Reduced from 1000ms to 500ms
+                    else:
+                        # Fallback: try to find any acknowledge button in the warning container
+                        acknowledge_buttons = warning_container.locator('button:has-text("Acknowledge")')
+                        if acknowledge_buttons.count() > 0:
+                            acknowledge_buttons.first.click()
+                            self.logger.log("Clicked Acknowledge button using text selector")
+                            self.page.wait_for_timeout(500)  # Reduced from 1000ms to 500ms
+                        else:
+                            self.logger.log("Warning popup found but no Acknowledge button located")
+                            
+            except Exception as e:
+                self.logger.log(f"No warning popup appeared or error handling it: {str(e)}")
+                
         except Exception as e:
             self.logger.log_error(f"Calculation failed: {str(e)}")
             self.take_screenshot("claim_calculate_error")
@@ -340,7 +365,10 @@ class ClaimPage(BasePage):
             try:
                 if copay:
                     self.logger.log("Setting FSA paid amount...")
-                    self.page.locator("#services-fsa-paid-input").fill(copay)
+                    fsa_locator = self.page.locator("#services-fsa-paid-input")
+                    if fsa_locator.is_visible(timeout=1000):
+                        fsa_locator.fill(copay)
+
             except Exception as e:
                 self.logger.log_error(f"Error setting FSA paid amount: {str(e)}")
 
@@ -569,10 +597,34 @@ class ClaimPage(BasePage):
                 lens_dd.click()
                 # Wait for the dropdown to open
                 self.page.wait_for_timeout(500)
-                # Type the design text to filter and select
-                lens_dd.fill(design)
-                self.page.wait_for_timeout(500)
-                lens_dd.press('Enter')
+                
+                # For ng-select, we need to type into the search input that appears
+                try:
+                    # Look for the search input that appears when ng-select is opened
+                    search_input = self.page.locator('.ng-dropdown-panel input[type="text"]')
+                    if search_input.is_visible(timeout=2000):
+                        search_input.fill(design)
+                        self.page.wait_for_timeout(500)
+                        search_input.press('Enter')
+                    else:
+                        # Fallback: try typing directly into the ng-select
+                        lens_dd.type(design)
+                        self.page.wait_for_timeout(500)
+                        lens_dd.press('Enter')
+                except Exception as e:
+                    self.logger.log(f"Failed to fill ng-select with {design}: {str(e)}")
+                    # Try alternative approach - click on the option directly
+                    try:
+                        option = self.page.locator(f'.ng-dropdown-panel .ng-option:has-text("{design}")')
+                        if option.is_visible(timeout=2000):
+                            option.click()
+                        else:
+                            # Last resort: try pressing Tab to close dropdown
+                            lens_dd.press('Tab')
+                    except Exception as e2:
+                        self.logger.log(f"Failed alternative approach: {str(e2)}")
+                        lens_dd.press('Tab')  # Close dropdown
+                
                 self.page.wait_for_timeout(500)
 
             # --- Lab ID ---
@@ -629,8 +681,11 @@ class ClaimPage(BasePage):
             bool: True if popup was handled successfully, False otherwise
         """
         try:
+            # Get the browser context from the page for popup handling
+            browser_context = self.page.context
+            
             # Wait for a new page to open (popup window)
-            popup_page = self.context.wait_for_event('page', timeout=5000)
+            popup_page = browser_context.wait_for_event('page', timeout=5000)
             self.logger.log("Popup window detected, switching to it...")
             
             # Switch to the popup page
