@@ -239,14 +239,15 @@ class ClaimPage(BasePage):
         """Click the Calculate button and handle alerts."""
         try:
             self.page.locator('#claim-tracker-calculate').click()
+            sleep(4)
             self.wait_for_network_idle(timeout=10000)
             
             # Check for warning popup that may appear after calculation
             try:
                 warning_container = self.page.locator('#warning-message-container')
-                if warning_container.is_visible(timeout=2000):  # Reduced from 5000ms to 2000ms
+                if warning_container.is_visible(timeout=5000):  # Reduced from 5000ms to 2000ms
                     self.logger.log("Warning popup detected after calculation")
-                    
+                    sleep(2)
                     # Try to click the Acknowledge button
                     acknowledge_button = self.page.locator('#soft-edit-ackn-1')
                     if acknowledge_button.is_visible(timeout=1000):  # Reduced from 2000ms to 1000ms
@@ -677,142 +678,126 @@ class ClaimPage(BasePage):
     def handle_popup_window(self) -> bool:
         """Handle popup window that may open after claim submission.
         
+        Simplified version based on logs showing that:
+        1. The VSP reports page opens automatically
+        2. Playwright automatically switches to the reports tab
+        3. The page is already accessible in the browser context
+        
         Returns:
             bool: True if popup was handled successfully, False otherwise
         """
         try:
-            # Get the browser context from the page for popup handling
+            self.logger.log("=== SIMPLIFIED POPUP HANDLING START ===")
+            
+            # Get the browser context
             browser_context = self.page.context
             
-            # Wait for a new page to open (popup window)
-            popup_page = browser_context.wait_for_event('page', timeout=5000)
-            self.logger.log("Popup window detected, switching to it...")
+            # Strategy: Find the VSP reports page directly
+            self.logger.log("Looking for VSP reports page in browser context...")
             
-            # Switch to the popup page
-            popup_page.wait_for_load_state()
-            self.logger.log(f"Popup page loaded: {popup_page.url}")
+            all_pages = browser_context.pages
+            self.logger.log(f"Found {len(all_pages)} pages in context")
             
-            # Perform actions in the popup window
-            success = self.perform_popup_actions(popup_page)
+            vsp_reports_page = None
+            for i, page in enumerate(all_pages):
+                self.logger.log(f"Page {i}: URL={page.url}, Title={page.title()}")
+                if "doctor.vsp.com/reports" in page.url:
+                    vsp_reports_page = page
+                    self.logger.log(f"Found VSP reports page at index {i}")
+                    break
             
-            # Close the popup window
-            popup_page.close()
-            self.logger.log("Popup window closed")
+            if not vsp_reports_page:
+                self.logger.log_error("No VSP reports page found")
+                return False
             
-            return success
+            # Process the VSP reports page
+            return self._process_vsp_reports_page(vsp_reports_page)
             
         except Exception as e:
-            self.logger.log(f"No popup window opened or popup handling failed: {str(e)}")
+            self.logger.log_error(f"Simplified popup handling failed: {str(e)}")
             return False
 
-    def perform_popup_actions(self, popup_page) -> bool:
-        """Perform specific actions in the popup window.
+    def _process_vsp_reports_page(self, reports_page) -> bool:
+        """Process the VSP reports page directly.
         
-        This handles the frameset-based report popup with:
-        - rptTop frame (contains tab bar with "Service Report")
-        - rptPage frame (main preview panel)
-        - rptPrint frame (hidden/printing)
+        Based on the logs, the reports page is already open and accessible.
+        We just need to interact with the frames to download/print the report.
         
         Args:
-            popup_page: The popup page object to interact with
+            reports_page: The VSP reports page object
             
         Returns:
-            bool: True if actions were successful, False otherwise
+            bool: True if processing was successful, False otherwise
         """
         try:
-            self.logger.log("Performing actions in popup window...")
+            self.logger.log("=== PROCESSING VSP REPORTS PAGE ===")
+            self.logger.log(f"Reports page URL: {reports_page.url}")
+            self.logger.log(f"Reports page title: {reports_page.title()}")
             
-            # Wait for the popup to fully load
-            popup_page.wait_for_load_state("domcontentloaded")
-            self.logger.log("Popup page loaded, accessing frames...")
+            # Wait for the page to be fully loaded
+            reports_page.wait_for_load_state("domcontentloaded")
+            self.logger.log("Reports page loaded successfully")
             
-            # Step 1: Access the rptTop frame (contains the tab bar)
+            # Take a screenshot for debugging
             try:
-                rpt_top = popup_page.frame(name="rptTop")
-                if not rpt_top:
-                    self.logger.log_error("Could not find rptTop frame")
-                    return False
-                self.logger.log("Successfully accessed rptTop frame")
+                screenshot_path = f"logs/screenshots/vsp_reports_{int(time.time())}.png"
+                reports_page.screenshot(path=screenshot_path)
+                self.logger.log(f"Reports page screenshot saved: {screenshot_path}")
             except Exception as e:
-                self.logger.log_error(f"Failed to access rptTop frame: {str(e)}")
-                return False
+                self.logger.log(f"Failed to take screenshot: {str(e)}")
             
-            # Step 2: Click the "Service Report" tab in rptTop frame
+            # Log all frames for debugging
             try:
-                # Try multiple approaches to find and click the Service Report tab
-                service_report_clicked = False
-                
-                # Approach 1: Try role-based locator
-                try:
-                    service_report_link = rpt_top.get_by_role("link", name="Service Report")
-                    if service_report_link.is_visible(timeout=3000):
-                        service_report_link.click()
-                        service_report_clicked = True
-                        self.logger.log("Clicked Service Report tab using role-based locator")
-                except Exception as e1:
-                    self.logger.log(f"Role-based locator failed: {str(e1)}")
-                
-                # Approach 2: Try text-based locator
-                if not service_report_clicked:
-                    try:
-                        service_report_link = rpt_top.locator("a", has_text="Service Report")
-                        if service_report_link.is_visible(timeout=3000):
-                            service_report_link.click()
-                            service_report_clicked = True
-                            self.logger.log("Clicked Service Report tab using text-based locator")
-                    except Exception as e2:
-                        self.logger.log(f"Text-based locator failed: {str(e2)}")
-                
-                # Approach 3: Try more generic selector
-                if not service_report_clicked:
-                    try:
-                        service_report_link = rpt_top.locator("a:has-text('Service Report')")
-                        if service_report_link.is_visible(timeout=3000):
-                            service_report_link.click()
-                            service_report_clicked = True
-                            self.logger.log("Clicked Service Report tab using generic selector")
-                    except Exception as e3:
-                        self.logger.log(f"Generic selector failed: {str(e3)}")
-                
-                if not service_report_clicked:
-                    self.logger.log_error("Could not find or click Service Report tab")
-                    return False
-                    
+                frames = reports_page.frames
+                self.logger.log(f"Found {len(frames)} frames in reports page")
+                for i, frame in enumerate(frames):
+                    self.logger.log(f"  Frame {i}: name={frame.name}, url={frame.url}")
             except Exception as e:
-                self.logger.log_error(f"Failed to click Service Report tab: {str(e)}")
-                return False
+                self.logger.log(f"Failed to enumerate frames: {str(e)}")
             
-            # Step 3: Wait for rptPage frame to load new content
+            # Try to access the rptPage frame (main content)
+            rpt_page = None
             try:
-                rpt_page = popup_page.frame(name="rptPage")
-                if not rpt_page:
+                rpt_page = reports_page.frame(name="rptPage")
+                if rpt_page:
+                    self.logger.log("Successfully accessed rptPage frame")
+                else:
                     self.logger.log_error("Could not find rptPage frame")
                     return False
-                
-                # Wait for the frame content to load
-                rpt_page.wait_for_load_state("domcontentloaded")
-                self.logger.log("Successfully accessed rptPage frame and waited for content")
-                
-                # Optional: Take a screenshot of the report
-                try:
-                    screenshot_path = f"logs/screenshots/service_report_{int(time.time())}.png"
-                    rpt_page.screenshot(path=screenshot_path)
-                    self.logger.log(f"Service report screenshot saved: {screenshot_path}")
-                except Exception as screenshot_error:
-                    self.logger.log(f"Failed to take screenshot: {str(screenshot_error)}")
-                
-                # Optional: Try to find and click download/print button
-                self.try_download_report(rpt_page)
-                
             except Exception as e:
                 self.logger.log_error(f"Failed to access rptPage frame: {str(e)}")
                 return False
             
-            self.logger.log("Popup actions completed successfully")
-            return True
+            # Wait for the frame content to load
+            try:
+                rpt_page.wait_for_load_state("domcontentloaded")
+                self.logger.log("rptPage frame loaded successfully")
+            except Exception as e:
+                self.logger.log(f"Failed to wait for rptPage load: {str(e)}")
+            
+            # Take a screenshot of the report content
+            try:
+                screenshot_path = f"logs/screenshots/report_content_{int(time.time())}.png"
+                rpt_page.screenshot(path=screenshot_path)
+                self.logger.log(f"Report content screenshot saved: {screenshot_path}")
+            except Exception as e:
+                self.logger.log(f"Failed to take report screenshot: {str(e)}")
+            
+            # Try to download/print the report
+            download_success = self.try_download_report(rpt_page)
+            
+            # Close the reports page
+            try:
+                reports_page.close()
+                self.logger.log("Reports page closed")
+            except Exception as e:
+                self.logger.log(f"Failed to close reports page: {str(e)}")
+            
+            self.logger.log("=== VSP REPORTS PAGE PROCESSING COMPLETED ===")
+            return download_success
             
         except Exception as e:
-            self.logger.log_error(f"Failed to perform popup actions: {str(e)}")
+            self.logger.log_error(f"Failed to process VSP reports page: {str(e)}")
             return False
 
     def try_download_report(self, rpt_page) -> bool:
@@ -939,9 +924,13 @@ class ClaimPage(BasePage):
                     self.wait_for_network_idle(timeout=5000)
                     
                     # Step 5: Handle popup window if it opens
+                    self.logger.log("Attempting to handle popup window...")
                     popup_success = self.handle_popup_window()
                     if popup_success:
+                        self.logger.log("Popup handling completed successfully")
                         return True
+                    else:
+                        self.logger.log("Popup handling failed, but continuing...")
                     
             except Exception as e:
                 self.logger.log(f"Success modal not found or not clickable: {str(e)}")

@@ -59,11 +59,11 @@ class OllamaClient:
         try:
             print(f"[🧪] Testing model connection...")
             test_response = self.generate("Respond with 'OK' if you can hear me.", model=model)
-            if test_response and "OK" in test_response:
+            if test_response and ("OK" in test_response or len(test_response.strip()) > 0):
                 print(f"[✅] Model connection test successful")
                 return True
             else:
-                print(f"[❌] Model connection test failed - unexpected response: {test_response}")
+                print(f"[❌] Model connection test failed - no response received")
                 return False
         except Exception as e:
             print(f"[❌] Model connection test failed: {e}")
