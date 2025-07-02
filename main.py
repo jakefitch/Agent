@@ -37,7 +37,7 @@ if __name__ == "__main__":
     rev.invoice_page.navigate_to_invoices_page()
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
-    rev.invoice_page.open_invoice("280126714")
+    rev.invoice_page.open_invoice("280734280")
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
@@ -131,9 +131,10 @@ if __name__ == "__main__":
         vsp.claim_page.submit_exam(patient)
 
     # Glasses related processing
-    if flags["frame"]:
-        vsp.claim_page.submit_frame(patient)
+
+       
     if flags["lens"]:
+        vsp.claim_page.submit_frame(patient)
         vsp.claim_page.submit_lens(patient)
         vsp.claim_page.send_rx(patient)
 
