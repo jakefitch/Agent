@@ -161,6 +161,7 @@ class InsuranceTab(BasePage):
 
             selected_rows = all_matches
             if select_mode == 'random':
+                self.logger.log("Selecting random insurance")
                 selected_rows = [random.choice(all_matches)]
             elif select_mode == 'first':
                 selected_rows = [all_matches[0]]
@@ -170,7 +171,18 @@ class InsuranceTab(BasePage):
                 
                 self.logger.log(f"Clicked insurance: {insurance_name}")
 
-                return True
+                # Validate the selection was successful
+                self.page.wait_for_timeout(2000)
+                
+                company_element = self.page.locator('[data-test-id="basicInformationCompanyFormGroup"]')
+                if company_element.is_visible(timeout=3000):
+                    self.logger.log("Insurance selection validated successfully")
+                    return True
+                else:
+                    self.logger.log("Insurance selection validation failed, continuing to next option")
+                    
+
+            return False
         except Exception as e:
             self.logger.log_error(f"Failed to select insurance by name: {str(e)}")
             self.take_screenshot("Failed to select insurance by name")
