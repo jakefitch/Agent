@@ -648,6 +648,8 @@ class InvoicePage(BasePage):
             if not full_name:
                 raise Exception("Patient name is empty")
                 
+            self.logger.log(f"Raw patient name from invoice: '{full_name}'")
+                
             # Split name into first and last
             name_parts = full_name.split()
             if len(name_parts) < 2:
@@ -655,6 +657,9 @@ class InvoicePage(BasePage):
                 
             first_name = name_parts[0]
             last_name = name_parts[-1]
+            
+            self.logger.log(f"Split name parts: {name_parts}")
+            self.logger.log(f"Assigned first_name: '{first_name}', last_name: '{last_name}'")
             
             # Create new patient
             patient = manager.create_patient(

@@ -31,8 +31,8 @@ class AuthorizationPage(BasePage):
     def is_loaded(self, timeout: int = 5000) -> bool:
         """Verify the authorization page has loaded."""
         try:
-            header = self.page.locator('#list-of-authorizations-header')
-            header.wait_for(state='visible', timeout=timeout)
+            return_link = self.page.locator('#return-to-classic-mode-link')
+            return_link.wait_for(state='visible', timeout=timeout)
             return True
         except Exception as e:
             self.logger.log_error(f"Authorization page not loaded: {str(e)}")

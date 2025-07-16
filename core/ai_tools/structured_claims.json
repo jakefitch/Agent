@@ -1,0 +1,1977 @@
+[
+  {
+    "claim_number": 2,
+    "data": {
+      "patient_info": {
+        "patient_name": "JOSIAH ALVAREZ",
+        "insured_name": "JOSIAH ALVAREZ"
+      },
+      "claim_info": {
+        "claim_id": "241212560266",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304DU",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "92083",
+          "billed_amount": "$94.00",
+          "allowed_amount": "$47.69",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$46.31",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$47.69",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "92133",
+          "billed_amount": "$65.00",
+          "allowed_amount": "$34.94",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$30.06",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$34.94",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "99213",
+          "billed_amount": "$120.00",
+          "allowed_amount": "$36.90",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$83.10",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$36.90",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$279.00",
+        "total_allowed": "$119.53",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$159.47"
+      }
+    }
+  },
+  {
+    "claim_number": 3,
+    "data": {
+      "patient_info": {
+        "patient_name": "PAEZLI CHAFFIN",
+        "insured_name": "PAEZLI CHAFFIN"
+      },
+      "claim_info": {
+        "claim_id": "2412161576094",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "20241217046T",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2103",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 4,
+    "data": {
+      "patient_info": {
+        "patient_name": "PAEZLI CHAFFIN",
+        "insured_name": "PAEZLI CHAFFIN"
+      },
+      "claim_info": {
+        "claim_id": "2412161576096",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "20241217047R",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0620",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 5,
+    "data": {
+      "patient_info": {
+        "patient_name": "FAITH CUMMINGS",
+        "insured_name": "FAITH CUMMINGS"
+      },
+      "claim_info": {
+        "claim_id": "241212560254",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304DN",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0620",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 6,
+    "data": {
+      "patient_info": {
+        "patient_name": "FAITH CUMMINGS",
+        "insured_name": "FAITH CUMMINGS"
+      },
+      "claim_info": {
+        "claim_id": "241212560252",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304DZ",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2109",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$112.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$18.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$112.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$182.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$27.00"
+      }
+    }
+  },
+  {
+    "claim_number": 7,
+    "data": {
+      "patient_info": {
+        "patient_name": "JAEDEN DARNES",
+        "insured_name": "JAEDEN DARNES"
+      },
+      "claim_info": {
+        "claim_id": "241213575599",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1740293919",
+        "payer_claim_control": "2024121402C0",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 8,
+    "data": {
+      "patient_info": {
+        "patient_name": "JAEDEN DARNES",
+        "insured_name": "JAEDEN DARNES"
+      },
+      "claim_info": {
+        "claim_id": "241213575600",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1740293919",
+        "payer_claim_control": "2024121402C1",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "2",
+          "procedure_code": "V2103",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 9,
+    "data": {
+      "patient_info": {
+        "patient_name": "GIDAYA DOBBINS",
+        "insured_name": "GIDAYA DOBBINS"
+      },
+      "claim_info": {
+        "claim_id": "241213581644",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121402BH",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$72.13",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$42.87",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$72.13",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$72.13",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$42.87"
+      }
+    }
+  },
+  {
+    "claim_number": 10,
+    "data": {
+      "patient_info": {
+        "patient_name": "GIDAYA DOBBINS",
+        "insured_name": "GIDAYA DOBBINS"
+      },
+      "claim_info": {
+        "claim_id": "241213581645",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121402C4",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$229.00",
+          "allowed_amount": "$137.40",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$151.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$78.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2107",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$16.90",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$113.10",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$16.90",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2750",
+          "billed_amount": "$30.00",
+          "allowed_amount": "$15.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$15.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$15.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$389.00",
+        "total_allowed": "$169.30",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$279.10"
+      }
+    }
+  },
+  {
+    "claim_number": 11,
+    "data": {
+      "patient_info": {
+        "patient_name": "ELASIA DURAN",
+        "insured_name": "ELASIA DURAN"
+      },
+      "claim_info": {
+        "claim_id": "2412161576095",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1740293919",
+        "payer_claim_control": "2024121704BU",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1740293919",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 12,
+    "data": {
+      "patient_info": {
+        "patient_name": "SESLIE ESCOBAR RINCON",
+        "insured_name": "SESLIE ESCOBAR RINCON"
+      },
+      "claim_info": {
+        "claim_id": "2412161576103",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121704CD",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$99.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$29.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2100",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$229.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$89.00"
+      }
+    }
+  },
+  {
+    "claim_number": 13,
+    "data": {
+      "patient_info": {
+        "patient_name": "SESLIE ESCOBAR RINCON",
+        "insured_name": "SESLIE ESCOBAR RINCON"
+      },
+      "claim_info": {
+        "claim_id": "2412161576102",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121704CG",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0620",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 14,
+    "data": {
+      "patient_info": {
+        "patient_name": "EVANDER ESPARZA",
+        "insured_name": "EVANDER ESPARZA"
+      },
+      "claim_info": {
+        "claim_id": "241212590104",
+        "claim_status": "Denied",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304E5",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/3/2024",
+          "end_date": "12/3/2024",
+          "rendering_npi": "1639335516",
+          "units": "0",
+          "procedure_code": "V2020,RB",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$0.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$79.00",
+          "adjust_codes": "CO-B13",
+          "provider_paid": "$0.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$79.00",
+        "total_allowed": "$0.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$79.00"
+      }
+    }
+  },
+  {
+    "claim_number": 15,
+    "data": {
+      "patient_info": {
+        "patient_name": "JERZIE EWING",
+        "insured_name": "JERZIE EWING"
+      },
+      "claim_info": {
+        "claim_id": "2412161576093",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "20241217044Z",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2103",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 16,
+    "data": {
+      "patient_info": {
+        "patient_name": "JERZIE EWING",
+        "insured_name": "JERZIE EWING"
+      },
+      "claim_info": {
+        "claim_id": "2412161576097",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "20241217048C",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0620",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 17,
+    "data": {
+      "patient_info": {
+        "patient_name": "NOLAN FLOWERS",
+        "insured_name": "NOLAN FLOWERS"
+      },
+      "claim_info": {
+        "claim_id": "2412161576099",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1891366597",
+        "payer_claim_control": "20241217043D",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "1",
+          "procedure_code": "V2020,RB",
+          "billed_amount": "$129.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$59.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "2",
+          "procedure_code": "V2103,RB",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$259.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$119.00"
+      }
+    }
+  },
+  {
+    "claim_number": 18,
+    "data": {
+      "patient_info": {
+        "patient_name": "OLIVER FLOWERS",
+        "insured_name": "OLIVER FLOWERS"
+      },
+      "claim_info": {
+        "claim_id": "2412161576100",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1891366597",
+        "payer_claim_control": "2024121704AC",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "1",
+          "procedure_code": "V2020,RB",
+          "billed_amount": "$179.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$109.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "1",
+          "procedure_code": "V2100,RB,RT",
+          "billed_amount": "$65.00",
+          "allowed_amount": "$35.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$30.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$35.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "1",
+          "procedure_code": "V2103,RB,LT",
+          "billed_amount": "$65.00",
+          "allowed_amount": "$35.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$30.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$35.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$309.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$169.00"
+      }
+    }
+  },
+  {
+    "claim_number": 19,
+    "data": {
+      "patient_info": {
+        "patient_name": "AALIYAH GARZA",
+        "insured_name": "AALIYAH GARZA"
+      },
+      "claim_info": {
+        "claim_id": "241212560264",
+        "claim_status": "Denied",
+        "rendering_npi": "1891366597",
+        "payer_claim_control": "2024121304D2",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1891366597",
+          "units": "0",
+          "procedure_code": "V2020",
+          "billed_amount": "$99.00",
+          "allowed_amount": "$0.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$99.00",
+          "adjust_codes": "CO-119",
+          "provider_paid": "$0.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1891366597",
+          "units": "0",
+          "procedure_code": "V2104",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$0.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$130.00",
+          "adjust_codes": "CO-119",
+          "provider_paid": "$0.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$229.00",
+        "total_allowed": "$0.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$229.00"
+      }
+    }
+  },
+  {
+    "claim_number": 20,
+    "data": {
+      "patient_info": {
+        "patient_name": "JOSEPHINE HOLT",
+        "insured_name": "JOSEPHINE HOLT"
+      },
+      "claim_info": {
+        "claim_id": "2412161576098",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121704B8",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "99213",
+          "billed_amount": "$120.00",
+          "allowed_amount": "$32.47",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$87.53",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$32.47",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$120.00",
+        "total_allowed": "$32.47",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$87.53"
+      }
+    }
+  },
+  {
+    "claim_number": 21,
+    "data": {
+      "patient_info": {
+        "patient_name": "JESUS LECHUGA",
+        "insured_name": "JESUS LECHUGA"
+      },
+      "claim_info": {
+        "claim_id": "241213581648",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121402AD",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2104,RB",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020,RB",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 22,
+    "data": {
+      "patient_info": {
+        "patient_name": "JESUS LECHUGA",
+        "insured_name": "JESUS LECHUGA"
+      },
+      "claim_info": {
+        "claim_id": "241213581649",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121402E6",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "92060",
+          "billed_amount": "$82.00",
+          "allowed_amount": "$32.73",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$49.27",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$32.73",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$197.00",
+        "total_allowed": "$130.73",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$66.27"
+      }
+    }
+  },
+  {
+    "claim_number": 23,
+    "data": {
+      "patient_info": {
+        "patient_name": "ESTEFANIA NAVARRO",
+        "insured_name": "ESTEFANIA NAVARRO"
+      },
+      "claim_info": {
+        "claim_id": "241213575597",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1740293919",
+        "payer_claim_control": "2024121402DB",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "1",
+          "procedure_code": "99214",
+          "billed_amount": "$174.00",
+          "allowed_amount": "$51.83",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$122.17",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$51.83",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$174.00",
+        "total_allowed": "$51.83",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$122.17"
+      }
+    }
+  },
+  {
+    "claim_number": 24,
+    "data": {
+      "patient_info": {
+        "patient_name": "ANGELICA OLIVAREZ",
+        "insured_name": "ANGELICA OLIVAREZ"
+      },
+      "claim_info": {
+        "claim_id": "241212560256",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304DV",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2204",
+          "billed_amount": "$170.00",
+          "allowed_amount": "$84.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$86.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$84.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$249.00",
+        "total_allowed": "$154.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$95.00"
+      }
+    }
+  },
+  {
+    "claim_number": 25,
+    "data": {
+      "patient_info": {
+        "patient_name": "ANGELICA OLIVAREZ",
+        "insured_name": "ANGELICA OLIVAREZ"
+      },
+      "claim_info": {
+        "claim_id": "241212560257",
+        "claim_status": "Denied",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304E4",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "0",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$0.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$115.00",
+          "adjust_codes": "CO-119",
+          "provider_paid": "$0.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$0.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$115.00"
+      }
+    }
+  },
+  {
+    "claim_number": 26,
+    "data": {
+      "patient_info": {
+        "patient_name": "PRESLEY PEOPLES",
+        "insured_name": "PRESLEY PEOPLES"
+      },
+      "claim_info": {
+        "claim_id": "2412161576101",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1891366597",
+        "payer_claim_control": "202412170446",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "1",
+          "procedure_code": "V2020,RB",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/13/2024",
+          "end_date": "12/13/2024",
+          "rendering_npi": "1891366597",
+          "units": "2",
+          "procedure_code": "V2108,RB",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 27,
+    "data": {
+      "patient_info": {
+        "patient_name": "CALEIGH STEWART",
+        "insured_name": "CALEIGH STEWART"
+      },
+      "claim_info": {
+        "claim_id": "241213575596",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1740293919",
+        "payer_claim_control": "2024121402BP",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "1",
+          "procedure_code": "V2020,RB",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "2",
+          "procedure_code": "V2104,RB",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 28,
+    "data": {
+      "patient_info": {
+        "patient_name": "CALEIGH STEWART",
+        "insured_name": "CALEIGH STEWART"
+      },
+      "claim_info": {
+        "claim_id": "241213575598",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1740293919",
+        "payer_claim_control": "2024121402C5",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1740293919",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 29,
+    "data": {
+      "patient_info": {
+        "patient_name": "ADALYNN SUTTON",
+        "insured_name": "ADALYNN SUTTON"
+      },
+      "claim_info": {
+        "claim_id": "241212560253",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304CT",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2104",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 30,
+    "data": {
+      "patient_info": {
+        "patient_name": "ADALYNN SUTTON",
+        "insured_name": "ADALYNN SUTTON"
+      },
+      "claim_info": {
+        "claim_id": "241212560255",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304DS",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0620",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 31,
+    "data": {
+      "patient_info": {
+        "patient_name": "DOMINGA VENTURA ORDONE",
+        "insured_name": "DOMINGA VENTURA ORDONE"
+      },
+      "claim_info": {
+        "claim_id": "241212560265",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1891366597",
+        "payer_claim_control": "2024121304DT",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "10/25/2024",
+          "end_date": "10/25/2024",
+          "rendering_npi": "1891366597",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "10/25/2024",
+          "end_date": "10/25/2024",
+          "rendering_npi": "1891366597",
+          "units": "2",
+          "procedure_code": "V2104",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 32,
+    "data": {
+      "patient_info": {
+        "patient_name": "MAKALEE VIGUERIA",
+        "insured_name": "MAKALEE VIGUERIA"
+      },
+      "claim_info": {
+        "claim_id": "241213581647",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121402CU",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/12/2024",
+          "end_date": "12/12/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0620",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 33,
+    "data": {
+      "patient_info": {
+        "patient_name": "KIMBERLEY ZAMORA",
+        "insured_name": "KIMBERLEY ZAMORA"
+      },
+      "claim_info": {
+        "claim_id": "241212560271",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304CV",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "92250",
+          "billed_amount": "$73.00",
+          "allowed_amount": "$28.14",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$44.86",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$28.14",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$188.00",
+        "total_allowed": "$126.14",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$61.86"
+      }
+    }
+  },
+  {
+    "claim_number": 34,
+    "data": {
+      "patient_info": {
+        "patient_name": "KIMBERLEY ZAMORA",
+        "insured_name": "KIMBERLEY ZAMORA"
+      },
+      "claim_info": {
+        "claim_id": "241212560268",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304EO",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2103",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$60.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$140.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$69.00"
+      }
+    }
+  },
+  {
+    "claim_number": 35,
+    "data": {
+      "patient_info": {
+        "patient_name": "MARISOL ZAMORA",
+        "insured_name": "MARISOL ZAMORA"
+      },
+      "claim_info": {
+        "claim_id": "241212560269",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304D0",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$98.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$17.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$98.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$98.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$17.00"
+      }
+    }
+  },
+  {
+    "claim_number": 36,
+    "data": {
+      "patient_info": {
+        "patient_name": "RAUL ZAMORA",
+        "insured_name": "RAUL ZAMORA"
+      },
+      "claim_info": {
+        "claim_id": "241212560267",
+        "claim_status": "Processed as Primary",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304CU",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "1",
+          "procedure_code": "V2020",
+          "billed_amount": "$79.00",
+          "allowed_amount": "$70.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$9.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$70.00",
+          "remark_codes": "N381"
+        },
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "2",
+          "procedure_code": "V2105",
+          "billed_amount": "$130.00",
+          "allowed_amount": "$112.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$18.00",
+          "adjust_codes": "CO-45",
+          "provider_paid": "$112.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$209.00",
+        "total_allowed": "$182.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$27.00"
+      }
+    }
+  },
+  {
+    "claim_number": 37,
+    "data": {
+      "patient_info": {
+        "patient_name": "RAUL ZAMORA",
+        "insured_name": "RAUL ZAMORA"
+      },
+      "claim_info": {
+        "claim_id": "241212560270",
+        "claim_status": "Denied",
+        "rendering_npi": "1639335516",
+        "payer_claim_control": "2024121304DL",
+        "patient_responsibility": ""
+      },
+      "service_lines": [
+        {
+          "begin_date": "12/11/2024",
+          "end_date": "12/11/2024",
+          "rendering_npi": "1639335516",
+          "units": "0",
+          "procedure_code": "S0621",
+          "billed_amount": "$115.00",
+          "allowed_amount": "$0.00",
+          "deductible_amount": "$0.00",
+          "coinsurance_amount": "$0.00",
+          "copay_amount": "$0.00",
+          "late_filing_red": "$0.00",
+          "other_adjustments": "$115.00",
+          "adjust_codes": "CO-11",
+          "provider_paid": "$0.00",
+          "remark_codes": "N381"
+        }
+      ],
+      "totals": {
+        "total_billed": "$115.00",
+        "total_allowed": "$0.00",
+        "total_deductible": "$0.00",
+        "total_coinsurance": "$0.00",
+        "total_copay": "$0.00",
+        "total_other_adjustments": "$0.00",
+        "total_paid": "$115.00"
+      }
+    }
+  }
+]

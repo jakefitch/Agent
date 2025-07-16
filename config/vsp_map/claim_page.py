@@ -46,15 +46,11 @@ class ClaimPage(BasePage):
     def fill_rx(self, patient: Patient) -> None:
         """Fill the prescription and pricing information for the claim."""
         self.send_rx(patient)
-        self.disease_reporting(patient)
+        
         self.calculate(patient)
         self.fill_pricing(patient)
         self.set_gender(patient)
 
-    def calculate_order(self) -> None:
-        """Submit the claim and generate the report."""
-        self.click_submit_claim()
-        self.generate_report()
 
     # ------------------------------------------------------------------
     def set_dos(self, patient: Patient) -> bool:
@@ -243,19 +239,8 @@ class ClaimPage(BasePage):
         """Click the Calculate button and handle alerts."""
         try:
             self.page.locator('#claim-tracker-calculate').click()
+            sleep(4)
             self.wait_for_network_idle(timeout=10000)
-            
-            # Check for popup with "Acknowledge" span
-            try:
-                acknowledge_span = self.page.locator('span:has-text("Acknowledge")')
-                if acknowledge_span.is_visible(timeout=3000):
-                    self.logger.log("Found acknowledge popup, clicking acknowledge...")
-                    acknowledge_span.click()
-                    self.page.wait_for_timeout(1000)  # Wait for popup to close
-                    self.logger.log("Acknowledge popup handled successfully")
-            except Exception as popup_error:
-                self.logger.log(f"No acknowledge popup found or popup handling failed: {str(popup_error)}")
-                
         except Exception as e:
             self.logger.log_error(f"Calculation failed: {str(e)}")
             self.take_screenshot("claim_calculate_error")
@@ -352,7 +337,10 @@ class ClaimPage(BasePage):
             try:
                 if copay:
                     self.logger.log("Setting FSA paid amount...")
-                    self.page.locator("#services-fsa-paid-input").fill(copay)
+                    fsa_locator = self.page.locator("#services-fsa-paid-input")
+                    if fsa_locator.is_visible(timeout=1000):
+                        fsa_locator.fill(copay)
+
             except Exception as e:
                 self.logger.log_error(f"Error setting FSA paid amount: {str(e)}")
 
@@ -585,10 +573,34 @@ class ClaimPage(BasePage):
                 lens_dd.click()
                 # Wait for the dropdown to open
                 self.page.wait_for_timeout(500)
-                # Type the design text to filter and select
-                lens_dd.fill(design)
-                self.page.wait_for_timeout(500)
-                lens_dd.press('Enter')
+                
+                # For ng-select, we need to type into the search input that appears
+                try:
+                    # Look for the search input that appears when ng-select is opened
+                    search_input = self.page.locator('.ng-dropdown-panel input[type="text"]')
+                    if search_input.is_visible(timeout=2000):
+                        search_input.fill(design)
+                        self.page.wait_for_timeout(500)
+                        search_input.press('Enter')
+                    else:
+                        # Fallback: try typing directly into the ng-select
+                        lens_dd.type(design)
+                        self.page.wait_for_timeout(500)
+                        lens_dd.press('Enter')
+                except Exception as e:
+                    self.logger.log(f"Failed to fill ng-select with {design}: {str(e)}")
+                    # Try alternative approach - click on the option directly
+                    try:
+                        option = self.page.locator(f'.ng-dropdown-panel .ng-option:has-text("{design}")')
+                        if option.is_visible(timeout=2000):
+                            option.click()
+                        else:
+                            # Last resort: try pressing Tab to close dropdown
+                            lens_dd.press('Tab')
+                    except Exception as e2:
+                        self.logger.log(f"Failed alternative approach: {str(e2)}")
+                        lens_dd.press('Tab')  # Close dropdown
+                
                 self.page.wait_for_timeout(500)
 
             # --- Lab ID ---
@@ -641,140 +653,479 @@ class ClaimPage(BasePage):
     def handle_popup_window(self) -> bool:
         """Handle popup window that may open after claim submission.
         
+        The VSP reports page opens as a completely new browser window.
+        We need to find this window and then process it.
+        
         Returns:
             bool: True if popup was handled successfully, False otherwise
         """
         try:
-            # Wait for a new page to open (popup window)
-            popup_page = self.context.wait_for_event('page', timeout=5000)
-            self.logger.log("Popup window detected, switching to it...")
+            self.logger.log("=== POPUP WINDOW HANDLING START ===")
             
-            # Switch to the popup page
-            popup_page.wait_for_load_state()
-            self.logger.log(f"Popup page loaded: {popup_page.url}")
+            # Get the browser context
+            browser_context = self.page.context
             
-            # Perform actions in the popup window
-            success = self.perform_popup_actions(popup_page)
+            # Get all current pages and log them
+            all_pages = browser_context.pages
+            self.logger.log(f"Current page count: {len(all_pages)}")
             
-            # Close the popup window
-            popup_page.close()
-            self.logger.log("Popup window closed")
+            # Log details of all pages
+            for i, page in enumerate(all_pages):
+                try:
+                    url = page.url
+                    title = page.title()
+                    self.logger.log(f"Page {i}: URL={url}, Title={title}")
+                except Exception as e:
+                    self.logger.log(f"Page {i}: Error getting details - {str(e)}")
             
-            return success
+            # First, try to find an existing VSP reports page
+            vsp_reports_page = None
+            
+            for i, page in enumerate(all_pages):
+                try:
+                    url = page.url
+                    title = page.title()
+                    
+                    # Look for VSP reports page or any page that's not the original
+                    if (page != self.page and 
+                        ("doctor.vsp.com/reports" in url or 
+                         "vsp.com" in url or
+                         "eyefinity.com" in url or
+                         "reports" in url.lower() or
+                         "benefit" in url.lower())):
+                        vsp_reports_page = page
+                        self.logger.log(f"Found VSP reports page at index {i}: {url}")
+                        break
+                except Exception as e:
+                    self.logger.log(f"Error checking page {i}: {str(e)}")
+                    continue
+            
+            # If we didn't find a specific VSP page, try to find any page that's not the original
+            if not vsp_reports_page:
+                self.logger.log("No specific VSP page found, looking for any non-original page...")
+                for i, page in enumerate(all_pages):
+                    if page != self.page:
+                        try:
+                            url = page.url
+                            title = page.title()
+                            self.logger.log(f"Found non-original page at index {i}: {url}")
+                            vsp_reports_page = page
+                            break
+                        except Exception as e:
+                            self.logger.log(f"Error checking non-original page {i}: {str(e)}")
+                            continue
+            
+            # If still no page found, wait for a new page to appear
+            if not vsp_reports_page:
+                self.logger.log("No existing popup found, waiting for new popup window to open...")
+                
+                # Get initial page count
+                initial_pages = len(browser_context.pages)
+                self.logger.log(f"Initial page count: {initial_pages}")
+                
+                # Wait for a new page to appear (up to 10 seconds)
+                max_wait_time = 10000  # 10 seconds
+                wait_interval = 500    # Check every 500ms
+                waited_time = 0
+                
+                while waited_time < max_wait_time:
+                    current_pages = browser_context.pages
+                    if len(current_pages) > initial_pages:
+                        self.logger.log(f"New page detected! Current count: {len(current_pages)}")
+                        break
+                    
+                    self.page.wait_for_timeout(wait_interval)
+                    waited_time += wait_interval
+                
+                if len(browser_context.pages) > initial_pages:
+                    # Find the new page (should be the last one)
+                    all_pages = browser_context.pages
+                    vsp_reports_page = all_pages[-1]  # Last page should be the popup
+                    self.logger.log(f"Using new page as popup: {vsp_reports_page.url}")
+                else:
+                    self.logger.log_error("No new popup window detected within timeout")
+                    return False
+            
+            if not vsp_reports_page:
+                self.logger.log_error("No suitable popup page found")
+                return False
+            
+            # Process the VSP reports page
+            return self._process_vsp_reports_page(vsp_reports_page)
             
         except Exception as e:
-            self.logger.log(f"No popup window opened or popup handling failed: {str(e)}")
+            self.logger.log_error(f"Popup window handling failed: {str(e)}")
             return False
 
-    def perform_popup_actions(self, popup_page) -> bool:
-        """Perform specific actions in the popup window.
+    def check_existing_popups(self) -> bool:
+        """Check if there are any existing popup windows that we can process.
         
-        This handles the frameset-based report popup with:
-        - rptTop frame (contains tab bar with "Service Report")
-        - rptPage frame (main preview panel)
-        - rptPrint frame (hidden/printing)
+        This method looks for any existing pages that might be VSP reports
+        and processes them directly.
         
-        Args:
-            popup_page: The popup page object to interact with
-            
         Returns:
-            bool: True if actions were successful, False otherwise
+            bool: True if an existing popup was found and processed, False otherwise
         """
         try:
-            self.logger.log("Performing actions in popup window...")
+            self.logger.log("=== CHECKING EXISTING POPUPS ===")
             
-            # Wait for the popup to fully load
-            popup_page.wait_for_load_state("domcontentloaded")
-            self.logger.log("Popup page loaded, accessing frames...")
+            # Get the browser context
+            browser_context = self.page.context
+            all_pages = browser_context.pages
             
-            # Step 1: Access the rptTop frame (contains the tab bar)
-            try:
-                rpt_top = popup_page.frame(name="rptTop")
-                if not rpt_top:
-                    self.logger.log_error("Could not find rptTop frame")
-                    return False
-                self.logger.log("Successfully accessed rptTop frame")
-            except Exception as e:
-                self.logger.log_error(f"Failed to access rptTop frame: {str(e)}")
-                return False
+            self.logger.log(f"Checking {len(all_pages)} existing pages...")
             
-            # Step 2: Click the "Service Report" tab in rptTop frame
-            try:
-                # Try multiple approaches to find and click the Service Report tab
-                service_report_clicked = False
-                
-                # Approach 1: Try role-based locator
+            # Log all pages for debugging
+            for i, page in enumerate(all_pages):
                 try:
-                    service_report_link = rpt_top.get_by_role("link", name="Service Report")
-                    if service_report_link.is_visible(timeout=3000):
-                        service_report_link.click()
-                        service_report_clicked = True
-                        self.logger.log("Clicked Service Report tab using role-based locator")
-                except Exception as e1:
-                    self.logger.log(f"Role-based locator failed: {str(e1)}")
-                
-                # Approach 2: Try text-based locator
-                if not service_report_clicked:
-                    try:
-                        service_report_link = rpt_top.locator("a", has_text="Service Report")
-                        if service_report_link.is_visible(timeout=3000):
-                            service_report_link.click()
-                            service_report_clicked = True
-                            self.logger.log("Clicked Service Report tab using text-based locator")
-                    except Exception as e2:
-                        self.logger.log(f"Text-based locator failed: {str(e2)}")
-                
-                # Approach 3: Try more generic selector
-                if not service_report_clicked:
-                    try:
-                        service_report_link = rpt_top.locator("a:has-text('Service Report')")
-                        if service_report_link.is_visible(timeout=3000):
-                            service_report_link.click()
-                            service_report_clicked = True
-                            self.logger.log("Clicked Service Report tab using generic selector")
-                    except Exception as e3:
-                        self.logger.log(f"Generic selector failed: {str(e3)}")
-                
-                if not service_report_clicked:
-                    self.logger.log_error("Could not find or click Service Report tab")
-                    return False
+                    url = page.url
+                    title = page.title()
+                    self.logger.log(f"Page {i}: URL={url}, Title={title}")
                     
-            except Exception as e:
-                self.logger.log_error(f"Failed to click Service Report tab: {str(e)}")
-                return False
+                    # Check if this page is a VSP reports page
+                    if (page != self.page and 
+                        ("doctor.vsp.com/reports" in url or 
+                         "vsp.com" in url or
+                         "eyefinity.com" in url or
+                         "reports" in url.lower() or
+                         "benefit" in url.lower() or
+                         "secure.eyefinity.com" in url)):
+                        
+                        self.logger.log(f"Found existing VSP reports page at index {i}: {url}")
+                        return self._process_vsp_reports_page(page)
+                        
+                except Exception as e:
+                    self.logger.log(f"Error checking page {i}: {str(e)}")
+                    continue
             
-            # Step 3: Wait for rptPage frame to load new content
+            self.logger.log("No existing VSP reports pages found")
+            return False
+            
+        except Exception as e:
+            self.logger.log_error(f"Error checking existing popups: {str(e)}")
+            return False
+
+    def handle_popup_with_expect_popup(self) -> bool:
+        """Alternative popup handling using expect_popup() method.
+        
+        This method uses Playwright's expect_popup() which is more reliable
+        for handling popup windows that are triggered by clicking a button.
+        
+        Returns:
+            bool: True if popup was handled successfully, False otherwise
+        """
+        try:
+            self.logger.log("=== EXPECT POPUP HANDLING START ===")
+            
+            # Look for the "View Doctor Reports" button or similar
+            # This might be the button that triggers the popup
+            report_buttons = [
+                "//span[text()='View Doctor Reports']",
+                "//button[contains(text(), 'View')]",
+                "//button[contains(text(), 'Report')]",
+                "//a[contains(text(), 'View')]",
+                "//a[contains(text(), 'Report')]",
+                "#view-reports-button",
+                "[data-testid='view-reports']",
+                "button:has-text('View')",
+                "button:has-text('Report')",
+                "a:has-text('View')",
+                "a:has-text('Report')"
+            ]
+            
+            self.logger.log(f"Searching for {len(report_buttons)} different button selectors...")
+            
+            button_found = False
+            for i, button_selector in enumerate(report_buttons):
+                try:
+                    self.logger.log(f"Trying button selector {i+1}/{len(report_buttons)}: {button_selector}")
+                    button = self.page.locator(button_selector)
+                    
+                    # Check if button exists and is visible
+                    count = button.count()
+                    self.logger.log(f"Button count: {count}")
+                    
+                    if count > 0:
+                        is_visible = button.is_visible(timeout=2000)
+                        self.logger.log(f"Button visible: {is_visible}")
+                        
+                        if is_visible:
+                            button_text = button.text_content()
+                            self.logger.log(f"Found report button: {button_selector} (text: '{button_text}')")
+                            button_found = True
+                            
+                            # Use expect_popup to handle the popup
+                            with self.page.expect_popup() as popup_info:
+                                button.click()
+                            
+                            popup = popup_info.value
+                            popup.wait_for_load_state()
+                            self.logger.log("✅ Popup window opened successfully")
+                            
+                            # Process the popup
+                            result = self._process_vsp_reports_page(popup)
+                            
+                            # Close the popup
+                            popup.close()
+                            self.logger.log("🧹 Popup window closed")
+                            
+                            return result
+                    else:
+                        self.logger.log(f"Button selector {button_selector} not found (count: 0)")
+                        
+                except Exception as e:
+                    self.logger.log(f"Button {button_selector} error: {str(e)}")
+                    continue
+            
+            if not button_found:
+                self.logger.log("No report button found, trying alternative approach...")
+                # If no button found, try the original method
+                return self.handle_popup_window()
+            
+            return False
+            
+        except Exception as e:
+            self.logger.log_error(f"Expect popup handling failed: {str(e)}")
+            return False
+
+    def _process_vsp_reports_page(self, reports_page) -> bool:
+        """Process the VSP reports page directly.
+        
+        This method handles the complete flow:
+        1. Wait for the page to load
+        2. Handle login if required
+        3. Access the rptPage frame
+        4. Extract PDF data
+        5. Save and process the report
+        
+        Args:
+            reports_page: The VSP reports page object
+            
+        Returns:
+            bool: True if processing was successful, False otherwise
+        """
+        try:
+            self.logger.log("=== PROCESSING VSP REPORTS PAGE ===")
+            self.logger.log(f"Reports page URL: {reports_page.url}")
+            self.logger.log(f"Reports page title: {reports_page.title()}")
+            
+            # Wait for the page to be fully loaded
+            reports_page.wait_for_load_state("domcontentloaded")
+            self.logger.log("Reports page loaded successfully")
+            
+            # Take a screenshot for debugging
             try:
-                rpt_page = popup_page.frame(name="rptPage")
-                if not rpt_page:
+                screenshot_path = f"logs/screenshots/vsp_reports_{int(time.time())}.png"
+                reports_page.screenshot(path=screenshot_path)
+                self.logger.log(f"Reports page screenshot saved: {screenshot_path}")
+            except Exception as e:
+                self.logger.log(f"Failed to take screenshot: {str(e)}")
+            
+            # Check for login requirement
+            try:
+                username_input = reports_page.locator("#username")
+                if username_input.is_visible(timeout=3000):
+                    self.logger.log("🔐 Login required on VSP reports page")
+                    
+                    # Load VSP credentials from environment
+                    try:
+                        from dotenv import load_dotenv
+                        import os
+                        load_dotenv("/home/jake/Code/.env")
+                        
+                        # Try to use the same credentials as the main session
+                        ama_username = os.getenv("vsp_username")
+                        bgr_username = os.getenv("vsp_borger_username")
+                        vsp_password = os.getenv("vsp_password")
+                        
+                        if not all([ama_username, bgr_username, vsp_password]):
+                            self.logger.log_error("Missing VSP credentials in environment")
+                            return False
+                        
+                        # Use AMA username as default (you might want to make this configurable)
+                        username = ama_username
+                        
+                        username_input.fill(username)
+                        reports_page.locator("#password").fill(vsp_password)
+                        reports_page.locator("button[type='submit']").click()
+                        reports_page.wait_for_load_state()
+                        self.logger.log("🔓 Logged in successfully to VSP reports page")
+                        
+                    except Exception as login_error:
+                        self.logger.log_error(f"Failed to login to VSP reports page: {str(login_error)}")
+                        return False
+            except Exception:
+                self.logger.log("✅ No login required")
+            
+            # Wait for the rptPage frame to appear
+            try:
+                reports_page.wait_for_selector("#rptPage", timeout=10000)
+                self.logger.log("Found rptPage frame selector")
+            except Exception as e:
+                self.logger.log(f"Could not find rptPage frame selector: {str(e)}")
+                # Continue anyway, might be a different structure
+            
+            # Log all frames for debugging
+            try:
+                frames = reports_page.frames
+                self.logger.log(f"Found {len(frames)} frames in reports page")
+                for i, frame in enumerate(frames):
+                    self.logger.log(f"  Frame {i}: name={frame.name}, url={frame.url}")
+            except Exception as e:
+                self.logger.log(f"Failed to enumerate frames: {str(e)}")
+            
+            # Try to access the rptPage frame (main content)
+            rpt_page = None
+            try:
+                rpt_page = reports_page.frame(name="rptPage")
+                if rpt_page:
+                    self.logger.log("Successfully accessed rptPage frame")
+                else:
                     self.logger.log_error("Could not find rptPage frame")
                     return False
-                
-                # Wait for the frame content to load
-                rpt_page.wait_for_load_state("domcontentloaded")
-                self.logger.log("Successfully accessed rptPage frame and waited for content")
-                
-                # Optional: Take a screenshot of the report
-                try:
-                    screenshot_path = f"logs/screenshots/service_report_{int(time.time())}.png"
-                    rpt_page.screenshot(path=screenshot_path)
-                    self.logger.log(f"Service report screenshot saved: {screenshot_path}")
-                except Exception as screenshot_error:
-                    self.logger.log(f"Failed to take screenshot: {str(screenshot_error)}")
-                
-                # Optional: Try to find and click download/print button
-                self.try_download_report(rpt_page)
-                
             except Exception as e:
                 self.logger.log_error(f"Failed to access rptPage frame: {str(e)}")
                 return False
             
-            self.logger.log("Popup actions completed successfully")
-            return True
+            # Wait for the frame content to load
+            try:
+                rpt_page.wait_for_load_state("domcontentloaded")
+                self.logger.log("rptPage frame loaded successfully")
+            except Exception as e:
+                self.logger.log(f"Failed to wait for rptPage load: {str(e)}")
+            
+            # Take a screenshot of the report content
+            try:
+                screenshot_path = f"logs/screenshots/report_content_{int(time.time())}.png"
+                rpt_page.screenshot(path=screenshot_path)
+                self.logger.log(f"Report content screenshot saved: {screenshot_path}")
+            except Exception as e:
+                self.logger.log(f"Failed to take report screenshot: {str(e)}")
+            
+            # Try to extract PDF data from embed element
+            pdf_extracted = self._extract_pdf_from_embed(rpt_page)
+            
+            # Try to download/print the report as fallback
+            if not pdf_extracted:
+                download_success = self.try_download_report(rpt_page)
+            else:
+                download_success = True
+            
+            # Close the reports page
+            try:
+                reports_page.close()
+                self.logger.log("Reports page closed")
+            except Exception as e:
+                self.logger.log(f"Failed to close reports page: {str(e)}")
+            
+            self.logger.log("=== VSP REPORTS PAGE PROCESSING COMPLETED ===")
+            return download_success or pdf_extracted
             
         except Exception as e:
-            self.logger.log_error(f"Failed to perform popup actions: {str(e)}")
+            self.logger.log_error(f"Failed to process VSP reports page: {str(e)}")
             return False
+
+    def _extract_pdf_from_embed(self, rpt_page) -> bool:
+        """Extract PDF data from embed element in the rptPage frame.
+        
+        Args:
+            rpt_page: The rptPage frame object
+            
+        Returns:
+            bool: True if PDF was extracted successfully, False otherwise
+        """
+        try:
+            self.logger.log("Attempting to extract PDF from embed element...")
+            
+            # Look for embed element with PDF
+            embed = rpt_page.locator("embed[type='application/pdf']")
+            if embed.count() == 0:
+                self.logger.log("No PDF embed element found")
+                return False
+            
+            # Get the src attribute
+            src = embed.get_attribute("src")
+            if not src:
+                self.logger.log("No src attribute found on embed element")
+                return False
+            
+            self.logger.log("Found PDF embed src attribute")
+            
+            # Check if it's a base64 PDF
+            prefix = 'data:application/pdf;base64,'
+            if not src.startswith(prefix):
+                self.logger.log("Embed src is not a Base64 PDF")
+                return False
+            
+            # Decode base64 PDF
+            import base64
+            base64_data = src[len(prefix):]
+            try:
+                pdf_bytes = base64.b64decode(base64_data)
+                
+                # Generate filename with timestamp
+                timestamp = int(time.time())
+                filename = f"logs/vsp_benefit_report_{timestamp}.pdf"
+                
+                # Ensure logs directory exists
+                import os
+                os.makedirs("logs", exist_ok=True)
+                
+                with open(filename, 'wb') as f:
+                    f.write(pdf_bytes)
+                self.logger.log(f"✅ PDF saved as {filename}")
+                
+                # Try to extract text from PDF
+                self._extract_text_from_pdf(filename)
+                
+                return True
+                
+            except Exception as e:
+                self.logger.log_error(f"Base64 decode or file write failed: {str(e)}")
+                return False
+                
+        except Exception as e:
+            self.logger.log_error(f"Failed to extract PDF from embed: {str(e)}")
+            return False
+
+    def _extract_text_from_pdf(self, pdf_filename: str) -> None:
+        """Extract text from PDF and log key information.
+        
+        Args:
+            pdf_filename: Path to the PDF file
+        """
+        try:
+            # Try to import PyPDF2
+            try:
+                from PyPDF2 import PdfReader
+            except ImportError:
+                self.logger.log("PyPDF2 not available, skipping text extraction")
+                return
+            
+            reader = PdfReader(pdf_filename)
+            text = ''.join([p.extract_text() or '' for p in reader.pages])
+            
+            # Extract key information using regex patterns
+            import re
+            patterns = {
+                "Exam/ProfSvcs": r'Exam/ProfSvcs(.*?)Lens',
+                "Lens": r'Lens(.*?)Frame',
+                "Frame": r'Frame(.*?)$',
+            }
+            
+            extracted = {}
+            for label, pattern in patterns.items():
+                match = re.search(pattern, text, re.DOTALL)
+                if match:
+                    extracted[label] = match.group(1).strip()
+                    self.logger.log(f"🧾 {label}: {extracted[label]}")
+                else:
+                    self.logger.log(f"🧾 {label}: Not found")
+            
+            self.logger.log("PDF text extraction completed")
+            
+        except Exception as e:
+            self.logger.log_error(f"Failed to extract text from PDF: {str(e)}")
 
     def try_download_report(self, rpt_page) -> bool:
         """Try to download or print the report from the rptPage frame.
@@ -900,9 +1251,30 @@ class ClaimPage(BasePage):
                     self.wait_for_network_idle(timeout=5000)
                     
                     # Step 5: Handle popup window if it opens
+                    self.logger.log("Attempting to handle popup window...")
+                    
+                    # First, check if there are any existing popup windows
+                    self.logger.log("Checking for existing popup windows...")
+                    popup_success = self.check_existing_popups()
+                    if popup_success:
+                        self.logger.log("Existing popup handling completed successfully")
+                        return True
+                    
+                    # Try the expect_popup method (more reliable for new popups)
+                    self.logger.log("No existing popups found, trying expect_popup method...")
+                    popup_success = self.handle_popup_with_expect_popup()
+                    if popup_success:
+                        self.logger.log("Popup handling completed successfully with expect_popup")
+                        return True
+                    
+                    # Fallback to the original method
+                    self.logger.log("expect_popup failed, trying original method...")
                     popup_success = self.handle_popup_window()
                     if popup_success:
+                        self.logger.log("Popup handling completed successfully with original method")
                         return True
+                    else:
+                        self.logger.log("All popup handling methods failed, but continuing...")
                     
             except Exception as e:
                 self.logger.log(f"Success modal not found or not clickable: {str(e)}")
