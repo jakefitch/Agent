@@ -244,6 +244,18 @@ class ClaimPage(BasePage):
         try:
             self.page.locator('#claim-tracker-calculate').click()
             self.wait_for_network_idle(timeout=10000)
+            
+            # Check for popup with "Acknowledge" span
+            try:
+                acknowledge_span = self.page.locator('span:has-text("Acknowledge")')
+                if acknowledge_span.is_visible(timeout=3000):
+                    self.logger.log("Found acknowledge popup, clicking acknowledge...")
+                    acknowledge_span.click()
+                    self.page.wait_for_timeout(1000)  # Wait for popup to close
+                    self.logger.log("Acknowledge popup handled successfully")
+            except Exception as popup_error:
+                self.logger.log(f"No acknowledge popup found or popup handling failed: {str(popup_error)}")
+                
         except Exception as e:
             self.logger.log_error(f"Calculation failed: {str(e)}")
             self.take_screenshot("claim_calculate_error")
@@ -430,7 +442,11 @@ class ClaimPage(BasePage):
             else:
                 self.page.locator('#prescriptionBinocularMonocularSelect').select_option('BINOCULAR')
                 self.page.locator('#prescriptionRightEyeDistanceInput').fill(patient.medical_data.get('dpd', ''))
-            if patient.lens_type != 'Single Vision':
+            
+            # Get lens type from lenses dictionary, similar to submit_lens method
+            lens_data = getattr(patient, "lenses", {}) or {}
+            lens_type = lens_data.get("type", "Single Vision")
+            if lens_type != 'Single Vision':
                 self.send_add_and_seg_to_vsp(patient)
         except Exception as e:
             self.logger.log_error(f"Failed to send Rx: {str(e)}")
