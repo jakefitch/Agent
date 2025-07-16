@@ -163,4 +163,14 @@ pip install -r requirements.txt
 - PyMuPDF>=1.26.0
 - pytesseract>=0.3.10
 - requests
-- PyPDF2 
+ - PyPDF2
+
+### Personality CLI
+
+Test the personality agent interactively:
+
+```bash
+python core/ai_tools/example_personality_cli.py --persona blenshaw
+```
+
+Use `teach <text>` to store new information and `ask <question>` to get a response.
