@@ -138,6 +138,10 @@ if flags["contacts"]:
 - Write tests for new functionality
 - Document new features in this README
 
+### Agents and Memory
+The `core.ai_tools.personality` package brings persistent memory to your tools. Load a persona with `Agent.load()` and start teaching it new facts. Embeddings are stored using `VectorMemory` so prior knowledge can be recalled in responses.
+
+
 ## Testing
 
 Run the test suite:
