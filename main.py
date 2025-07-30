@@ -146,12 +146,17 @@ if __name__ == "__main__":
     # Contact lens materials or services
     if flags["contacts"]:
         vsp.claim_page.submit_cl(patient)
-
+    sleep(.5)
     vsp.claim_page.disease_reporting(patient) 
+    sleep(.5)
     vsp.claim_page.calculate(patient)
+    sleep(.5)
     vsp.claim_page.fill_pricing(patient)
+    sleep(.5)
     vsp.claim_page.set_gender(patient)
+    sleep(.5)
     vsp.claim_page.fill_address(patient)
+    sleep(.5)
     success = vsp.claim_page.click_submit_claim()
     if not success:
         pass

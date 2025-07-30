@@ -371,12 +371,33 @@ class MemberSearch(BasePage):
         # ------------------------------------
         # Collect IDs for memberid/last4 searches
         ids: List[str] = []
+        
+        # Extract digits from all insurance data values
         for value in patient.insurance_data.values():
             if not isinstance(value, str):
                 continue
             for digits in re.findall(r"\d{4,}", value):
                 if len(digits) >= 9 and digits not in ids:
                     ids.append(digits)
+        
+        # Extract digits from specific insurance fields (policy number, group number, authorization)
+        specific_fields = ['policy_number', 'group_number', 'authorization']
+        for field in specific_fields:
+            field_value = patient.insurance_data.get(field)
+            if field_value and isinstance(field_value, str):
+                self.logger.log(f"Extracting digits from {field}: {field_value}")
+                # Find all sequences of 4 or more digits
+                for digits in re.findall(r"\d{4,}", field_value):
+                    if len(digits) >= 4:  # Include shorter sequences for last4
+                        if len(digits) >= 9 and digits not in ids:
+                            ids.append(digits)
+                            self.logger.log(f"Added full ID from {field}: {digits}")
+                        # Always add last 4 digits for last4 searches
+                        last4 = digits[-4:]
+                        if last4 not in [id[-4:] for id in ids if len(id) >= 4]:
+                            # Add the last4 directly to the ids list for later extraction
+                            ids.append(digits)  # Add the original digits for last4 extraction
+                            self.logger.log(f"Added digits from {field} for last4 extraction: {digits}")
 
         # Unique list of last four digits
         last4_list: List[str] = []
@@ -384,6 +405,7 @@ class MemberSearch(BasePage):
             last4 = mid[-4:]
             if last4 not in last4_list:
                 last4_list.append(last4)
+                self.logger.log(f"Added last4 digit combination: {last4}")
 
         # 1. Full member ID searches
         for mid in ids:
