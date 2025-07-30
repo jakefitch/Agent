@@ -241,35 +241,6 @@ class ClaimPage(BasePage):
             self.page.locator('#claim-tracker-calculate').click()
             sleep(4)
             self.wait_for_network_idle(timeout=10000)
-            
-            # Check for warning popup that may appear after calculation
-            try:
-                warning_container = self.page.locator('#warning-message-container')
-                if warning_container.is_visible(timeout=5000):  # Reduced from 5000ms to 2000ms
-                    self.logger.log("Warning popup detected after calculation")
-                    sleep(2)
-                    # Try to click the Acknowledge button
-                    acknowledge_button = self.page.locator('#soft-edit-ackn-1')
-                    if acknowledge_button.is_visible(timeout=1000):  # Reduced from 2000ms to 1000ms
-                        acknowledge_button.click()
-                        self.logger.log("Clicked Acknowledge button in warning popup")
-                        self.page.wait_for_timeout(500)
-                        self.page.locator('#claim-tracker-calculate').click()
-                        self.wait_for_network_idle(timeout=10000)
-                          # Reduced from 1000ms to 500ms
-                    else:
-                        # Fallback: try to find any acknowledge button in the warning container
-                        acknowledge_buttons = warning_container.locator('button:has-text("Acknowledge")')
-                        if acknowledge_buttons.count() > 0:
-                            acknowledge_buttons.first.click()
-                            self.logger.log("Clicked Acknowledge button using text selector")
-                            self.page.wait_for_timeout(500)  # Reduced from 1000ms to 500ms
-                        else:
-                            self.logger.log("Warning popup found but no Acknowledge button located")
-                            
-            except Exception as e:
-                self.logger.log(f"No warning popup appeared or error handling it: {str(e)}")
-                
         except Exception as e:
             self.logger.log_error(f"Calculation failed: {str(e)}")
             self.take_screenshot("claim_calculate_error")
@@ -459,7 +430,11 @@ class ClaimPage(BasePage):
             else:
                 self.page.locator('#prescriptionBinocularMonocularSelect').select_option('BINOCULAR')
                 self.page.locator('#prescriptionRightEyeDistanceInput').fill(patient.medical_data.get('dpd', ''))
-            if patient.lens_type != 'Single Vision':
+            
+            # Get lens type from lenses dictionary, similar to submit_lens method
+            lens_data = getattr(patient, "lenses", {}) or {}
+            lens_type = lens_data.get("type", "Single Vision")
+            if lens_type != 'Single Vision':
                 self.send_add_and_seg_to_vsp(patient)
         except Exception as e:
             self.logger.log_error(f"Failed to send Rx: {str(e)}")
