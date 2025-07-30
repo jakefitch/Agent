@@ -276,10 +276,36 @@ class MemberSearch(BasePage):
         # Collect name/dob combinations
         combos: List[Dict] = patient.insurance_data.get("search_combinations", [])[:]
 
+        # Helper to clean name strings
+        def _clean_name(name: Optional[str]) -> str:
+            if not name:
+                return ""
+            return re.sub(r"[;,]", "", name).strip()
+
+        # Helper to parse potential names from arbitrary text fields
+        def _parse_name(text: Optional[str]):
+            if not text:
+                return None
+            if re.search(r"\d", text):
+                return None
+            txt = text.replace(";", ",").strip()
+            if "," in txt:
+                parts = [p.strip() for p in txt.split(",", 1)]
+                if len(parts) >= 2:
+                    last, first = parts[0], parts[1].split()[0]
+                    return _clean_name(first), _clean_name(last)
+            parts = txt.split()
+            if len(parts) == 2:
+                first, last = parts
+                return _clean_name(first), _clean_name(last)
+            return None
+
         # Remove exact duplicate search combinations provided in the data
         _c_seen = set()
         deduped_combos: List[Dict] = []
         for c in combos:
+            c["first_name"] = _clean_name(c.get("first_name"))
+            c["last_name"] = _clean_name(c.get("last_name"))
             k = tuple(sorted(c.items()))
             if k not in _c_seen:
                 _c_seen.add(k)
@@ -319,6 +345,28 @@ class MemberSearch(BasePage):
                 combo_to_add = {"first_name": first, "last_name": last, "dob": holder_dob}
                 self.logger.log(f"Adding policy holder combo: {combo_to_add}")
                 combos.append(combo_to_add)
+
+        # Plan name may contain a person's name
+        plan_name = patient.insurance_data.get("plan_name")
+        parsed = _parse_name(plan_name)
+        if parsed:
+            first, last = parsed
+            exists = any(c.get("first_name") == first and c.get("last_name") == last for c in combos)
+            if not exists:
+                combo_to_add = {"first_name": first, "last_name": last, "dob": holder_dob}
+                self.logger.log(f"Adding plan name combo: {combo_to_add}")
+                combos.append(combo_to_add)
+
+        # Add reversed name combos for robustness
+        reversed_combos: List[Dict] = []
+        for c in combos:
+            fn = c.get("first_name")
+            ln = c.get("last_name")
+            if fn and ln:
+                rev = {"first_name": ln, "last_name": fn, "dob": c.get("dob")}
+                if not any(r.get("first_name") == rev["first_name"] and r.get("last_name") == rev["last_name"] and r.get("dob") == rev.get("dob") for r in combos + reversed_combos):
+                    reversed_combos.append(rev)
+        combos.extend(reversed_combos)
 
         # ------------------------------------
         # Collect IDs for memberid/last4 searches
