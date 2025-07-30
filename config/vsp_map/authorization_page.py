@@ -317,11 +317,17 @@ class AuthorizationPage(BasePage):
                 self.logger.log(f"[_services_from_claims] Found exam code {claim.vcode}, adding index 0")
                 indices.add(0)
             elif any(claim.vcode.startswith(code) for code in self._lens_codes):
-                self.logger.log(f"[_services_from_claims] Found lens code {claim.vcode}, adding index 2")
-                indices.add(2)
+                self.logger.log(f"[_services_from_claims] Found lens code {claim.vcode}, adding index 1")
+                indices.add(1)
             elif claim.vcode in self._frame_codes:
-                self.logger.log(f"[_services_from_claims] Found frame code {claim.vcode}, adding index 3")
+                self.logger.log(f"[_services_from_claims] Found frame code {claim.vcode}, adding index 2")
+                indices.add(2)
+            elif any(claim.vcode.startswith(code) for code in self._contacts_codes):
+                self.logger.log(f"[_services_from_claims] Found contact lens code {claim.vcode}, adding index 3")
                 indices.add(3)
+            elif any(claim.vcode.startswith(code) for code in self._contact_services):
+                self.logger.log(f"[_services_from_claims] Found contact service code {claim.vcode}, adding index 0")
+                indices.add(1)
             else:
                 self.logger.log(f"[_services_from_claims] Code {claim.vcode} not mapped to any service")
         self.logger.log(f"[_services_from_claims] Final service indices: {indices}")

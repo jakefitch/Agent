@@ -127,6 +127,11 @@ class InsuranceTab(BasePage):
                             if insurance_name.lower() not in cell_text.lower():
                                 continue
 
+                            # Skip rows that contain "New" as they are likely new/placeholder entries
+                            if "New" in cell_text:
+                                self.logger.log(f"Container {container_index + 1}, Row {i+1}: Skipping row containing 'New': '{cell_text}'")
+                                continue
+
                             # Apply additional column filters if provided
                             if filters:
                                 matched = True

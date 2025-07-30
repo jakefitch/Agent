@@ -275,17 +275,53 @@ class OpticalOrder(BasePage):
                 'description': lens_description
             })
             
-            # Check for photochromatic in billed items if they exist
-            if hasattr(patient, 'billed_items') and patient.billed_items:
-                patient.lenses['photochromatic'] = any(
-                    item['code'].upper().startswith('V2744') 
-                    for item in patient.billed_items
-                )
+            # Check for photochromatic in lens description and claims
+            photochromatic = False
             
-            # Check for lens material in billed items if they exist
+            # Check lens description for PhotoFusion or similar photochromatic indicators
+            if lens_description and any(keyword in lens_description.lower() for keyword in ['photofusion', 'photochromic', 'photo']):
+                photochromatic = True
+                self.logger.log(f"Detected photochromatic from lens description: {lens_description}")
+            
+            # Check claims for V2744 code (photochromics)
+            if hasattr(patient, 'claims') and patient.claims:
+                for claim in patient.claims:
+                    if claim.vcode and claim.vcode.upper().startswith('V2744'):
+                        photochromatic = True
+                        self.logger.log(f"Detected photochromatic from claim code: {claim.vcode}")
+                        break
+            
+            # Check billed_items as fallback (for backward compatibility)
             if hasattr(patient, 'billed_items') and patient.billed_items:
                 for item in patient.billed_items:
-                    code = item['code'].upper()
+                    if item.get('code', '').upper().startswith('V2744'):
+                        photochromatic = True
+                        self.logger.log(f"Detected photochromatic from billed item: {item.get('code')}")
+                        break
+            
+            patient.lenses['photochromatic'] = photochromatic
+            
+            # Check for lens material in claims and billed items
+            if hasattr(patient, 'claims') and patient.claims:
+                for claim in patient.claims:
+                    code = claim.vcode.upper() if claim.vcode else ''
+                    if code.startswith('V2784'):
+                        patient.lenses['material'] = 'Polycarbonate'
+                        self.logger.log(f"Set material to Polycarbonate from claim: {claim.vcode}")
+                        break
+                    elif code.startswith('V2783'):
+                        patient.lenses['material'] = 'High Index'
+                        self.logger.log(f"Set material to High Index from claim: {claim.vcode}")
+                        break
+                else:
+                    if not patient.lenses.get('material'):
+                        patient.lenses['material'] = 'CR-39'
+                        self.logger.log("Set material to CR-39 (default)")
+            
+            # Check billed_items as fallback (for backward compatibility)
+            elif hasattr(patient, 'billed_items') and patient.billed_items:
+                for item in patient.billed_items:
+                    code = item.get('code', '').upper()
                     if code.startswith('V2784'):
                         patient.lenses['material'] = 'Polycarbonate'
                         break
@@ -293,7 +329,8 @@ class OpticalOrder(BasePage):
                         patient.lenses['material'] = 'High Index'
                         break
                 else:
-                    patient.lenses['material'] = 'CR-39'
+                    if not patient.lenses.get('material'):
+                        patient.lenses['material'] = 'CR-39'
             
             self.logger.log("Successfully scraped lens data")
             
