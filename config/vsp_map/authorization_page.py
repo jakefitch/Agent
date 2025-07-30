@@ -15,6 +15,18 @@ class AuthorizationPage(BasePage):
         4: "contacts",
     }
 
+    # Mapping of various header labels to canonical service names
+    SERVICE_ALIASES = {
+        "exam": "exam",
+        "examination": "exam",
+        "contact_lens_service": "contact_service",
+        "contact_lens_exam": "contact_service",
+        "contact_lens": "contacts",
+        "contacts": "contacts",
+        "lens": "lens",
+        "frame": "frame",
+    }
+
     # Service code mappings
     _exam_codes = {"92004", "92014", "92015"}  # Common exam codes
     _lens_codes = {"V21", "V22", "V23", "V2781"}  # Lens code prefixes
@@ -264,6 +276,27 @@ class AuthorizationPage(BasePage):
         """Return locator for a service availability cell."""
         return self.page.locator(f'[id="{package_index}-availability-{service_index}"]')
 
+    def _canonical_service_name(self, header_text: str) -> Optional[str]:
+        """Normalize a header label to a canonical service name."""
+        if not header_text:
+            return None
+        label = header_text.strip().lower().replace(" ", "_")
+        label = label.replace("services", "service")
+        return self.SERVICE_ALIASES.get(label)
+
+    def get_service_index_map(self, package_index: int = 0) -> Dict[str, int]:
+        """Return a mapping of canonical service names to their indices."""
+        headers = self.page.locator(f'[id="{package_index}-service-header"] label')
+        mapping: Dict[str, int] = {}
+        count = headers.count()
+        for i in range(count):
+            text = headers.nth(i).inner_text().strip()
+            canonical = self._canonical_service_name(text)
+            if canonical is not None:
+                mapping[canonical] = i
+        self.logger.log(f"[get_service_index_map] Service index map: {mapping}")
+        return mapping
+
     def _parse_service_status(self, text: str) -> str:
         """Return standardized service status based on availability cell text."""
         value = text.strip()
@@ -284,10 +317,13 @@ class AuthorizationPage(BasePage):
         self.logger.log(f"[_parse_service_status] Unknown status '{value}', returning as is")
         return value
 
-    def get_service_statuses(self, package_index: int = 0, max_services: int = 5) -> Dict[int, str]:
+    def get_service_statuses(self, package_index: int = 0, max_services: Optional[int] = None) -> Dict[int, str]:
         """Return availability status for each service in a package."""
         statuses: Dict[int, str] = {}
         self.logger.log(f"[get_service_statuses] Checking statuses for package {package_index}")
+        if max_services is None:
+            headers = self.page.locator(f'[id="{package_index}-service-header"] label')
+            max_services = headers.count()
         for idx in range(max_services):
             self.logger.log(f"[get_service_statuses] Checking service index {idx}")
             locator = self._service_availability(package_index, idx)
@@ -307,31 +343,31 @@ class AuthorizationPage(BasePage):
         self.logger.log(f"[get_service_statuses] Final statuses: {statuses}")
         return statuses
 
-    def _services_from_claims(self, claims: List[ClaimItem]) -> Set[int]:
-        """Return set of service indices from claims."""
-        indices = set()
+    def _services_from_claims(self, claims: List[ClaimItem]) -> Set[str]:
+        """Return set of canonical service names from claims."""
+        services = set()
         self.logger.log(f"[_services_from_claims] Processing {len(claims)} claims")
         for claim in claims:
             self.logger.log(f"[_services_from_claims] Checking claim: {claim.vcode} - {claim.description}")
             if claim.vcode in self._exam_codes:
-                self.logger.log(f"[_services_from_claims] Found exam code {claim.vcode}, adding index 0")
-                indices.add(0)
+                self.logger.log(f"[_services_from_claims] Found exam code {claim.vcode}, adding service 'exam'")
+                services.add("exam")
             elif any(claim.vcode.startswith(code) for code in self._lens_codes):
-                self.logger.log(f"[_services_from_claims] Found lens code {claim.vcode}, adding index 1")
-                indices.add(1)
+                self.logger.log(f"[_services_from_claims] Found lens code {claim.vcode}, adding service 'lens'")
+                services.add("lens")
             elif claim.vcode in self._frame_codes:
-                self.logger.log(f"[_services_from_claims] Found frame code {claim.vcode}, adding index 2")
-                indices.add(2)
+                self.logger.log(f"[_services_from_claims] Found frame code {claim.vcode}, adding service 'frame'")
+                services.add("frame")
             elif any(claim.vcode.startswith(code) for code in self._contacts_codes):
-                self.logger.log(f"[_services_from_claims] Found contact lens code {claim.vcode}, adding index 3")
-                indices.add(3)
+                self.logger.log(f"[_services_from_claims] Found contact lens code {claim.vcode}, adding service 'contacts'")
+                services.add("contacts")
             elif any(claim.vcode.startswith(code) for code in self._contact_services):
-                self.logger.log(f"[_services_from_claims] Found contact service code {claim.vcode}, adding index 0")
-                indices.add(1)
+                self.logger.log(f"[_services_from_claims] Found contact service code {claim.vcode}, adding service 'contact_service'")
+                services.add("contact_service")
             else:
                 self.logger.log(f"[_services_from_claims] Code {claim.vcode} not mapped to any service")
-        self.logger.log(f"[_services_from_claims] Final service indices: {indices}")
-        return indices
+        self.logger.log(f"[_services_from_claims] Final services: {services}")
+        return services
 
     def is_exam_authorized(self, package_index: int = 0) -> bool:
         """Check if the exam service is already authorized.
@@ -364,13 +400,20 @@ class AuthorizationPage(BasePage):
         self.logger.log(f"[select_services_for_patient] Called for patient: {patient.first_name} {patient.last_name}")
         self.logger.log(f"[select_services_for_patient] Claims: {patient.claims}")
         
-        # Get service indices from claims
+        # Determine mapping of service names to indices from the page
+        index_map = self.get_service_index_map()
+
+        # Map claim codes to service names
         sleep(1)
-        service_indices = self._services_from_claims(patient.claims)
+        service_names = self._services_from_claims(patient.claims)
+        self.logger.log(f"[select_services_for_patient] Services from claims: {sorted(list(service_names))}")
+
+        # Convert service names to indices using the page map
+        service_indices = {index_map[name] for name in service_names if name in index_map}
         self.logger.log(f"[select_services_for_patient] Service indices from claims: {sorted(list(service_indices))}")
-        
+
         # Get current service statuses
-        statuses = self.get_service_statuses()
+        statuses = self.get_service_statuses(max_services=None)
         self.logger.log(f"[select_services_for_patient] Service statuses for package 0: {statuses}")
         
         # Track which services we can and cannot authorize
@@ -391,17 +434,14 @@ class AuthorizationPage(BasePage):
                 unavailable.append(idx)
         
         self.logger.log(f"[select_services_for_patient] Available: {available}, Authorized: {sorted(list(authorized))}, Unavailable: {unavailable}")
-        
+
         # Log which services are unavailable
         if unavailable:
             unavailable_services = []
+            reverse_map = {v: k for k, v in index_map.items()}
             for idx in unavailable:
-                if idx == 0:
-                    unavailable_services.append("exam")
-                elif idx == 2:
-                    unavailable_services.append("lens")
-                elif idx == 3:
-                    unavailable_services.append("frame")
+                name = reverse_map.get(idx, str(idx))
+                unavailable_services.append(name)
             self.logger.log(f"[select_services_for_patient] Services unavailable for authorization: {', '.join(unavailable_services)}")
             
             # Check if exam is already authorized when materials are unavailable
