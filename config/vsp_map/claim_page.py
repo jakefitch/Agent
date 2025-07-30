@@ -238,9 +238,29 @@ class ClaimPage(BasePage):
     def calculate(self, patient: Patient) -> None:
         """Click the Calculate button and handle alerts."""
         try:
+            # First click of calculate button
             self.page.locator('#claim-tracker-calculate').click()
-            sleep(4)
+            sleep(2)
+            
+            # Check for acknowledge button and handle it
+            try:
+                acknowledge_button = self.page.locator('button.acknowledge-button')
+                if acknowledge_button.is_visible(timeout=3000):
+                    self.logger.log("Acknowledge button found, clicking it...")
+                    acknowledge_button.click()
+                    sleep(1)
+                    
+                    # Click calculate button again after acknowledging
+                    self.logger.log("Clicking calculate button again after acknowledge...")
+                    self.page.locator('#claim-tracker-calculate').click()
+                    sleep(2)
+                else:
+                    self.logger.log("No acknowledge button found, proceeding...")
+            except Exception as e:
+                self.logger.log(f"Error checking for acknowledge button: {str(e)}")
+            
             self.wait_for_network_idle(timeout=10000)
+            
         except Exception as e:
             self.logger.log_error(f"Calculation failed: {str(e)}")
             self.take_screenshot("claim_calculate_error")

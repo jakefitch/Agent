@@ -37,7 +37,7 @@ if __name__ == "__main__":
     rev.invoice_page.navigate_to_invoices_page()
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
-    rev.invoice_page.open_invoice("280734280")
+    rev.invoice_page.open_invoice("282884604")
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
@@ -61,14 +61,18 @@ if __name__ == "__main__":
     # Determine claim flags based on invoice items
     flags = get_claim_service_flags(patient)
 
-    vsp.member_search_page.search_member(patient)
+    member_found = vsp.member_search_page.search_member(patient)
+    if not member_found:
+        print("Member not found, skipping authorization")
+        raise Exception("Member not found, skipping authorization")
     sleep(2)
     write_off_materials = False
 
     vsp.authorization_page.select_patient(patient)
     sleep(1)
+    
     auth_status = vsp.authorization_page.select_services_for_patient(patient)
-
+    print(f'auth_status: {auth_status}')
     if auth_status == "unavailable" or auth_status == "exam_authorized":
         
         vsp.authorization_page.get_plan_name(patient)
@@ -117,8 +121,8 @@ if __name__ == "__main__":
         vsp.authorization_page.get_confirmation_number()
         vsp.authorization_page.navigate_to_claim()
     elif auth_status == "issue":
-        print("Services already authorized for patient")
-        vsp.authorization_page.select_services_for_patient(patient)
+        print("Services not yet authorized for patient")
+        #vsp.authorization_page.select_services_for_patient(patient)
         vsp.authorization_page.issue_authorization(patient)
         vsp.authorization_page.get_confirmation_number()
         vsp.authorization_page.navigate_to_claim()
@@ -152,6 +156,7 @@ if __name__ == "__main__":
     if not success:
         pass
     print("returning  to  patient  page")
+
     
 
 
