@@ -826,11 +826,12 @@ class ClaimPage(BasePage):
             return False
 
     def handle_popup_with_expect_popup(self) -> bool:
-        """Alternative popup handling using expect_popup() method.
-        
-        This method uses Playwright's expect_popup() which is more reliable
-        for handling popup windows that are triggered by clicking a button.
-        
+        """Handle the VSP report popup using Playwright's expect_popup().
+
+        This is now the primary popup handler. It searches for common
+        "View"/"Report" buttons, waits for the popup window, processes it,
+        and closes the popup when finished.
+
         Returns:
             bool: True if popup was handled successfully, False otherwise
         """
@@ -898,11 +899,9 @@ class ClaimPage(BasePage):
                     continue
             
             if not button_found:
-                self.logger.log("No report button found, trying alternative approach...")
-                # If no button found, try the original method
-                return self.handle_popup_window()
-            
-            return False
+                self.logger.log("No report button found with known selectors")
+
+            return button_found
             
         except Exception as e:
             self.logger.log_error(f"Expect popup handling failed: {str(e)}")
@@ -1021,6 +1020,25 @@ class ClaimPage(BasePage):
                 self.logger.log(f"Report content screenshot saved: {screenshot_path}")
             except Exception as e:
                 self.logger.log(f"Failed to take report screenshot: {str(e)}")
+
+            # Enumerate toolbar/menu buttons for debugging
+            try:
+                toolbar_buttons = rpt_page.locator("button")
+                btn_count = toolbar_buttons.count()
+                self.logger.log(f"Found {btn_count} buttons in report frame")
+                for i in range(min(btn_count, 10)):
+                    btn = toolbar_buttons.nth(i)
+                    label = btn.get_attribute("aria-label") or btn.text_content()
+                    self.logger.log(f"  Button {i}: {label}")
+            except Exception as e:
+                self.logger.log(f"Failed to enumerate toolbar buttons: {str(e)}")
+
+            # Log a small snippet of the frame HTML for debugging
+            try:
+                html_preview = rpt_page.content()[:500]
+                self.logger.log(f"Frame HTML preview: {html_preview[:200]}...")
+            except Exception as e:
+                self.logger.log(f"Failed to get frame HTML preview: {str(e)}")
             
             # Try to extract PDF data from embed element
             pdf_extracted = self._extract_pdf_from_embed(rpt_page)
@@ -1270,31 +1288,14 @@ class ClaimPage(BasePage):
                     self.logger.log("Clicked yes button in success modal")
                     self.wait_for_network_idle(timeout=5000)
                     
-                    # Step 5: Handle popup window if it opens
-                    self.logger.log("Attempting to handle popup window...")
-                    
-                    # First, check if there are any existing popup windows
-                    self.logger.log("Checking for existing popup windows...")
-                    popup_success = self.check_existing_popups()
-                    if popup_success:
-                        self.logger.log("Existing popup handling completed successfully")
-                        return True
-                    
-                    # Try the expect_popup method (more reliable for new popups)
-                    self.logger.log("No existing popups found, trying expect_popup method...")
+                    # Step 5: Handle popup window using expect_popup
+                    self.logger.log("Attempting to handle popup window with expect_popup...")
                     popup_success = self.handle_popup_with_expect_popup()
                     if popup_success:
                         self.logger.log("Popup handling completed successfully with expect_popup")
                         return True
-                    
-                    # Fallback to the original method
-                    self.logger.log("expect_popup failed, trying original method...")
-                    popup_success = self.handle_popup_window()
-                    if popup_success:
-                        self.logger.log("Popup handling completed successfully with original method")
-                        return True
                     else:
-                        self.logger.log("All popup handling methods failed, but continuing...")
+                        self.logger.log("Popup handling failed using expect_popup")
                     
             except Exception as e:
                 self.logger.log(f"Success modal not found or not clickable: {str(e)}")
