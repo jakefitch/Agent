@@ -19,12 +19,20 @@ class AuthorizationPage(BasePage):
     SERVICE_ALIASES = {
         "exam": "exam",
         "examination": "exam",
+        "exam_service": "exam",
         "contact_lens_service": "contact_service",
         "contact_lens_exam": "contact_service",
+        "contact_lens_exam_service": "contact_service",
         "contact_lens": "contacts",
         "contacts": "contacts",
+        "contact_lens_material": "contacts",
+        "contact_lens_materials": "contacts",
         "lens": "lens",
+        "lenses": "lens",
+        "spectacle_lens": "lens",
         "frame": "frame",
+        "frame_service": "frame",
+        "frame_services": "frame",
     }
 
     # Service code mappings
@@ -277,12 +285,53 @@ class AuthorizationPage(BasePage):
         return self.page.locator(f'[id="{package_index}-availability-{service_index}"]')
 
     def _canonical_service_name(self, header_text: str) -> Optional[str]:
-        """Normalize a header label to a canonical service name."""
+        """Normalize a header label to a canonical service name.
+
+        This method attempts to standardize the various ways VSP labels the
+        service columns. The original implementation performed only very basic
+        replacements which meant that headers such as "Contact Lens Exam/Service"
+        or "Frame Services" were not recognised. As a result the mapping between
+        service names and column indices would be empty and the subsequent
+        authorization logic would fail to select any services.
+
+        The updated logic normalises the text by removing punctuation, collapsing
+        whitespace and handling common variants. It then performs a series of
+        substring checks to determine the canonical service name.
+        """
         if not header_text:
             return None
-        label = header_text.strip().lower().replace(" ", "_")
-        label = label.replace("services", "service")
-        return self.SERVICE_ALIASES.get(label)
+
+        text = header_text.strip().lower()
+
+        # Replace common punctuation with spaces
+        for ch in ["/", "-", "\n", "\t"]:
+            text = text.replace(ch, " ")
+
+        # Collapse multiple spaces and convert to underscore format
+        text = "_".join(text.split())
+
+        # Handle plural/singular forms
+        text = text.replace("services", "service")
+        text = text.replace("lenses", "lens")
+        text = text.replace("frames", "frame")
+
+        # Direct alias lookup
+        if text in self.SERVICE_ALIASES:
+            return self.SERVICE_ALIASES[text]
+
+        # Fallbacks based on keywords
+        if "exam" in text and "contact" not in text:
+            return "exam"
+        if "contact" in text and ("service" in text or "exam" in text):
+            return "contact_service"
+        if "contact" in text:
+            return "contacts"
+        if "frame" in text:
+            return "frame"
+        if "lens" in text:
+            return "lens"
+
+        return None
 
     def get_service_index_map(self, package_index: int = 0) -> Dict[str, int]:
         """Return a mapping of canonical service names to their indices."""
