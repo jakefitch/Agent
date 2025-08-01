@@ -6,6 +6,10 @@ from datetime import datetime
 import re
 from time import sleep
 import time
+import os
+import json
+from pathlib import Path
+from core.ai_tools import OllamaClient
 
 class MemberSearch(BasePage):
     """Class for handling VSP member search operations."""
@@ -457,6 +461,23 @@ class MemberSearch(BasePage):
             if key not in seen:
                 seen.add(key)
                 unique_data.append(item)
+        # --- LLM post-processing step ---
+        instruction_file = Path(__file__).resolve().parents[2] / "core" / "ai_tools" / "agent_instructions" / "instruction.txt"
+        if instruction_file.exists():
+            try:
+                with open(instruction_file, "r") as f:
+                    instruction = f.read()
+
+                client = OllamaClient()
+                prompt = f"{instruction}\n\n{json.dumps(unique_data)}"
+                response = client.generate(prompt)
+
+                if response:
+                    cleaned = json.loads(response)
+                    if isinstance(cleaned, list):
+                        unique_data = cleaned
+            except Exception as e:
+                self.logger.log(f"LLM processing failed: {e}")
 
         return unique_data
 
