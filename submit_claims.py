@@ -27,14 +27,22 @@ def launch_browser():
 
 def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     """Handle a single invoice number."""
+    # Search for specific invoice by ID
+    rev.invoice_page.search_invoice(invoice_number=invoice_id)
+    sleep(2)
+    #open invoice
     rev.invoice_page.open_invoice(invoice_id)
     rev.invoice_page.click_docs_and_images_tab()
+    # Check if invoice has document before opening
     if rev.invoice_page.check_for_document():
         print(f"Invoice {invoice_id} already has document, skipping")
-        rev.invoice_page.close_invoice_tabs(invoice_id)
         return
+    
+
 
     # Create patient from invoice and scrape details
+    #click back to details tab
+    rev.invoice_page.click_invoice_details_tab()
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
@@ -159,12 +167,16 @@ def main():
 
     results = rev.invoice_page.scrape_all_search_results()
     invoice_ids = [r["invoice_id"] for r in results]
+    print(f'Found {len(invoice_ids)} invoices to process')
 
     for inv in invoice_ids:
         try:
             process_invoice(inv, rev, vsp)
+            #close the invoice tab
+            rev.invoice_page.close_invoice_tabs(inv)
         except Exception as e:
             print(f"Error processing {inv}: {e}")
+            rev.invoice_page.close_invoice_tabs(inv)
 
     browser.close()
     p.stop()

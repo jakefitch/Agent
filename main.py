@@ -16,7 +16,6 @@ def launch_browser():
     logger = Logger()
     rev = RevSession(context.new_page(), logger, context)
     vsp = VspSession(context.new_page(), logger)
-    #return p, browser, rev
     return p, browser, rev, vsp
 
 
@@ -26,7 +25,6 @@ if __name__ == "__main__":
     load_dotenv("/home/jake/Code/.env")
 
     p, browser, rev, vsp = launch_browser()
-    #p, browser, rev = launch_browser()
     
     rev.login()
 
