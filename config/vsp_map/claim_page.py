@@ -193,7 +193,7 @@ class ClaimPage(BasePage):
                 else:
                     self.logger.log_error(f"All {max_attempts} attempts to set doctor failed")
                     self.take_screenshot("claim_set_doctor_error")
-                    raise Exception(f"Failed to set doctor after {max_attempts} attempts: {str(e)}")
+                    
         
         # This should never be reached due to the raise above, but just in case
         raise Exception(f"Failed to set doctor after {max_attempts} attempts")
@@ -543,6 +543,8 @@ class ClaimPage(BasePage):
             return  # nothing to submit
 
         material = lens_data.get("material", "")
+        if material =="High Index":
+            material = "Plastic Hi Index"
         ar = lens_data.get("ar", "")
         photo = lens_data.get("photochromatic", False)
 
@@ -564,6 +566,9 @@ class ClaimPage(BasePage):
             design = "Stock Spherical w/ Premium AR (D) - Photochromic Other"
         elif ar =="Lab Choice (AR Coating D) (AR Coating D)" and material == "Polycarbonate" and lens_type == "Single Vision":
             design = "Stock Spherical w/ Premium AR (D) - Clear"
+        elif ar == "Lab Choice (AR Coating D) (AR Coating D)" and material == "Plastic Hi Index" and lens_type == "Single Vision":
+            design = "Stock 1.67 Aspheric w/ Premium AR (D) - Clear"
+    
     
 
         try:
@@ -1285,6 +1290,7 @@ class ClaimPage(BasePage):
                 success_button = self.page.locator('#successfully-submitted-claim-modal-yes-button')
                 if success_button.is_visible(timeout=3000):
                     success_button.click()
+                    time.sleep(5)
                     self.logger.log("Clicked yes button in success modal")
                     self.wait_for_network_idle(timeout=5000)
                     

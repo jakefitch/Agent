@@ -37,7 +37,7 @@ if __name__ == "__main__":
     rev.invoice_page.navigate_to_invoices_page()
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
-    rev.invoice_page.open_invoice("283470398")
+    rev.invoice_page.open_invoice("287147650")
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
     rev.invoice_page.click_patient_name_link()
@@ -72,11 +72,13 @@ if __name__ == "__main__":
     sleep(1)
     
     auth_status = vsp.authorization_page.select_services_for_patient(patient)
+    sleep(.5)
     print(f'auth_status: {auth_status}')
     if auth_status == "unavailable" or auth_status == "exam_authorized":
-        
+    
         vsp.authorization_page.get_plan_name(patient)
         #check the plan name from the insurance data
+        sleep(.5)
         if patient.insurance_data['plan_name'] == "VSP Exam Plus Plan":
             #set the patient copay to 0
             patient.insurance_data['copay'] = "0.00"
@@ -108,24 +110,36 @@ if __name__ == "__main__":
 
 
     elif auth_status == "use_existing":
+        sleep(.5)
         print("Services already authorized for patient")
         vsp.authorization_page.navigate_to_authorizations()
+        sleep(.5)
         vsp.authorization_page.select_authorization(patient)
     elif auth_status == "delete_existing":
         print("Services already authorized for patient")
         vsp.authorization_page.navigate_to_authorizations()
+        sleep(.5)
         vsp.authorization_page.delete_authorization(patient)
+        sleep(.5)
         vsp.authorization_page.select_patient(patient)
+        sleep(.5)
         vsp.authorization_page.select_services_for_patient(patient)
+        sleep(.5)
         vsp.authorization_page.issue_authorization(patient)
+        sleep(.5)
         vsp.authorization_page.get_confirmation_number()
+        sleep(.5)
         vsp.authorization_page.navigate_to_claim()
     elif auth_status == "issue":
         print("Services not yet authorized for patient")
-        #vsp.authorization_page.select_services_for_patient(patient)
+        vsp.authorization_page.select_services_for_patient(patient)
         vsp.authorization_page.issue_authorization(patient)
+        sleep(.5)
         vsp.authorization_page.get_confirmation_number()
+        sleep(.5)
         vsp.authorization_page.navigate_to_claim()
+
+
     sleep(2)
     vsp.claim_page.set_dos(patient)
     vsp.claim_page.set_doctor(patient)
@@ -161,6 +175,7 @@ if __name__ == "__main__":
     if not success:
         pass
     print("returning  to  patient  page")
+    print('done')
 
     
 
