@@ -541,10 +541,19 @@ class AuthorizationPage(BasePage):
             self.logger.log_error(f"Failed to select all services: {str(e)}")
 
     def issue_authorization(self, package_index: int = 0) -> bool:
-        """Click the Issue Authorization button."""
+        """Click the Issue Authorization button.
+
+        The button may be visible but disabled (grayed out). In that case the
+        click should be skipped and ``False`` returned.
+        """
         try:
             button = self.page.locator(f'[id="0-issue-authorization-button"]')
             button.wait_for(state="visible", timeout=5000)
+
+            if not button.is_enabled():
+                self.logger.log_error("Issue Authorization button is disabled")
+                return False
+
             button.click()
             return True
         except Exception as e:
