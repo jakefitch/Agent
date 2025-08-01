@@ -224,12 +224,12 @@ class MemberSearch(BasePage):
                 sleep(1)
 
             self.logger.log("All search combinations failed to find a match")
-            raise Exception("Stopping execution due to failed member search")
+            return False
 
         except Exception as e:
             self.logger.log_error(f"Error during member search: {str(e)}")
             self.take_screenshot("member_search_list_error")
-            raise
+            return False
 
     def build_search_data(self, patient: Patient) -> List[Dict]:
         """Create an ordered list of search dictionaries for a patient.
