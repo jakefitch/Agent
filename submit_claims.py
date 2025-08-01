@@ -27,21 +27,16 @@ def launch_browser():
 
 def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     """Handle a single invoice number."""
-    # Search for specific invoice by ID
     rev.invoice_page.search_invoice(invoice_number=invoice_id)
     sleep(2)
-    #open invoice
     rev.invoice_page.open_invoice(invoice_id)
     rev.invoice_page.click_docs_and_images_tab()
-    # Check if invoice has document before opening
+
     if rev.invoice_page.check_for_document():
         print(f"Invoice {invoice_id} already has document, skipping")
         return
-    
 
-
-    # Create patient from invoice and scrape details
-    #click back to details tab
+    # Scrape patient info
     rev.invoice_page.click_invoice_details_tab()
     patient = rev.invoice_page.create_patient_from_invoice()
     rev.invoice_page.scrape_invoice_details(patient)
@@ -65,18 +60,19 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
 
     flags = get_claim_service_flags(patient)
 
-    member_found = vsp.member_search_page.search_member(patient)
-    if not member_found:
+    # Search VSP
+    if not vsp.member_search_page.search_member(patient):
         print("Member not found, skipping authorization")
         rev.invoice_page.close_invoice_tabs(invoice_id)
         return
-    sleep(2)
 
+    sleep(2)
     vsp.authorization_page.select_patient(patient)
     sleep(1)
     auth_status = vsp.authorization_page.select_services_for_patient(patient)
     sleep(0.5)
 
+    # Handle VSP Exam Plus special case
     if auth_status in {"unavailable", "exam_authorized"}:
         vsp.authorization_page.get_plan_name(patient)
         sleep(0.5)
@@ -84,24 +80,30 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
             patient.insurance_data["copay"] = "0.00"
             vsp.authorization_page.get_exam_service()
             if auth_status == "unavailable":
-                vsp.authorization_page.issue_authorization(patient)
-                vsp.authorization_page.get_confirmation_number()
+                if not vsp.authorization_page.issue_authorization(patient):
+                    print("Failed to issue authorization")
+                    rev.invoice_page.close_invoice_tabs(invoice_id)
+                    return
+                if not vsp.authorization_page.get_confirmation_number():
+                    print("No confirmation number found after issuing auth")
+                    rev.invoice_page.close_invoice_tabs(invoice_id)
+                    return
                 vsp.authorization_page.navigate_to_claim()
             else:
                 vsp.authorization_page.navigate_to_authorizations()
                 vsp.authorization_page.select_authorization(patient)
-            flags["frame"] = False
-            flags["lens"] = False
-            flags["contacts"] = False
+            flags.update({"frame": False, "lens": False, "contacts": False})
         else:
             print("Unknown plan name, skipping")
             rev.invoice_page.close_invoice_tabs(invoice_id)
             return
+
     elif auth_status == "use_existing":
         sleep(0.5)
         vsp.authorization_page.navigate_to_authorizations()
         sleep(0.5)
         vsp.authorization_page.select_authorization(patient)
+
     elif auth_status == "delete_existing":
         vsp.authorization_page.navigate_to_authorizations()
         sleep(0.5)
@@ -109,25 +111,40 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
         sleep(0.5)
         vsp.authorization_page.select_patient(patient)
         sleep(0.5)
-        vsp.authorization_page.select_services_for_patient(patient)
+        new_status = vsp.authorization_page.select_services_for_patient(patient)
         sleep(0.5)
-        vsp.authorization_page.issue_authorization(patient)
-        sleep(0.5)
-        vsp.authorization_page.get_confirmation_number()
-        sleep(0.5)
+        if new_status == "issue":
+            if not vsp.authorization_page.issue_authorization(patient):
+                print("Failed to re-issue authorization")
+                rev.invoice_page.close_invoice_tabs(invoice_id)
+                return
+        else:
+            print(f"Unexpected status after deletion: {new_status}")
+            rev.invoice_page.close_invoice_tabs(invoice_id)
+            return
+
+        if not vsp.authorization_page.get_confirmation_number():
+            print("No confirmation number found after issuing auth")
+            rev.invoice_page.close_invoice_tabs(invoice_id)
+            return
         vsp.authorization_page.navigate_to_claim()
+
     elif auth_status == "issue":
-        vsp.authorization_page.select_services_for_patient(patient)
-        vsp.authorization_page.issue_authorization(patient)
-        sleep(0.5)
-        vsp.authorization_page.get_confirmation_number()
-        sleep(0.5)
+        if not vsp.authorization_page.issue_authorization(patient):
+            print("Failed to issue authorization")
+            rev.invoice_page.close_invoice_tabs(invoice_id)
+            return
+        if not vsp.authorization_page.get_confirmation_number():
+            print("No confirmation number found after issuing auth")
+            rev.invoice_page.close_invoice_tabs(invoice_id)
+            return
         vsp.authorization_page.navigate_to_claim()
 
     sleep(2)
     vsp.claim_page.set_dos(patient)
     vsp.claim_page.set_doctor(patient)
 
+    # Submit services
     if flags["exam"]:
         vsp.claim_page.submit_exam(patient)
 
@@ -139,6 +156,7 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     if flags["contacts"]:
         vsp.claim_page.submit_cl(patient)
 
+    # Finalize claim
     sleep(0.5)
     vsp.claim_page.disease_reporting(patient)
     sleep(0.5)
@@ -152,6 +170,7 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     sleep(0.5)
     vsp.claim_page.click_submit_claim()
     rev.invoice_page.close_invoice_tabs(invoice_id)
+
 
 
 def main():
