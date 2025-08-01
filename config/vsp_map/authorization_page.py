@@ -436,84 +436,103 @@ class AuthorizationPage(BasePage):
             return False
 
     def select_services_for_patient(self, patient: Patient) -> str:
-        """Select all available services for a patient based on their claims.
-        
-        Returns:
-            str: One of:
-                "unavailable" - if any required service is unavailable
-                "use_existing" - if authorized services exactly match billed services
-                "delete_existing" - if there are authorized services but they don't match billed services
-                "issue" - if all billed services are available for authorization
-                "exam_authorized" - if exam is already authorized but materials are unavailable
+        """Determine which action to take for a patient's services.
+
+        Returns one of:
+            "unavailable"    - a required service is not available or an error occurred
+            "use_existing"   - an existing authorization exactly matches billed services
+            "delete_existing"- an authorization exists but does not match billed services
+            "issue"          - services were selected and an authorization can be issued
+            "exam_authorized"- exam already authorized but materials unavailable
         """
-        self.logger.log(f"[select_services_for_patient] Called for patient: {patient.first_name} {patient.last_name}")
+
+        self.logger.log(
+            f"[select_services_for_patient] Called for patient: {patient.first_name} {patient.last_name}"
+        )
         self.logger.log(f"[select_services_for_patient] Claims: {patient.claims}")
-        
-        # Determine mapping of service names to indices from the page
-        index_map = self.get_service_index_map()
 
-        # Map claim codes to service names
-        sleep(1)
-        service_names = self._services_from_claims(patient.claims)
-        self.logger.log(f"[select_services_for_patient] Services from claims: {sorted(list(service_names))}")
+        try:
+            index_map = self.get_service_index_map()
+            if not index_map:
+                self.logger.log_error(
+                    "[select_services_for_patient] No service headers found on page"
+                )
+                return "unavailable"
 
-        # Convert service names to indices using the page map
-        service_indices = {index_map[name] for name in service_names if name in index_map}
-        self.logger.log(f"[select_services_for_patient] Service indices from claims: {sorted(list(service_indices))}")
+            sleep(1)
+            service_names = self._services_from_claims(patient.claims)
+            self.logger.log(
+                f"[select_services_for_patient] Services from claims: {sorted(list(service_names))}"
+            )
 
-        # Get current service statuses
-        statuses = self.get_service_statuses(max_services=None)
-        self.logger.log(f"[select_services_for_patient] Service statuses for package 0: {statuses}")
-        
-        # Track which services we can and cannot authorize
-        desired = service_indices
-        authorized = {idx for idx, status in statuses.items() if status == "authorized"}
-        self.logger.log(f"[select_services_for_patient] Desired set: {desired}")
-        self.logger.log(f"[select_services_for_patient] Authorized set: {authorized}")
-        
-        # Check each service's status
-        available = []
-        unavailable = []
-        for idx in desired:
-            status = statuses.get(idx, "unavailable")
-            self.logger.log(f"[select_services_for_patient] Service idx {idx} has status: {status}")
-            if status == "available":
-                available.append(idx)
-            elif status == "unavailable":
-                unavailable.append(idx)
-        
-        self.logger.log(f"[select_services_for_patient] Available: {available}, Authorized: {sorted(list(authorized))}, Unavailable: {unavailable}")
+            service_indices = {index_map[name] for name in service_names if name in index_map}
+            self.logger.log(
+                f"[select_services_for_patient] Service indices from claims: {sorted(list(service_indices))}"
+            )
+            if not service_indices:
+                self.logger.log_error(
+                    "[select_services_for_patient] No billed services match page headers"
+                )
+                return "unavailable"
 
-        # Log which services are unavailable
-        if unavailable:
-            unavailable_services = []
-            reverse_map = {v: k for k, v in index_map.items()}
-            for idx in unavailable:
-                name = reverse_map.get(idx, str(idx))
-                unavailable_services.append(name)
-            self.logger.log(f"[select_services_for_patient] Services unavailable for authorization: {', '.join(unavailable_services)}")
-            
-            # Check if exam is already authorized when materials are unavailable
-            if 0 not in unavailable and self.is_exam_authorized():
-                self.logger.log("[select_services_for_patient] Exam is already authorized but materials are unavailable")
-                return "exam_authorized"
+            statuses = self.get_service_statuses(max_services=None)
+            self.logger.log(
+                f"[select_services_for_patient] Service statuses for package 0: {statuses}"
+            )
+
+            desired = service_indices
+            authorized = {idx for idx, status in statuses.items() if status == "authorized"}
+            available = {idx for idx in desired if statuses.get(idx) == "available"}
+            unavailable = {idx for idx in desired if statuses.get(idx) == "unavailable"}
+
+            self.logger.log(
+                f"[select_services_for_patient] Desired: {desired}, Authorized: {authorized}, Available: {available}, Unavailable: {unavailable}"
+            )
+
+            if unavailable:
+                reverse_map = {v: k for k, v in index_map.items()}
+                names = [reverse_map.get(i, str(i)) for i in unavailable]
+                self.logger.log(
+                    f"[select_services_for_patient] Services unavailable for authorization: {', '.join(names)}"
+                )
+                if 0 not in unavailable and self.is_exam_authorized():
+                    self.logger.log(
+                        "[select_services_for_patient] Exam authorized but materials unavailable"
+                    )
+                    return "exam_authorized"
+                return "unavailable"
+
+            if authorized == desired:
+                self.logger.log(
+                    "[select_services_for_patient] Authorized services exactly match desired services"
+                )
+                return "use_existing"
+
+            if authorized:
+                self.logger.log(
+                    "[select_services_for_patient] Partial authorization found; needs deletion"
+                )
+                return "delete_existing"
+
+            if not available:
+                self.logger.log_error(
+                    "[select_services_for_patient] No available services to select"
+                )
+                return "unavailable"
+
+            if self.select_services(0, available):
+                return "issue"
+
+            self.logger.log_error(
+                "[select_services_for_patient] Failed to select required service checkboxes"
+            )
             return "unavailable"
-        
-        # Check if authorized services exactly match desired services
-        if authorized == desired:
-            self.logger.log("[select_services_for_patient] Authorized services exactly match desired services")
-            return "use_existing"
-        
-        # If there are any authorized services but they don't match desired services
-        if authorized:
-            self.logger.log("[select_services_for_patient] Authorized services exist but don't match desired services")
-            return "delete_existing"
-        
-        # If we get here, all services are available and none are authorized
-        self.logger.log("[select_services_for_patient] All services available for authorization")
-        if self.select_services(0, set(available)):
-            return "issue"
-        return "unavailable"  # Fallback if selection fails
+        except Exception as e:
+            self.logger.log_error(
+                f"[select_services_for_patient] Unexpected error: {str(e)}"
+            )
+            self.take_screenshot("select_services_error")
+            return "unavailable"
 
     def select_services(self, package_index: int, service_indices: Set[int]) -> bool:
         """Select services in a package by clicking their checkboxes."""
