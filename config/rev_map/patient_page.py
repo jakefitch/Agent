@@ -119,15 +119,26 @@ class PatientPage(BasePage):
 
             if close_all:
                 count = tab_spans.count()
+                self.logger.log(f"Found {count} patient tabs to close")
+                closed_count = 0
                 for i in range(count - 1, -1, -1):
                     span = tab_spans.nth(i)
                     close_icon = span.locator(
                         "xpath=../../span[contains(@class,'e-close-icon')]"
                     )
-                    close_icon.click()
-                    span.wait_for(state="detached", timeout=5000)
-                self.logger.log(f"Closed {count} patient tab(s)")
-                return count
+                    # Check if close icon is visible before clicking
+                    if close_icon.is_visible(timeout=1000):
+                        try:
+                            close_icon.click()
+                            span.wait_for(state="detached", timeout=5000)
+                            closed_count += 1
+                            self.logger.log(f"Closed patient tab {i+1}")
+                        except Exception as e:
+                            self.logger.log(f"Failed to close patient tab {i+1}: {str(e)}")
+                    else:
+                        self.logger.log(f"Close icon for patient tab {i+1} is not visible, skipping")
+                self.logger.log(f"Closed {closed_count} patient tab(s)")
+                return closed_count
 
             if patient_name:
                 closing_name = patient_name.lower().replace(" ", "")
@@ -140,10 +151,19 @@ class PatientPage(BasePage):
                 close_icon = span.locator(
                     "xpath=../../span[contains(@class,'e-close-icon')]"
                 )
-                close_icon.click()
-                span.wait_for(state="detached", timeout=5000)
-                self.logger.log(f"Closed patient tab {patient_name}")
-                return 1
+                # Check if close icon is visible before clicking
+                if close_icon.is_visible(timeout=1000):
+                    try:
+                        close_icon.click()
+                        span.wait_for(state="detached", timeout=5000)
+                        self.logger.log(f"Closed patient tab {patient_name}")
+                        return 1
+                    except Exception as e:
+                        self.logger.log(f"Failed to close patient tab {patient_name}: {str(e)}")
+                        return 0
+                else:
+                    self.logger.log(f"Close icon for patient tab {patient_name} is not visible, skipping")
+                    return 0
 
             count = tab_spans.count()
             if count == 0:
@@ -155,10 +175,19 @@ class PatientPage(BasePage):
             close_icon = span.locator(
                 "xpath=../../span[contains(@class,'e-close-icon')]"
             )
-            close_icon.click()
-            span.wait_for(state="detached", timeout=5000)
-            self.logger.log(f"Closed last patient tab {tab_name}")
-            return 1
+            # Check if close icon is visible before clicking
+            if close_icon.is_visible(timeout=1000):
+                try:
+                    close_icon.click()
+                    span.wait_for(state="detached", timeout=5000)
+                    self.logger.log(f"Closed last patient tab {tab_name}")
+                    return 1
+                except Exception as e:
+                    self.logger.log(f"Failed to close last patient tab {tab_name}: {str(e)}")
+                    return 0
+            else:
+                self.logger.log(f"Close icon for last patient tab {tab_name} is not visible, skipping")
+                return 0
 
         except Exception as e:
             self.logger.log_error(f"Failed to close patient tab(s): {str(e)}")

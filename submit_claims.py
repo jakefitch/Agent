@@ -172,11 +172,18 @@ def main():
     for inv in invoice_ids:
         try:
             process_invoice(inv, rev, vsp)
-            #close the invoice tab
+            rev.patient_page.navigate_to_patient_page()
+            rev.patient_page.close_patient_tab()
+            rev.invoice_page.navigate_to_invoices_page()
             rev.invoice_page.close_invoice_tabs(inv)
+            
         except Exception as e:
             print(f"Error processing {inv}: {e}")
+            rev.patient_page.navigate_to_patient_page()
+            rev.patient_page.close_patient_tab()
+            rev.invoice_page.navigate_to_invoices_page()
             rev.invoice_page.close_invoice_tabs(inv)
+            
 
     browser.close()
     p.stop()
