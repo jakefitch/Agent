@@ -41,6 +41,59 @@ class ClaimPage(BasePage):
             self.take_screenshot("claim_nav_error")
             raise
 
+    def _fill_with_verification(
+        self,
+        locator,
+        value: str,
+        field_name: str,
+        max_attempts: int = 3,
+    ) -> bool:
+        """Fill a field and verify the value matches what was sent.
+
+        Args:
+            locator: Playwright locator for the input field.
+            value: The value to set on the field.
+            field_name: Name used for logging.
+            max_attempts: Number of times to retry filling the field.
+
+        Returns:
+            bool: True if the field was set successfully, False otherwise.
+        """
+        for attempt in range(max_attempts):
+            try:
+                locator.click()
+            except Exception:
+                pass
+
+            locator.fill(value)
+            self.page.wait_for_timeout(500)
+
+            current_value = ""
+            try:
+                current_value = locator.input_value()
+            except Exception:
+                try:
+                    current_value = locator.evaluate("el => el.value")
+                except Exception:
+                    current_value = locator.text_content() or ""
+
+            if current_value == value:
+                self.logger.log(
+                    f"{field_name} successfully set on attempt {attempt + 1}"
+                )
+                return True
+
+            self.logger.log(
+                f"{field_name} verification failed on attempt {attempt + 1}: "
+                f"expected '{value}', got '{current_value}'"
+            )
+            self.page.wait_for_timeout(500)
+
+        self.logger.log_error(
+            f"Failed to set {field_name} after {max_attempts} attempts"
+        )
+        return False
+
     # ------------------------------------------------------------------
     # High level workflows
     def fill_rx(self, patient: Patient) -> None:
@@ -359,7 +412,9 @@ class ClaimPage(BasePage):
                     self.logger.log("Setting FSA paid amount...")
                     fsa_locator = self.page.locator("#services-fsa-paid-input")
                     if fsa_locator.is_visible(timeout=1000):
-                        fsa_locator.fill(copay)
+                        self._fill_with_verification(
+                            fsa_locator, copay, "FSA paid amount"
+                        )
 
             except Exception as e:
                 self.logger.log_error(f"Error setting FSA paid amount: {str(e)}")
@@ -372,8 +427,10 @@ class ClaimPage(BasePage):
                 paid = self.page.locator("#services-patient-paid-amount-input")
                 if copay:
                     self.logger.log("Setting patient paid amount...")
-                    paid.click()
-                    paid.fill(copay)
+                    if not self._fill_with_verification(
+                        paid, copay, "patient paid amount"
+                    ):
+                        raise Exception("Patient paid amount verification failed")
             except Exception as e:
                 self.logger.log_error(f"Error setting patient paid amount: {str(e)}")
 
