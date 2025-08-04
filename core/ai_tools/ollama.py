@@ -31,10 +31,22 @@ class TesseractTool(AbstractPDFTool):
         return {"text": ocr_text}
 
 class OllamaClient:
-    def __init__(self, base_url: str = "http://100.120.49.120:11434", timeout: float = 60.0):
+    """Thin client for interacting with the local Ollama instance.
+
+    The default timeout has been extended to two minutes to give the model
+    additional time to respond.  The default model is also reduced to the 8B
+    variant which is significantly faster than the previous 70B default.
+    """
+
+    def __init__(
+        self,
+        base_url: str = "http://100.120.49.120:11434",
+        timeout: float = 120.0,
+        default_model: str = "llama3:8b",
+    ):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self.default_model = "llama3:70b"
+        self.default_model = default_model
         
         # Initialize PDF tools
         self.pdf_tools = {
@@ -44,7 +56,11 @@ class OllamaClient:
 
     def get_models(self) -> Optional[list[str]]:
         try:
-            response = requests.get(f"{self.base_url}/api/tags", timeout=self.timeout)
+            # Allow a short connect timeout but a longer read timeout so the model
+            # has time to stream a response.
+            response = requests.get(
+                f"{self.base_url}/api/tags", timeout=(10, self.timeout)
+            )
             response.raise_for_status()
             data = response.json()
             # Extract just the model names
@@ -74,7 +90,12 @@ class OllamaClient:
             # Use default model if none specified
             model_to_use = model or self.default_model
             payload = {"model": model_to_use, "prompt": prompt, "stream": stream}
-            response = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=self.timeout)
+            # Extend read timeout to give the LLM ample time to respond.
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
+                timeout=(10, self.timeout),
+            )
             response.raise_for_status()
             return response.json().get("response")
         except requests.exceptions.RequestException as e:
