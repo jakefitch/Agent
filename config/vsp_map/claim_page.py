@@ -568,6 +568,9 @@ class ClaimPage(BasePage):
             design = "Stock Spherical w/ Premium AR (D) - Clear"
         elif ar == "Lab Choice (AR Coating D) (AR Coating D)" and material == "Plastic Hi Index" and lens_type == "Single Vision":
             design = "Stock 1.67 Aspheric w/ Premium AR (D) - Clear"
+        elif ar == "Other (AR Coating A)" and material == "Plastic Hi Index" and lens_type == "Single Vision":
+            design = "Stock 1.67 Aspheric - Clear"
+      
     
     
 

@@ -97,9 +97,10 @@ class MemberSearch(BasePage):
     def _clear_search_fields(self) -> None:
         """Clear all search fields."""
         try:
+            self.logger.log("Clearing all search fields...")
             selectors = [
                 "#member-search-first-name",
-                "#member-search-last-name",
+                "#member-search-last-name", 
                 "#member-search-dob",
                 "#member-search-last-four",
                 "#member-search-full-id"
@@ -107,7 +108,28 @@ class MemberSearch(BasePage):
             for selector in selectors:
                 field = self.page.locator(selector)
                 if field.is_visible():
+                    # Clear the field and verify it's empty
                     field.clear()
+                    # Wait a moment for the clear to take effect
+                    self.page.wait_for_timeout(100)
+                    # Double-check by filling with empty string
+                    field.fill("")
+                    self.logger.log(f"Cleared field: {selector}")
+                else:
+                    self.logger.log(f"Field not visible, skipping: {selector}")
+            
+            # Verify all fields are empty
+            for selector in selectors:
+                field = self.page.locator(selector)
+                if field.is_visible():
+                    value = field.input_value()
+                    if value.strip():
+                        self.logger.log(f"Warning: Field {selector} still has value: '{value}'")
+                        # Force clear again
+                        field.clear()
+                        field.fill("")
+            
+            self.logger.log("Search fields cleared successfully")
         except Exception as e:
             self.logger.log(f"Error clearing search fields: {str(e)}")
             self.take_screenshot("clear_fields_error")
@@ -478,7 +500,8 @@ class MemberSearch(BasePage):
                         unique_data = cleaned
             except Exception as e:
                 self.logger.log(f"LLM processing failed: {e}")
-
+        print('LLM post-processing complete')
+        print(unique_data)
         return unique_data
 
     
