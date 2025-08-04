@@ -164,6 +164,8 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     sleep(0.5)
     vsp.claim_page.fill_pricing(patient)
     sleep(0.5)
+    vsp.claim_page.fill_copay_and_fsa(patient)
+    sleep(0.5)
     vsp.claim_page.set_gender(patient)
     sleep(0.5)
     vsp.claim_page.fill_address(patient)
