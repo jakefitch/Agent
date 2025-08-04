@@ -148,46 +148,43 @@ if __name__ == "__main__":
         else:
             print("Authorization could not be issued, skipping claim")
 
-
     if claim_ready:
         sleep(2)
         vsp.claim_page.set_dos(patient)
         vsp.claim_page.set_doctor(patient)
+
+        # Exam submission
+        if flags["exam"]:
+            vsp.claim_page.submit_exam(patient)
+
+        # Glasses related processing
+        if flags["lens"]:
+            vsp.claim_page.submit_frame(patient)
+            vsp.claim_page.submit_lens(patient)
+            vsp.claim_page.send_rx(patient)
+
+        # Contact lens materials or services
+        if flags["contacts"]:
+            vsp.claim_page.submit_cl(patient)
+
+        sleep(.5)
+        vsp.claim_page.disease_reporting(patient)
+        sleep(.5)
+        vsp.claim_page.calculate(patient)
+        sleep(.5)
+        vsp.claim_page.fill_pricing(patient)
+        sleep(.5)
+        vsp.claim_page.set_gender(patient)
+        sleep(.5)
+        vsp.claim_page.fill_address(patient)
+        sleep(.5)
+        success = vsp.claim_page.click_submit_claim()
+        if not success:
+            pass
+        print("returning  to  patient  page")
+        print('done')
     else:
         print("Claim page not ready, skipping claim submission")
-
-    # Exam submission
-    if flags["exam"]:
-        vsp.claim_page.submit_exam(patient)
-
-    # Glasses related processing
-
-       
-    if flags["lens"]:
-        vsp.claim_page.submit_frame(patient)
-        vsp.claim_page.submit_lens(patient)
-        vsp.claim_page.send_rx(patient)
-
-
-    # Contact lens materials or services
-    if flags["contacts"]:
-        vsp.claim_page.submit_cl(patient)
-    sleep(.5)
-    vsp.claim_page.disease_reporting(patient) 
-    sleep(.5)
-    vsp.claim_page.calculate(patient)
-    sleep(.5)
-    vsp.claim_page.fill_pricing(patient)
-    sleep(.5)
-    vsp.claim_page.set_gender(patient)
-    sleep(.5)
-    vsp.claim_page.fill_address(patient)
-    sleep(.5)
-    success = vsp.claim_page.click_submit_claim()
-    if not success:
-        pass
-    print("returning  to  patient  page")
-    print('done')
 
     
 
