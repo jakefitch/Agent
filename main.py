@@ -139,7 +139,7 @@ if __name__ == "__main__":
             print("Authorization could not be issued, skipping claim")
     elif auth_status == "issue":
         print("Services not yet authorized for patient")
-        vsp.authorization_page.select_services_for_patient(patient)
+        #vsp.authorization_page.select_services_for_patient(patient)
         if vsp.authorization_page.issue_authorization():
             sleep(.5)
             vsp.authorization_page.get_confirmation_number()
