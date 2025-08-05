@@ -170,7 +170,17 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     sleep(0.5)
     vsp.claim_page.fill_address(patient)
     sleep(0.5)
-    vsp.claim_page.click_submit_claim()
+    success = vsp.claim_page.click_submit_claim()
+
+    screenshot_path = vsp.claim_page.last_screenshot_path
+    if success and screenshot_path:
+        rev.invoice_page.navigate_to_invoices_page()
+        rev.invoice_page.search_invoice(invoice_number=invoice_id)
+        sleep(1)
+        rev.invoice_page.open_invoice(invoice_id)
+        rev.invoice_page.click_docs_and_images_tab()
+        rev.insurance_tab.upload_insurance_document(screenshot_path)
+
     rev.invoice_page.close_invoice_tabs(invoice_id)
 
 

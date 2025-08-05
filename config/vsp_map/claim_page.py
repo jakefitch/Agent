@@ -14,6 +14,8 @@ class ClaimPage(BasePage):
     def __init__(self, page: Page, logger: Logger, context: Optional[PatientContext] = None):
         super().__init__(page, logger, context)
         self.base_url = "https://eclaim.eyefinity.com/secure/eInsurance/claim-form"
+        # Path to the most recent popup screenshot, if any
+        self.last_screenshot_path: Optional[str] = None
 
     # ------------------------------------------------------------------
     # Utilities
@@ -1002,6 +1004,8 @@ class ClaimPage(BasePage):
                 screenshot_path = f"logs/screenshots/vsp_reports_{int(time.time())}.png"
                 reports_page.screenshot(path=screenshot_path)
                 self.logger.log(f"Reports page screenshot saved: {screenshot_path}")
+                # Store path for later retrieval
+                self.last_screenshot_path = screenshot_path
             except Exception as e:
                 self.logger.log(f"Failed to take screenshot: {str(e)}")
             
@@ -1324,6 +1328,8 @@ class ClaimPage(BasePage):
         """
         try:
             self.logger.log("Starting claim submission process...")
+            # Reset stored screenshot path for this submission attempt
+            self.last_screenshot_path = None
             previous_url = self.page.url
 
             # Step 1: Click the initial submit claim button
