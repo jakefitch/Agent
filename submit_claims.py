@@ -212,15 +212,26 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
 
 
 def build_invoice_list(rev: RevSession) -> list[str]:
-    """Scrape invoices and return those lacking documents."""
+    """Compile list of invoices that lack uploaded documents."""
+    # First gather all invoice IDs for the Vision payor
     rev.invoice_page.navigate_to_invoices_page()
     rev.invoice_page.search_invoice(payor="vision")
     sleep(2)
     results = rev.invoice_page.scrape_all_search_results()
+
+    # For each invoice, perform an individual search and check for documents
     invoice_ids: list[str] = []
     for r in results:
         inv_id = r["invoice_id"]
-        rev.invoice_page.open_invoice(inv_id)
+
+        # Search specifically for this invoice so it appears on the first page
+        rev.invoice_page.search_invoice(invoice_number=inv_id)
+        sleep(1)
+
+        if not rev.invoice_page.open_invoice(inv_id):
+            # If the invoice couldn't be opened, skip it
+            continue
+
         rev.invoice_page.click_docs_and_images_tab()
         if not rev.invoice_page.check_for_document():
             invoice_ids.append(inv_id)
