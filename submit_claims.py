@@ -7,11 +7,38 @@ claim for each invoice that does not already have a document uploaded.
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 from time import sleep
+import json
+from pathlib import Path
+from datetime import date
 
 from core.logger import Logger
 from config.vsp_map.vsp_session import VspSession
 from config.rev_map.rev_session import RevSession
 from core.utils import get_claim_service_flags
+
+DATA_DIR = Path(__file__).parent / "data"
+
+
+def _daily_invoice_file() -> Path:
+    """Return the path to today's invoice list file."""
+    DATA_DIR.mkdir(exist_ok=True)
+    return DATA_DIR / f"invoices_to_submit_{date.today().isoformat()}.json"
+
+
+def _load_invoice_list(path: Path) -> list[str]:
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_invoice_list(invoice_ids: list[str], path: Path) -> None:
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(invoice_ids, f)
+
+
+def _cleanup_old_lists(current_file: Path) -> None:
+    for fp in DATA_DIR.glob("invoices_to_submit_*.json"):
+        if fp != current_file:
+            fp.unlink()
 
 
 def launch_browser():
@@ -184,6 +211,23 @@ def process_invoice(invoice_id: str, rev: RevSession, vsp: VspSession) -> None:
     rev.invoice_page.close_invoice_tabs(invoice_id)
 
 
+def build_invoice_list(rev: RevSession) -> list[str]:
+    """Scrape invoices and return those lacking documents."""
+    rev.invoice_page.navigate_to_invoices_page()
+    rev.invoice_page.search_invoice(payor="vision")
+    sleep(2)
+    results = rev.invoice_page.scrape_all_search_results()
+    invoice_ids: list[str] = []
+    for r in results:
+        inv_id = r["invoice_id"]
+        rev.invoice_page.open_invoice(inv_id)
+        rev.invoice_page.click_docs_and_images_tab()
+        if not rev.invoice_page.check_for_document():
+            invoice_ids.append(inv_id)
+        rev.invoice_page.close_invoice_tabs(inv_id)
+    return invoice_ids
+
+
 
 def main():
     load_dotenv("/home/jake/Code/.env")
@@ -192,22 +236,27 @@ def main():
     rev.login()
     vsp.login("ama")
 
+    daily_file = _daily_invoice_file()
+    if daily_file.exists():
+        invoice_ids = _load_invoice_list(daily_file)
+    else:
+        _cleanup_old_lists(daily_file)
+        invoice_ids = build_invoice_list(rev)
+        _save_invoice_list(invoice_ids, daily_file)
+
+    print(f"Found {len(invoice_ids)} invoices to process")
     rev.invoice_page.navigate_to_invoices_page()
-    rev.invoice_page.search_invoice(payor="vision")
-    sleep(2)
 
-    results = rev.invoice_page.scrape_all_search_results()
-    invoice_ids = [r["invoice_id"] for r in results]
-    print(f'Found {len(invoice_ids)} invoices to process')
-
-    for inv in invoice_ids:
+    for inv in invoice_ids.copy():
         try:
             process_invoice(inv, rev, vsp)
+            invoice_ids.remove(inv)
+            _save_invoice_list(invoice_ids, daily_file)
             rev.patient_page.navigate_to_patient_page()
             rev.patient_page.close_patient_tab()
             rev.invoice_page.navigate_to_invoices_page()
             rev.invoice_page.close_invoice_tabs(inv)
-            
+
         except Exception as e:
             print(f"Error processing {inv}: {e}")
             rev.patient_page.navigate_to_patient_page()
