@@ -430,14 +430,19 @@ class MemberSearch(BasePage):
                 with open(instruction_file, "r") as f:
                     instruction = f.read()
 
+                self.logger.log(f"Dataset before LLM cleaning: {json.dumps(unique_data, indent=2)}")
                 client = OllamaClient()
                 prompt = f"{instruction}\n\n{json.dumps(unique_data)}"
+                start_time = time.time()
                 response = client.generate(prompt)
+                elapsed = time.time() - start_time
+                self.logger.log(f"Ollama model execution time: {elapsed:.2f} seconds")
 
                 if response:
                     cleaned = json.loads(response)
                     if isinstance(cleaned, list):
                         unique_data = cleaned
+                self.logger.log(f"Dataset after LLM cleaning: {json.dumps(unique_data, indent=2)}")
             except Exception as e:
                 self.logger.log(f"LLM processing failed: {e}")
         self.logger.log('LLM post-processing complete')
