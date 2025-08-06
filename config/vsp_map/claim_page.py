@@ -699,12 +699,37 @@ class ClaimPage(BasePage):
 
     def fill_copay_and_fsa(self, patient: Patient) -> None:
         """Fill out the copay amount and FSA paid amount fields if available.
-        
+
         Args:
-            patient: Patient object containing the copay amount in insurance_data
+            patient: Patient object containing copay data.  Copay may be stored
+                either in ``patient.insurance_data['copay']`` or within the
+                patient's claim items.
         """
         try:
-            copay = str(patient.insurance_data.get("copay", ""))
+            copay = ""
+
+            # Copay may come from insurance data or from claim items.
+            if getattr(patient, "insurance_data", None):
+                copay = str(patient.insurance_data.get("copay", "")).strip()
+
+            if not copay and getattr(patient, "claims", None):
+                total = 0.0
+                for claim in patient.claims:
+                    claim_copay = getattr(claim, "copay", None)
+                    if claim_copay:
+                        cleaned = (
+                            str(claim_copay)
+                            .replace("$", "")
+                            .replace(",", "")
+                            .strip()
+                        )
+                        try:
+                            total += float(cleaned) if cleaned else 0.0
+                        except ValueError:
+                            continue
+                if total:
+                    copay = f"{total:.2f}"
+
             if not copay:
                 self.logger.log("No copay amount found in patient data")
                 raise Exception("No copay amount found in patient data")
