@@ -439,9 +439,13 @@ class MemberSearch(BasePage):
                 self.logger.log(f"Ollama model execution time: {elapsed:.2f} seconds")
 
                 if response:
-                    cleaned = json.loads(response)
-                    if isinstance(cleaned, list):
-                        unique_data = cleaned
+                    response = response.strip()
+                    try:
+                        cleaned = json.loads(response)
+                        if isinstance(cleaned, list):
+                            unique_data = cleaned
+                    except json.JSONDecodeError as e:
+                        self.logger.log(f"JSON decoding failed: {e}; response: {response}")
                 self.logger.log(f"Dataset after LLM cleaning: {json.dumps(unique_data, indent=2)}")
             except Exception as e:
                 self.logger.log(f"LLM processing failed: {e}")
